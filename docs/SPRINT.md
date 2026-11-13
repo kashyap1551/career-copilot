@@ -13,15 +13,15 @@ About 4 to 5 focused hours a day. Every day ends with a deploy. Start the next s
 
 Goal: a live link where a page sends text to the server and the AI answers in a fixed shape.
 
-- [ ] **1.1** Check Node.js (20.9 or newer) and Git; create a free Groq account and API key.
+- [x] **1.1** Check Node.js (20.9 or newer) and Git; create a free Groq account and API key.
   Check: `node -v` and `git --version` work; the key is saved somewhere safe, never in a chat.
-- [ ] **1.2** Create the Next.js app with TypeScript and push it to a new GitHub repository, with the repo-local commit name and no-reply email.
+- [x] **1.2** Create the Next.js app with TypeScript and push it to a new GitHub repository, with the repo-local commit name and no-reply email.
   Check: the starter page runs locally, and the first commit is on GitHub.
-- [ ] **1.3** CLAUDE.md in place, .claude/settings.json blocks reading .env files, and the folders exist.
+- [x] **1.3** CLAUDE.md in place, .claude/settings.json blocks reading .env files, and the folders exist.
   Check: asked "what are this project's rules?", Claude Code answers from CLAUDE.md.
-- [ ] **1.4** Connect the repository to Vercel and add GROQ_API_KEY and GROQ_MODEL in Vercel's settings.
+- [x] **1.4** Connect the repository to Vercel and add GROQ_API_KEY and GROQ_MODEL in Vercel's settings.
   Check: a live URL redeploys on every push.
-- [ ] **1.5** One server route: text in, the model's answer out as JSON checked by a Zod schema, plus a plain page to try it.
+- [x] **1.5** One server route: text in, the model's answer out as JSON checked by a Zod schema, plus a plain page to try it.
   Check: the live page shows a schema-checked reply for a pasted job ad.
 
 ## Day 2: The rules engine, no AI
