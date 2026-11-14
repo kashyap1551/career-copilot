@@ -39,10 +39,14 @@ The plan is docs/SPRINT.md: 10 build days to a live MVP. Work one step at a time
 - `npm run dev`: the app at http://localhost:3000
 - `npm run build`: production build; run it before every push
 - `npm test`: the tests (from Day 2)
+- `npm run report -- <profile id | all>`: prints a person's fit reports and roadmap from the fixtures (from Day 2)
 
 ## How to work with me
 
 - I'm a product manager learning to code: I direct, you build. Don't quiz me; explain when I ask.
-- Before writing code for a step, show me a short plan and wait for my OK.
-- Keep each change small. After each step: run its check, summarise what changed in five plain lines or fewer, commit with the step number (for example "2.3: rolesUnlockedBy"), tick the step in docs/SPRINT.md and add one line to docs/LEARNING-LOG.md.
+- Keep each change small. Work in one of two lanes, depending on what the step touches.
+- **Fast lane**: pages, scripts, wiring, docs, formatting and display code. Build directly, run the checks, commit with the step number (for example "2.4: report") and give me a summary of five lines or fewer. Ask only if you're blocked or a product decision is needed. You may do consecutive fast-lane steps in one go.
+- **Careful lane**: anything the AI reads or writes, rules and schemas in lib/engine and lib/schemas, prompts, the skill vocabulary, privacy, secrets, cost, and anything that could invent facts. For these, show me a short plan and wait for my OK. Work out the expected values by hand before writing the code; tests take their expectations from that hand work, never from the code's output, and if a test fails, say whether the code or the hand count is wrong instead of changing the expectation. Then break the code on purpose in a few ways to check the tests fail.
+- If a step mixes the lanes, treat the whole step as careful lane.
+- Tick steps in docs/SPRINT.md and add lines to docs/LEARNING-LOG.md at the end of each day, not at the end of each step.
 - Product decisions go in docs/DECISIONS.md: one line each, with the reason.
