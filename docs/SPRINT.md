@@ -36,7 +36,7 @@ Goal: fit levels and unlock counts work on hand-made data, proven by tests.
 - [x] **2.3** `rolesUnlockedBy()`, the ranking of missing skills, and dated counts from skills in progress.
   Note: a requirement can list several acceptable skills (`skillIds`, "Power BI or Tableau"). `rolesUnlockedBy` must handle this: gaining any one of them unlocks the job.
   Check: on the fixtures, the results match a hand count, dates included.
-- [ ] **2.4** A command-line report: `npm run report` prints one profile's fit reports and roadmap.
+- [x] **2.4** A command-line report: `npm run report` prints one profile's fit reports and roadmap.
   Check: the printout reads right for all 3 profiles.
 
 ## Day 3: First end-to-end version

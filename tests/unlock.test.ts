@@ -3,6 +3,7 @@ import { jobs as fixtureJobs } from "@/fixtures/jobs";
 import { profiles } from "@/fixtures/profiles";
 import {
   classifyJobs,
+  jobsBroughtCloser,
   rankMissingSkills,
   rolesUnlockedBy,
   unlockTimeline,
@@ -282,5 +283,46 @@ describe("real fixtures: ranking, unlocks and timeline", () => {
     for (const id of ["sam", "ravi", "lena", "jonas"]) {
       expect(unlockTimeline(P(id), fixtureJobs)).toEqual([]);
     }
+  });
+});
+
+// ---- jobsBroughtCloser: what a job still needs after a skill ----------------
+// Expected values worked out by hand from the same sets as above.
+
+describe("jobsBroughtCloser", () => {
+  const shape = (r: ReturnType<typeof jobsBroughtCloser>) =>
+    r.map((x) => ({ jobId: x.jobId, stillNeeds: x.stillNeeds.map((q) => q.skillIds) }));
+
+  it("Sam: financial modelling brings Brightwater closer; it still needs financial planning", () => {
+    expect(shape(jobsBroughtCloser(P("sam"), fixtureJobs, [], "financial-modelling"))).toEqual([
+      { jobId: B, stillNeeds: [["financial-planning"]] },
+    ]);
+  });
+
+  it("Sam: once modelling is chosen, planning unlocks the job and brings nothing 'closer'", () => {
+    expect(jobsBroughtCloser(P("sam"), fixtureJobs, ["financial-modelling"], "financial-planning")).toEqual([]);
+  });
+
+  it("Tess: SQL unlocks B, C and K, and brings only E closer (E still needs Python)", () => {
+    expect(shape(jobsBroughtCloser(tess, set1, [], "sql"))).toEqual([
+      { jobId: "E", stillNeeds: [["python"]] },
+    ]);
+  });
+
+  it("Set 2: zulu brings both jobs closer, each still needs a different skill", () => {
+    const nobody = person("nobody", []);
+    const set2 = [mk("X", [["alpha"], ["zulu"]]), mk("Y", [["zulu"], ["beta"]])];
+    expect(shape(jobsBroughtCloser(nobody, set2, [], "zulu"))).toEqual([
+      { jobId: "X", stillNeeds: [["alpha"]] },
+      { jobId: "Y", stillNeeds: [["beta"]] },
+    ]);
+  });
+
+  it("an 'or' requirement that is still open is listed with all its alternatives", () => {
+    const nobody = person("nobody", []);
+    const job = mk("J", [["a"], ["b", "c"]]);
+    expect(shape(jobsBroughtCloser(nobody, [job], [], "a"))).toEqual([
+      { jobId: "J", stillNeeds: [["b", "c"]] },
+    ]);
   });
 });

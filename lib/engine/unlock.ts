@@ -176,6 +176,34 @@ function isBetter(a: RankedSkill, b: RankedSkill): boolean {
   return a.skillId < b.skillId;
 }
 
+// ---- What a job still needs after a skill -----------------------------------
+
+// For the report: the jobs that `skillId` brings one step closer (given the
+// skills already `chosen`), and what each of them still needs afterwards.
+// A job this skill would unlock outright is not listed.
+export function jobsBroughtCloser(
+  profile: Profile,
+  jobs: Job[],
+  chosen: SkillId[],
+  skillId: SkillId,
+): { jobId: string; stillNeeds: Requirement[] }[] {
+  const before = new Set(chosen);
+  const after = new Set(chosen).add(skillId);
+  return classifyJobs(profile, jobs).reachable.flatMap((r) => {
+    const helped = r.missing.some(
+      (req) =>
+        req.skillIds.includes(skillId) && !req.skillIds.some((id) => before.has(id)),
+    );
+    if (!helped || covers(r.missing, after)) return [];
+    return [
+      {
+        jobId: r.job.id,
+        stillNeeds: r.missing.filter((req) => !req.skillIds.some((id) => after.has(id))),
+      },
+    ];
+  });
+}
+
 // ---- The dated timeline ----------------------------------------------------
 
 export type TimelineEntry = {

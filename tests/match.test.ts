@@ -200,11 +200,13 @@ describe("conflict sentences", () => {
     );
   });
 
-  it("Jonas x Northwind: years compared with total years, and the sentence says so", () => {
+  it("Jonas x Northwind: years short by two", () => {
+    // The "compared with total years" note is no longer part of the sentence;
+    // the report prints it once per job (see tests/report.test.ts).
     const r = match(P("jonas"), northwind);
     expect(r.conflicts[1]).toMatchObject({ kind: "years", closable: false, required: 3, has: 1, yearsShort: 2 });
     expect(r.conflicts[1].message).toBe(
-      "The ad asks for 3 years of experience; your profile has 1 (2 years short). Years are compared with your total years of experience, not years per skill.",
+      "The ad asks for 3 years of experience; your profile has 1 (2 years short).",
     );
   });
 });

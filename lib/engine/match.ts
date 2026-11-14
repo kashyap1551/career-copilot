@@ -28,10 +28,10 @@ const LANGUAGE_NAMES: Record<string, string> = {
   kn: "Kannada",
   pt: "Portuguese",
 };
-const languageName = (code: string) =>
+export const languageName = (code: string) =>
   LANGUAGE_NAMES[code.toLowerCase()] ?? code.toUpperCase();
 
-const MODE_NAMES: Record<WorkMode, string> = {
+export const MODE_NAMES: Record<WorkMode, string> = {
   onsite: "on-site",
   hybrid: "hybrid",
   remote: "remote",
@@ -179,7 +179,7 @@ function checkYears(profile: Profile, job: Job, out: Checks) {
       required,
       has,
       yearsShort: short,
-      message: `The ad asks for ${plural(required, "year", "years")} of experience; your profile has ${has} (${plural(short, "year", "years")} short). Years are compared with your total years of experience, not years per skill.`,
+      message: `The ad asks for ${plural(required, "year", "years")} of experience; your profile has ${has} (${plural(short, "year", "years")} short).`,
     });
   }
 }

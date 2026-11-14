@@ -1,0 +1,96 @@
+SAM EXAMPLE (sam): 3 saved jobs
+  Operations Analyst, Northwind Logistics: Strong (3 of 3 must-haves met)
+  Financial Planning Analyst, Brightwater Finserv: Stretch (1 of 3 must-haves met)
+  Frontend Developer, Fjordlight Software: Long shot (0 of 3 must-haves met)
+
+--- Operations Analyst, Northwind Logistics ---
+FIT: Strong
+WHY: You meet all 3 must-haves and no conflict stands in the way.
+
+MUST-HAVES: 3 of 3 met
+  "Strong SQL for querying large data sets."
+    met      SQL, CV line 3: "Wrote SQL queries on delivery and warehouse data for weekly performance reviews"
+  "Advanced Excel, including pivot tables and lookups."
+    met      Excel, CV line 4: "Built Excel models with pivot tables and lookups to track depot costs"
+  "Able to explain findings clearly to non-technical managers."
+    met      Communication, CV line 6: "Presented weekly findings to non-technical depot managers"
+
+CONFLICTS: none
+
+NOT CHECKED (not stated):
+  - The ad does not give a start date.
+
+CHECK THIS YOURSELF (never scored):
+  - "You must have the right to work in the UK."
+  - "We would like you to start within two months."
+
+NICE-TO-HAVES: 1 of 2 met
+  "Power BI or Tableau dashboard experience."
+    met      Power BI, CV line 5: "Built Power BI dashboards for the operations managers"
+  "Python for data cleaning."
+    missing  Python: not on your profile
+
+--- Financial Planning Analyst, Brightwater Finserv ---
+FIT: Stretch
+WHY: Two must-haves are missing (Financial planning and analysis, Financial modelling). Nothing else stands in the way.
+
+MUST-HAVES: 1 of 3 met
+  "2 to 4 years of experience in financial planning and analysis."
+    missing  Financial planning and analysis: not on your profile
+  "Advanced Excel financial modelling."
+    missing  Financial modelling: not on your profile
+  "Power BI for monthly reporting."
+    met      Power BI, CV line 5: "Built Power BI dashboards for the operations managers"
+
+CONFLICTS: none
+
+NOT CHECKED (not stated):
+  - The ad does not give a start date.
+
+CHECK THIS YOURSELF (never scored):
+  - "Bachelor's degree in finance, commerce or a related field."
+  - "Knowledge of Hindi or Kannada."
+  - "Immediate joiners are preferred."
+
+NICE-TO-HAVES: 1 of 1 met
+  "Basic SQL."
+    met      SQL, CV line 3: "Wrote SQL queries on delivery and warehouse data for weekly performance reviews"
+
+--- Frontend Developer, Fjordlight Software ---
+FIT: Long shot
+WHY: What decides this is work mode: the job is remote and your profile accepts on-site, hybrid, and that can't be closed soon. Also, 3 of 3 must-haves are missing (TypeScript, React, Git).
+
+MUST-HAVES: 0 of 3 met
+  "Strong TypeScript and React."
+    missing  TypeScript: not on your profile
+    missing  React: not on your profile
+  "Daily use of Git and pull-request reviews."
+    missing  Git: not on your profile
+
+CONFLICTS: 1
+  - (can't be closed soon) The job is remote; your profile accepts: on-site, hybrid.
+
+NOT CHECKED (not stated):
+  - The ad does not give a start date.
+
+CHECK THIS YOURSELF (never scored):
+  - "We are not able to sponsor visas, so you must already be able to work in Europe."
+
+NICE-TO-HAVES: 0 of 2 met
+  "Testing with Vitest or Jest."
+    missing  Vitest or Jest: not on your profile
+  "Experience with accessibility standards."
+    missing  Accessibility: not on your profile
+
+=== ROADMAP for Sam Example (test view: 3 saved jobs; the app shows this from 10) ===
+Already Strong: 1 job (Operations Analyst, Northwind Logistics)
+
+Skills to build, in order:
+  1. Financial modelling: together with Financial planning and analysis, unlocks Financial Planning Analyst, Brightwater Finserv.
+  2. Financial planning and analysis: unlocks 1 job (Financial Planning Analyst, Brightwater Finserv). Total so far: 1 job.
+
+Blocked jobs (skills alone can't make these Strong): 1
+  - Frontend Developer, Fjordlight Software: blocked by 1 thing; it can't be closed soon
+      (can't be closed soon) The job is remote; your profile accepts: on-site, hybrid.
+
+Timeline from skills in progress: none.
