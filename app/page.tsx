@@ -1,21 +1,32 @@
 "use client";
 
 import { useState } from "react";
-import type { JobAd } from "@/lib/schemas/job";
+import type { BuildResult, RemovalReason } from "@/lib/engine/fromAd";
 
-// Day 1 page: paste a job ad, see the AI's schema-checked reading of it.
+// Step 3.1 page: paste a job ad, see the checked reading of it. The fit
+// report on this page comes in step 3.4.
+
+const REASONS: Record<RemovalReason, string> = {
+  "not-in-ad": "it wasn't in your ad",
+  "no-skill": "it named no skill",
+  "number-not-in-quote": "its number wasn't in the quoted words",
+  "number-out-of-range": "its number was out of range",
+  "no-full-date": "the quoted words have no full date",
+  "date-mismatch": "its date didn't match the quoted words",
+  "level-not-in-quote": "the level wording wasn't in the quoted words",
+  "several-cities": "the ad names several cities",
+};
+
 export default function Home() {
   const [text, setText] = useState("");
-  const [job, setJob] = useState<JobAd | null>(null);
-  const [removed, setRemoved] = useState(0);
+  const [result, setResult] = useState<BuildResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function readAd() {
     setLoading(true);
     setError(null);
-    setJob(null);
-    setRemoved(0);
+    setResult(null);
     try {
       const res = await fetch("/api/read", {
         method: "POST",
@@ -28,8 +39,7 @@ export default function Home() {
       if (!res.ok) {
         setError(data?.error ?? `The server returned an error (${res.status}).`);
       } else {
-        setJob(data.job);
-        setRemoved(data.removed ?? 0);
+        setResult(data as BuildResult);
       }
     } catch {
       setError("Could not reach the server. Check your connection and try again.");
@@ -69,17 +79,41 @@ export default function Home() {
         </p>
       )}
 
-      {job && (
-        <section>
-          <h2 className="mb-2 font-semibold">What the AI read</h2>
-          {removed > 0 && (
-            <p className="mb-2 text-sm text-zinc-600 dark:text-zinc-400">
-              {removed} {removed === 1 ? "item" : "items"} removed because{" "}
-              {removed === 1 ? "it wasn't" : "they weren't"} in your ad.
+      {result && (
+        <section className="flex flex-col gap-3">
+          <h2 className="font-semibold">What the AI read</h2>
+
+          {result.removed.length > 0 && (
+            <div className="text-sm text-zinc-600 dark:text-zinc-400">
+              <p>
+                {result.removed.length} {result.removed.length === 1 ? "item" : "items"} removed
+                because a check failed:
+              </p>
+              <ul className="list-disc pl-5">
+                {result.removed.map((r, i) => (
+                  <li key={i}>
+                    {r.what}: {REASONS[r.why]} (&ldquo;{r.text}&rdquo;)
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {result.moved.length > 0 && (
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">
+              {result.moved.length} {result.moved.length === 1 ? "line" : "lines"} moved to
+              &ldquo;check this yourself&rdquo; because it couldn&apos;t be checked.
             </p>
           )}
+
+          {result.unlisted.length > 0 && (
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">
+              Not in our skill list yet: {result.unlisted.map((s) => s.name).join(", ")}.
+            </p>
+          )}
+
           <pre className="whitespace-pre-wrap break-words rounded bg-zinc-100 p-3 text-sm dark:bg-zinc-900">
-            {JSON.stringify(job, null, 2)}
+            {JSON.stringify(result.job, null, 2)}
           </pre>
         </section>
       )}
