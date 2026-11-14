@@ -6,15 +6,15 @@ Rules for the set: public postings only; each from a company other than the owne
 
 | File | Company | Country | URL | Date copied | Holdout |
 |---|---|---|---|---|---|
-| ad-01.txt | | | | | |
-| ad-02.txt | | | | | |
-| ad-03.txt | | | | | |
-| ad-04.txt | | | | | |
-| ad-05.txt | | | | | |
-| ad-06.txt | | | | | |
-| ad-07.txt | | | | | |
-| ad-08.txt | | | | | |
-| ad-09.txt | | | | | yes |
-| ad-10.txt | | | | | yes |
+| ad-01.txt | Flexport | United States | https://job-boards.greenhouse.io/flexport/jobs/8348058 | 2026-11-14 | |
+| ad-02.txt | Flexport | Germany | https://job-boards.greenhouse.io/flexport/jobs/8378967 | 2026-11-14 | |
+| ad-03.txt | DSV | Germany | https://www.dsv.com/en/careers/job-search/joboffer/v2/product-manager-tradelane-inbound-europe-hamburg-131970-de_DE | 2026-11-14 | |
+| ad-04.txt | Flexport | Singapore | https://job-boards.greenhouse.io/flexport/jobs/7981879 | 2026-11-14 | |
+| ad-05.txt | Razorpay | India | https://job-boards.greenhouse.io/razorpaysoftwareprivatelimited/jobs/4716555005 | 2026-11-14 | |
+| ad-06.txt | Flexport | China | https://job-boards.greenhouse.io/flexport/jobs/8040985 | 2026-11-14 | |
+| ad-07.txt | Hygraph | Germany | https://jobs.hygraph.com/o/customer-success-manager-fmd-berlin-germany | 2026-11-14 | |
+| ad-08.txt | GR8 Tech | Not stated (remote-first) | https://job-boards.eu.greenhouse.io/gr8tech/jobs/4879223101 | 2026-11-14 | |
+| ad-09.txt | Tradin Organic | Germany | https://tradinorganic.recruitee.com/o/sales-coordinator-dach-2 | 2026-11-14 | yes |
+| ad-10.txt | 4flow | Germany | https://careers.4flow.com/offer/senior-logistics-operations-special/f7f9b0dc-4302-430e-bb7b-950f0a58a214 | 2026-11-14 | yes |
 
 Known case (synthetic, committed): `fixtures/known-cases/barista-injection.txt`, a made-up ad written by Claude, source "synthetic sample" (see docs/DECISIONS.md).
