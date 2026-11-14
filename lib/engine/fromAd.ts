@@ -69,7 +69,7 @@ const NUMBER_WORDS: Record<number, string[]> = {
 
 // Does this number appear in the quote, as digits or as a word? "2" is not
 // found inside "12".
-function numberInQuote(n: number, quote: string): boolean {
+export function numberInQuote(n: number, quote: string): boolean {
   const folded = foldText(quote);
   const digits = String(n).replace(/\./g, "\\.");
   if (new RegExp(`(?<![\\d.,])${digits}(?!\\d)`).test(folded)) return true;

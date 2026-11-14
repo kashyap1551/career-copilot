@@ -22,7 +22,7 @@ export class ReadAdError extends Error {
 // What the AI is told. It only READS the ad; lib/engine/fromAd.ts checks every
 // quote against the ad and decides levels, ids and dates. The example is made
 // up and unlike any ad we test with.
-const INSTRUCTIONS = `You read job ads and copy out what they say. You never guess. Every quote must be copied exactly from the ad.
+export const INSTRUCTIONS = `You read job ads and copy out what they say. You never guess. Every quote must be copied exactly from the ad.
 
 Fields:
 - title, company: as the ad writes them. null if the ad does not say.

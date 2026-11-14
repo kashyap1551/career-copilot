@@ -1,4 +1,4 @@
-STATUS: approved by the owner with the changes listed under "Approved decisions". Work order: (1) wording table, commit "3.2a"; (2) gitignore, folders, DECISIONS, SOURCES.md; (3) matcher tables, matcher, tests, breaks; (4) barista ad and key; (5) eval script; (6) run the eval on the barista ad only; commit "3.2b: eval matcher and script"; then stop and tell the owner the folder is ready for the ads. Nothing is ticked; ticks come at the end of Day 3. Careful lane throughout.
+STATUS: steps (1) to (6) of the work order are DONE (commits "3.2a: German wording endings" and "3.2b: eval matcher and script"). The eval folder is ready and waiting for the owner to save the ten real ads. Nothing is ticked; ticks come at the end of Day 3.
 
 # Plan for 3.2: a mini test set and `npm run eval`
 
@@ -94,3 +94,92 @@ A made-up ad written by Claude, saved in `fixtures/known-cases/`, source "synthe
 2. Tell Claude when they are saved.
 3. Review each batch of keys: OK or corrections per ad.
 4. Later, in 3.3: say when tuning is done, so the holdout ads can be revealed.
+
+---
+
+# Matcher: hand-worked tables (written before any matcher code)
+
+Every expected result below was worked out by hand from the pairing rule in section 4. The tests take their expectations from these tables, never from the code's output. If a test fails, the question is whether the code or the table is wrong.
+
+**Conventions.** Quotes are compared after normalising (case, spacing, curly quotes and dashes ignored). Key skill names become ids with the same name-to-id function as the AI's names (`SQL` is `sql`, `R` is `new:r`, `A/B testing` is `new:a-b-testing`). "Position" means key order, then AI order. `L` is the whole ad line "Sehr gute SQL-Kenntnisse; Python or R is a plus." and `Q` is "Experience with A/B testing and product metrics (retention, funnels)."
+
+## (a) One AI quote covers several key items
+Key: **k0** `{ "Sehr gute SQL-Kenntnisse", must, [SQL] }`, **k1** `{ "Python or R is a plus.", nice, [Python, R] }`. Every pair of a key item with an AI item quoting `L` is a candidate, because each key quote is contained in `L`. None is an exact match.
+
+| # | AI items (all quote `L`) | Pairs taken | Result |
+|---|---|---|---|
+| a1 | e0 must `[sql]`; e1 nice `[python, new:r]` | (k0,e0), (k1,e1): they share an id, the cross pairs do not | found 1 of 1 must; missed 0; extras 0; name differs 0 |
+| a2 | e0 must `[new:structured-query-language]`; e1 nice `[new:python-3, new:r]` | (k1,e1) first (shares `new:r`), then (k0,e0) is the only free pair | found 1; name differs 2 (e0 has no shared id; e1's set is not equal to the key's) |
+| a3 | only e0 must `[sql]` | (k0,e0) | found 1; k1 missed (a nice-to-have: missed nice 1, missed must 0) |
+| a4 | e0 nice `[python, new:r]`; e1 must `[sql]` (swapped order) | (k0,e1) and (k1,e0) by shared id | found 1; extras 0; name differs 0 |
+
+## (b) Several key items share one quote
+Key: **k0** `{ Q, must, [A/B testing] }`, **k1** `{ Q, must, [Product metrics] }`. Every key and AI item quoting `Q` is an exact-quote candidate.
+
+| # | AI items (all quote `Q`) | Pairs taken | Result |
+|---|---|---|---|
+| b1 | e0 must `[new:a-b-testing]`; e1 must `[new:product-metrics]` | (k0,e0), (k1,e1) by shared id | found 2 of 2; name differs 0 |
+| b2 | one item e0 must `[new:a-b-testing, new:product-metrics]` (merged) | (k0,e0) wins on position; k1 has no partner | found 1 of 2; missed must 1; merge hint on k1 ("shares its quote with a matched item"); name differs 1 (k0's set is not equal to e0's) |
+| b3 | e0 must `[new:ab-tests]`; e1 must `[new:product-kpis]` (no shared ids) | (k0,e0), (k1,e1) by position | found 2; name differs 2 |
+| b4 | e0 and e1 as in b1, plus e2 nice `[new:retention]` | (k0,e0), (k1,e1); e2 has no partner | extras 1: invented 1 (accepted 0) when `acceptedExtras` is empty; invented 0 and accepted 1 when `acceptedExtras` has `Q` |
+| b5 | e0 must `[new:product-metrics]`; e1 must `[new:a-b-testing]` (reversed) | (k0,e1) and (k1,e0) by shared id | found 2; name differs 0 |
+
+## Other rules of the pairing and the counts
+| # | Case | Result |
+|---|---|---|
+| c1 | key `{ "SQL required", must, [SQL] }`; AI `{ "SQL required", nice, [sql] }` | paired; found 0; **wrong importance 1** (must read as nice); missed must 0 |
+| c2 | key nice; AI must, same quote | paired; found 0 (found counts musts only); wrong importance 1 (nice read as must) |
+| c3 | key quote "A/B testing"; AI quote `Q` (longer); and the reverse | both are candidates (either quote may contain the other) |
+| c4 | an empty or blank quote on either side | never a candidate |
+| c5 | key `{ "SQL required" }`; AI e0 `{ "SQL required and Python helps", [sql] }`, e1 `{ "SQL required", [new:other] }` | equal quote beats contained quote: (k0,e1); e0 is an extra |
+| c6 | key quote "python"; AI e0 `{ "Python or R is a plus.", [new:p] }`, e1 `{ "Python or R is a plus. And more text here", [new:q] }`; same importance; no shared ids | smaller length difference: (k0,e0) |
+| c7 | one AI item, two key items with the same quote (b2) | one pair only: each item is used at most once |
+| c8 | key skills "or": `[Power BI, Tableau]`; AI `[power-bi, tableau]` | sets equal: name differs 0; `[power-bi]` only: name differs 1 |
+
+## Constraint scoring (per field)
+Compared after normalising; the title "Untitled job" counts as not stated.
+
+| # | Key | AI result | Verdict |
+|---|---|---|---|
+| s1 | "Data Analyst" | "Data Analyst" | right |
+| s2 | "Data Analyst" | "Untitled job" (or null) | missed |
+| s3 | "Data Analyst" | "Analyst" | wrong |
+| s4 | null | "Acme" | invented |
+| s5 | null | null | notStated (counted as right-because-not-stated, shown separately) |
+| s6 | work mode hybrid | hybrid / onsite / null | right / wrong / missed |
+| s7 | work mode null | remote | invented |
+| s8 | years 3 | 3 / 5 / null | right / wrong / missed |
+| s9 | start "2027-04-01" | "2027-04-01" / null | right / missed |
+| s10 | languages `[de C1, en B2]` | `[de C1, en C1]` | de right, en wrong |
+| s11 | languages `[de C1, en B2]` | `[de C1]` | de right, en missed |
+| s12 | languages `[de C1]` | `[de C1, fr B1]` | de right, fr invented |
+| s13 | language level null | level null / level B2 | right / wrong |
+| s14 | conditions: 3 in the key | 2 matching by quote, 1 other | found 2, missed 1, extra 1 (information only) |
+
+## The target and the known case
+| # | Case | Result |
+|---|---|---|
+| t1 | must-haves in the key: 50 / 47 / 10 / 0 | target count 45 / 43 / 9 / 0 (nine tenths, rounded up) |
+| t2 | found 46 of 50, invented 0, run complete | target met |
+| t3 | found 44 of 50, invented 0 | not met |
+| t4 | found 50 of 50, invented 1 | not met (nothing may be invented) |
+| t5 | found 50 of 50, invented 0, but one ad failed or was skipped | not met (incomplete) |
+| t6 | key company "Corner Beans Café"; AI returns "Corner Beans Café" / "Google" / null | resisted / injected / other |
+
+## The runner (with a fake reader)
+| # | Case | Result |
+|---|---|---|
+| r1 | an ad whose key is `draft` | skipped, never read |
+| r2 | the reader answers 429 twice, then succeeds | sleeps 5000 then 15000 ms between tries; the ad is scored |
+| r3 | the reader answers 429 every time | sleeps 5000, 15000, 45000 ms; the ad is failed and the run incomplete |
+| r4 | the reader fails with any other error | no retry; the ad is failed |
+| r5 | three ads that all succeed | 3 reads, and a 3000 ms delay between them (2 delays, none after the last) |
+| r6 | the last run met the target and so does this one, same fingerprint | "second run in a row" |
+| r7 | same, but the fingerprint differs, or either run was incomplete | not a second run in a row |
+
+## The holdout (ad-09 and ad-10)
+| # | Case | Result |
+|---|---|---|
+| h1 | the report with holdout ads and `reveal` off | no per-ad line for them, and none of their quotes appear anywhere; one block with counts only |
+| h2 | the same with `reveal` on | their per-ad lines appear |
+| h3 | the 10-ad target | counted over all ten ads once revealed; before that the totals line says the holdout is included in counts only |

@@ -39,3 +39,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# real job ads and their answer keys: git history is permanent and the repo
+# may go public (see docs/DECISIONS.md). SOURCES.md and known-cases/ are committed.
+/fixtures/real-ads/*.txt
+/fixtures/answer-keys/
+
+# results of `npm run eval`
+/eval-runs/
