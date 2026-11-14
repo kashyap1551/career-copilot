@@ -30,7 +30,7 @@ Goal: fit levels and unlock counts work on hand-made data, proven by tests.
 
 - [x] **2.1** Add Vitest. Data shapes in TypeScript (Skill, Requirement, Job, ProfileSkill, Profile), with 3 made-up profiles and 10 real ads typed into fixture files.
   Check: the types compile, and the fixtures load.
-- [ ] **2.2** `match()` and `fitLevel()` from the written rules, with constraint checks for languages, location and remote, years of experience and start date.
+- [x] **2.2** `match()` and `fitLevel()` from the written rules, with constraint checks for languages, location and remote, years of experience and start date.
   Check: twenty hand-checked cases pass, including "no evidence, never met".
   Note: years of experience in an ad (`minYears`) are compared with the person's total years, not years per skill, and the report says so (see docs/DECISIONS.md).
 - [ ] **2.3** `rolesUnlockedBy()`, the ranking of missing skills, and dated counts from skills in progress.

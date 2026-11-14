@@ -1,6 +1,6 @@
 import type { Profile } from "@/lib/engine/types";
 
-// Three made-up people. Every name, employer and CV line is invented.
+// Six made-up people. Every name, employer and CV line is invented.
 // No real CVs in this repository.
 
 // Career-changer into data: Excel and SQL from an operations job, Python on
@@ -148,4 +148,169 @@ const ana: Profile = {
   },
 };
 
-export const profiles: Profile[] = [maya, jonas, ana];
+// Operations analyst in Manchester who fits Northwind well. She lists
+// Bengaluru among the cities she can work in (open to relocating), so the
+// Brightwater pairing is decided by skills alone and reaches Stretch.
+const sam: Profile = {
+  id: "sam",
+  name: "Sam Example",
+  cvLines: [
+    "Sam Example, Operations Analyst, Manchester",
+    "2020-2026 Operations Analyst, Sample Freight Ltd",
+    "Wrote SQL queries on delivery and warehouse data for weekly performance reviews",
+    "Built Excel models with pivot tables and lookups to track depot costs",
+    "Built Power BI dashboards for the operations managers",
+    "Presented weekly findings to non-technical depot managers",
+    "Languages: English (native)",
+    "BSc Logistics Management, 2019",
+  ],
+  skills: [
+    {
+      kind: "have",
+      skillId: "sql",
+      evidence: {
+        line: 3,
+        text: "Wrote SQL queries on delivery and warehouse data for weekly performance reviews",
+      },
+    },
+    {
+      kind: "have",
+      skillId: "excel",
+      evidence: {
+        line: 4,
+        text: "Built Excel models with pivot tables and lookups to track depot costs",
+      },
+    },
+    {
+      kind: "have",
+      skillId: "power-bi",
+      evidence: {
+        line: 5,
+        text: "Built Power BI dashboards for the operations managers",
+      },
+    },
+    {
+      kind: "have",
+      skillId: "communication",
+      evidence: {
+        line: 6,
+        text: "Presented weekly findings to non-technical depot managers",
+      },
+    },
+  ],
+  constraints: {
+    languages: [{ code: "en", level: "C2" }],
+    locations: ["Manchester", "Bengaluru"],
+    workModes: ["onsite", "hybrid"],
+    years: 6,
+    availableFrom: "2026-12-01",
+  },
+};
+
+// Finance analyst in Bengaluru: planning and modelling, but no Power BI.
+const ravi: Profile = {
+  id: "ravi",
+  name: "Ravi Demo",
+  cvLines: [
+    "Ravi Demo, Finance Analyst, Bengaluru",
+    "2023-2026 Finance Analyst, Sample Lending Pvt Ltd",
+    "Prepared annual budgets and quarterly forecasts for three business units",
+    "Built financial models in Excel for loan portfolio forecasting and scenario analysis",
+    "Languages: English (good), Hindi (native), Kannada (native)",
+    "B.Com Finance, 2022",
+  ],
+  skills: [
+    {
+      kind: "have",
+      skillId: "financial-planning",
+      evidence: {
+        line: 3,
+        text: "Prepared annual budgets and quarterly forecasts for three business units",
+      },
+    },
+    {
+      kind: "have",
+      skillId: "financial-modelling",
+      evidence: {
+        line: 4,
+        text: "Built financial models in Excel for loan portfolio forecasting and scenario analysis",
+      },
+    },
+    {
+      kind: "have",
+      skillId: "excel",
+      evidence: {
+        line: 4,
+        text: "Built financial models in Excel for loan portfolio forecasting and scenario analysis",
+      },
+    },
+  ],
+  constraints: {
+    languages: [
+      { code: "en", level: "B2" },
+      { code: "hi", level: "C2" },
+      { code: "kn", level: "C2" },
+    ],
+    locations: ["Bengaluru"],
+    workModes: ["onsite", "hybrid"],
+    years: 3,
+    availableFrom: "2026-12-15",
+  },
+};
+
+// Senior developer who works remotely and fits Fjordlight well.
+const lena: Profile = {
+  id: "lena",
+  name: "Lena Mock",
+  cvLines: [
+    "Lena Mock, Senior Frontend Developer, Lisbon",
+    "2018-2026 Frontend Developer, then Senior Frontend Developer, Sample Cloud Software",
+    "Led development of a scheduling web app in React and TypeScript used by 40 clinics",
+    "Reviewed pull requests daily and managed team work in Git",
+    "Wrote unit tests for the app with Vitest",
+    "Languages: English (C1), Portuguese (native)",
+  ],
+  skills: [
+    {
+      kind: "have",
+      skillId: "react",
+      evidence: {
+        line: 3,
+        text: "Led development of a scheduling web app in React and TypeScript used by 40 clinics",
+      },
+    },
+    {
+      kind: "have",
+      skillId: "typescript",
+      evidence: {
+        line: 3,
+        text: "Led development of a scheduling web app in React and TypeScript used by 40 clinics",
+      },
+    },
+    {
+      kind: "have",
+      skillId: "git",
+      evidence: {
+        line: 4,
+        text: "Reviewed pull requests daily and managed team work in Git",
+      },
+    },
+    {
+      kind: "have",
+      skillId: "vitest",
+      evidence: { line: 5, text: "Wrote unit tests for the app with Vitest" },
+    },
+  ],
+  constraints: {
+    languages: [
+      { code: "en", level: "C1" },
+      { code: "pt", level: "C2" },
+    ],
+    locations: ["Lisbon"],
+    workModes: ["remote"],
+    years: 8,
+    availableFrom: "2026-12-01",
+  },
+};
+
+export const profiles: Profile[] = [maya, jonas, ana, sam, ravi, lena];

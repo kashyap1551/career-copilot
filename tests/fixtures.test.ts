@@ -16,9 +16,9 @@ describe("skills", () => {
 });
 
 describe("profiles", () => {
-  it("there are 3 with different ids", () => {
-    expect(profiles).toHaveLength(3);
-    expect(new Set(profiles.map((p) => p.id)).size).toBe(3);
+  it("there are 6 with different ids", () => {
+    expect(profiles).toHaveLength(6);
+    expect(new Set(profiles.map((p) => p.id)).size).toBe(6);
   });
 
   it.each(profiles.map((p) => [p.id, p] as const))(

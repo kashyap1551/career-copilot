@@ -92,3 +92,85 @@ export type Profile = {
   skills: ProfileSkill[];
   constraints: ProfileConstraints;
 };
+
+// ---- Results ---------------------------------------------------------------
+
+export type FitLevel = "strong" | "good" | "stretch" | "longShot";
+
+export type ConflictKind =
+  | "language"
+  | "years"
+  | "city"
+  | "workMode"
+  | "startDate";
+
+// Which rule set the level. Conflicts that can't be closed soon are checked
+// first, so a job that is a Long shot for that reason says so even when many
+// must-haves are also missing.
+export type DecidedBy =
+  | "all-musts-met"
+  | "one-must-missing"
+  | "one-closable-conflict"
+  | "two-gaps"
+  | "three-or-more-gaps"
+  | `unclosable-conflict:${ConflictKind}`;
+
+export type Conflict = {
+  closable: boolean;
+  // A plain sentence, written by code, safe to show the person.
+  message: string;
+} & (
+  | {
+      kind: "language";
+      code: string;
+      required: LanguageLevel | null; // null = the ad names no level
+      has: LanguageLevel | null; // null = the person doesn't list the language
+      levelsShort: number | null; // null when the language is missing
+    }
+  | { kind: "years"; required: number; has: number; yearsShort: number }
+  | { kind: "city"; required: string; cities: string[] }
+  | { kind: "workMode"; required: WorkMode; accepted: WorkMode[] }
+  | {
+      kind: "startDate";
+      required: string;
+      available: string;
+      daysLate: number;
+    }
+);
+
+// Something the ad or the profile doesn't say, so it was not judged.
+export type NotJudged = { kind: ConflictKind; reason: string };
+
+export type RequirementResult = {
+  requirement: Requirement;
+  met: boolean;
+  // The skill that met it, with the CV line that proves it.
+  metBy: { skillId: SkillId; evidence: Evidence } | null;
+  // Why it is not met. null when met.
+  //  "no-cv-line"     the skill is on the profile but ties to no valid CV line
+  //  "in-progress"    the person is learning it (see expectedDate)
+  //  "not-on-profile" nothing on the profile matches
+  reason: "no-cv-line" | "in-progress" | "not-on-profile" | null;
+  expectedDate: string | null;
+};
+
+export type MatchResult = {
+  profileId: string;
+  jobId: string;
+  level: FitLevel;
+  decidedBy: DecidedBy;
+  musts: RequirementResult[];
+  nices: RequirementResult[];
+  // Counts only, never percentages.
+  counts: {
+    mustsMet: number;
+    mustsTotal: number;
+    nicesMet: number;
+    nicesTotal: number;
+  };
+  // In this order: language, years, city, workMode, startDate.
+  conflicts: Conflict[];
+  notJudged: NotJudged[];
+  // The ad's otherConditions, exact quotes, never scored.
+  checkYourself: string[];
+};
