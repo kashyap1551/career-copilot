@@ -77,3 +77,9 @@ Read this and docs/PLAN-3.1.md, then continue. Written at the end of the session
 - The report's explanation rules and printout display rules.
 
 **Open and not yet decided:** the four questions in docs/PLAN-3.1.md. The DECISIONS lines for 3.1 are written after the code, not before.
+
+## (f) Ideas for later
+
+Not in the sprint. Each one that changes a schema goes through the careful lane.
+
+- Employment type (full-time, part-time, working student) is not a field in the job schema. Ads state it (for example 'Vollzeit') and it matters for people who can only work part-time, such as students. Not in the sprint; needs a schema change, so it goes through the careful lane.
