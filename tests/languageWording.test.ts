@@ -91,3 +91,53 @@ describe("languageCodeFor", () => {
     expect(languageCodeFor(name)).toBe(code);
   });
 });
+
+// Step 3.2a: German adjective endings (docs/PLAN-3.2.md, section 1), worked
+// out by hand before the code changed. The four German stems gut, fließend,
+// verhandlungssicher and muttersprachlich take the endings e, em, en, er, es.
+
+const endings: [string, LanguageLevel][] = [
+  ["gutes", "B2"],
+  ["gutem", "B2"],
+  ["Gute", "B2"],
+  ["sehr gutes", "B2"],
+  ["gutem Englisch", "B2"],
+  ["fließende", "C1"],
+  ["fließendes", "C1"],
+  ["fließendem", "C1"],
+  ["fließenden", "C1"],
+  ["fließender", "C1"],
+  ["fliessende", "C1"],
+  ["verhandlungssichere", "C1"],
+  ["verhandlungssicheres", "C1"],
+  ["verhandlungssicherem", "C1"],
+  ["verhandlungssicheren", "C1"],
+  ["verhandlungssicherer", "C1"],
+  ["verhandlungssicher", "C1"],
+  ["muttersprachliche", "C2"],
+  ["muttersprachlicher", "C2"],
+  ["muttersprachlich", "C2"],
+  ["sehr gut bis ausgezeichnet", "B2"],
+];
+
+describe("levelFromWording: German adjective endings", () => {
+  it.each(endings)("%j gives %s", (wording, level) => {
+    expect(levelFromWording(wording)).toBe(level);
+  });
+
+  it.each([
+    "gutachten",
+    "gutmütig",
+    "fließen",
+    "fließband",
+    "verhandlungssicherheit",
+    "ausgezeichnet",
+    "bestens",
+  ])("%j is not a level, so null", (wording) => {
+    expect(levelFromWording(wording)).toBeNull();
+  });
+
+  it("a stated level still wins over an ending", () => {
+    expect(levelFromWording("gutes B1")).toBe("B1");
+  });
+});

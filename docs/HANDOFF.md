@@ -21,7 +21,7 @@ Read this and docs/PLAN-3.1.md, then continue. Written at the end of the session
 - **Dev dependencies added on Day 2:** `vitest`, `tsx`. `@types/node` was moved to 24 so Vitest would install.
 
 **Reading-quality issues found on the first real run (for step 3.3, not fixed):**
-1. "gutes Englisch" gives English level null, because the wording table has gut, gute, guten, guter but not "gutes" or "gutem". A table change needs the owner's OK.
+1. (Fixed in step 3.2a: the German adjective endings e, em, en, er, es now work for gut, fließend, verhandlungssicher and muttersprachlich.)
 2. Brightwater sample: the AI split "financial planning and analysis" into two skills and named "Advanced Excel financial modelling" as "Excel" rather than "Financial modelling".
 3. Fjordlight sample: the AI made "pull-request reviews" its own skill and wrote "accessibility standards" in full (so an unlisted id).
 4. Lindenberg: SQL and "Python or R" were given the same whole-line quote; skill names can come back in lower case ("product metrics"). Skill level words like "Sehr gute" are ignored (partly met is out of the model).

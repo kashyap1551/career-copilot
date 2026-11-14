@@ -65,12 +65,11 @@ describe("the German and English stress ad", () => {
     expect(c.startDate).toBe("2027-04-01");
   });
 
-  it("German 'Fließend' is C1; 'gutes' is not in the wording table yet, so English is null", () => {
-    // Known gap: only gut, gute, guten, guter are keys. "gutes" gives null,
-    // and null beats a guess. Adding it is a decision for the table.
+  it("German 'Fließend' is C1 and 'gutes' is B2 (the endings table of step 3.2a)", () => {
+    // From the wording table: gut with the ending es is B2, fließend is C1.
     expect(c.languages).toEqual([
       { code: "de", level: "C1" },
-      { code: "en", level: null },
+      { code: "en", level: "B2" },
     ]);
   });
 

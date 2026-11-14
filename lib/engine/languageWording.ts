@@ -14,25 +14,37 @@ const KEYS: [string, LanguageLevel][] = [
   ["native", "C2"],
   ["mother tongue", "C2"],
   ["muttersprache", "C2"],
-  ["muttersprachlich", "C2"],
   ["business fluent", "C1"],
   ["fluent", "C1"],
-  ["fliessend", "C1"],
-  ["verhandlungssicher", "C1"],
-  ["good", "B2"],
-  ["gut", "B2"],
-  ["gute", "B2"],
-  ["guten", "B2"],
-  ["guter", "B2"],
   ["conversational", "B1"],
+  ["good", "B2"],
   ["basic", "A2"],
   ["grundkenntnisse", "A2"],
   ["basiskenntnisse", "A2"],
-].sort((a, b) => b[0].length - a[0].length) as [string, LanguageLevel][];
+];
 
-const KEY_PATTERNS = KEYS.map(
-  ([key, level]) => [new RegExp(`\\b${key}\\b`), level] as const,
-);
+// German adjectives also match with their endings: gutes, gutem, fließende,
+// verhandlungssicheres... The stem must be a whole word with at most one of
+// these endings, so "gutachten" and "fließband" stay unmatched (step 3.2a).
+const GERMAN_STEMS: [string, LanguageLevel][] = [
+  ["muttersprachlich", "C2"],
+  ["fliessend", "C1"],
+  ["verhandlungssicher", "C1"],
+  ["gut", "B2"],
+];
+const ENDINGS = "(?:e|em|en|er|es)?";
+
+// Longest key first, so "business fluent" is tried before "fluent".
+const KEY_PATTERNS = [
+  ...KEYS.map(([key, level]) => ({ key, level, pattern: new RegExp(`\\b${key}\\b`) })),
+  ...GERMAN_STEMS.map(([key, level]) => ({
+    key,
+    level,
+    pattern: new RegExp(`\\b${key}${ENDINGS}\\b`),
+  })),
+]
+  .sort((a, b) => b.key.length - a.key.length)
+  .map(({ pattern, level }) => [pattern, level] as const);
 
 // A stated level (A1 to C2, as a whole word) wins. Otherwise the first key
 // found, longest first. Nothing found gives null: "not stated" beats a guess.
