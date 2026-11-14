@@ -68,7 +68,9 @@ describe("jobs", () => {
     expect(new Set(jobs.map((j) => j.id)).size).toBe(jobs.length);
     for (const job of jobs) {
       for (const r of job.requirements) {
-        expect(skillIds.has(r.skillId)).toBe(true);
+        expect(r.skillIds.length).toBeGreaterThan(0);
+        expect(new Set(r.skillIds).size).toBe(r.skillIds.length);
+        for (const id of r.skillIds) expect(skillIds.has(id)).toBe(true);
         expect(r.quote.trim()).not.toBe("");
       }
       for (const l of job.constraints.languages) {

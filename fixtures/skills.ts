@@ -12,4 +12,12 @@ export const skills: Skill[] = [
   { id: "typescript", name: "TypeScript" },
   { id: "react", name: "React" },
   { id: "git", name: "Git" },
+  { id: "communication", name: "Communication" },
+  { id: "power-bi", name: "Power BI" },
+  { id: "tableau", name: "Tableau" },
+  { id: "financial-planning", name: "Financial planning and analysis" },
+  { id: "financial-modelling", name: "Financial modelling" },
+  { id: "vitest", name: "Vitest" },
+  { id: "jest", name: "Jest" },
+  { id: "accessibility", name: "Accessibility" },
 ];

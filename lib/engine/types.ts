@@ -41,7 +41,9 @@ export type JobConstraints = {
 };
 
 export type Requirement = {
-  skillId: SkillId;
+  // Any one of these counts as met ("Power BI or Tableau"). A normal
+  // requirement has exactly one id. Never empty.
+  skillIds: SkillId[];
   importance: "must" | "nice";
   quote: string; // the ad's own words, copied exactly
 };
