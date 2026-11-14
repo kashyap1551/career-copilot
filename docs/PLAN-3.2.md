@@ -183,3 +183,72 @@ Compared after normalising; the title "Untitled job" counts as not stated.
 | h1 | the report with holdout ads and `reveal` off | no per-ad line for them, and none of their quotes appear anywhere; one block with counts only |
 | h2 | the same with `reveal` on | their per-ad lines appear |
 | h3 | the 10-ad target | counted over all ten ads once revealed; before that the totals line says the holdout is included in counts only |
+
+---
+
+# Short-quote guard (hand-worked before any test or code)
+
+**Problem.** Pairing and "accepted extras" use "one quote contains the other". A quote like "and" is contained in almost any line, so it could pair with a key item, or count as an accepted extra, for no good reason.
+
+**Rule (the owner's).** For containment only, the shorter normalised quote must contain at least one real word: a run of letters, 3 or more long, not in this list: `and, or, the, for, with, of, in, to, a, an, on, as, at, by, und, oder, der, die, das, für, mit, von, im, zu, ein, eine`. Equal quotes always count, whatever their length. It applies in the matcher (`evalMatch.ts`) and to accepted extras (`evalScore.ts`); the same helper also serves the "conditions found" count there, so all three agree.
+
+## Does a quote have a real word?
+| # | Quote | Real word? | Why |
+|---|---|---|---|
+| g1 | and | no | listed |
+| g2 | of the | no | "of" is listed, "the" is listed |
+| g3 | or / a / in / to / the | no | listed |
+| g4 | und oder | no | listed |
+| g5 | für mit von | no | listed |
+| g6 | eine | no | listed |
+| g7 | to be | no | "be" has two letters |
+| g8 | AI, IT, Go | no | two letters |
+| g9 | R, C++ | no | one letter |
+| g10 | 3+ | no | no letters |
+| g11 | Excel, SQL | yes | 5 and 3 letters, not listed |
+| g12 | lead scoring | yes | |
+| g13 | track ROI | yes | "track" |
+| g14 | and the cat | yes | "cat" |
+| g15 | mit Excel | yes | "excel" |
+| g16 | einen | yes | not listed (only ein and eine are) |
+| g17 | Büro | yes | an accented letter is a letter |
+| g18 | empty or spaces | no | nothing |
+
+## Quotes that match
+| # | Quote A | Quote B | Match? |
+|---|---|---|---|
+| q1 | AI | AI | yes (equal, any length) |
+| q2 | AND | and | yes (equal after normalising) |
+| q3 | and | SQL and Excel skills | **no** (shorter has no real word) |
+| q4 | SQL and Excel skills | and | **no** (same, other way round) |
+| q5 | of the | Head of the team | **no** |
+| q6 | Excel | Proficiency in Excel/Google Sheets | yes |
+| q7 | lead scoring | including lead scoring, nurturing, and funnel optimization | yes |
+| q8 | track ROI | strong ability to build dashboards, track ROI, and analyze campaign performance metrics | yes |
+| q9 | Kubernetes | Proficiency in Excel/Google Sheets | no (not contained) |
+| q10 | empty | anything | no |
+
+## In the matcher
+| # | Key item quote | AI item quote | Result |
+|---|---|---|---|
+| m1 | SQL and Excel skills | and | no pair: key missed, AI item an extra |
+| m2 | Head of the team | of the | no pair |
+| m3 | including lead scoring, nurturing, and funnel optimization | lead scoring | paired |
+| m4 | Proficiency in Excel/Google Sheets | Excel | paired |
+| m5 | (the long line of q8) | track ROI | paired |
+| m6 | AI | AI | paired (equal) |
+| m7 | two key items "SQL and Excel", "Python and R"; one AI item "and" | | no pair at all |
+
+## In accepted extras and conditions
+| # | Accepted quote | AI extra quote | Result |
+|---|---|---|---|
+| a1 | including lead scoring, nurturing, and funnel optimization | and | invented 1, accepted 0 |
+| a2 | the same | of the | invented 1, accepted 0 |
+| a3 | the same | lead scoring | accepted 1, invented 0 |
+| a4 | Proficiency in Excel/Google Sheets | Excel | accepted 1 |
+| a5 | (the long line of q8) | track ROI | accepted 1 |
+| a6 | AI | AI | accepted 1 (equal) |
+| a7 | key condition "Degree required." | AI condition "and" | not found: found 0, missed 1, extra 1 |
+
+## Deliberate breaks to run
+Remove the guard (any containment counts); apply the guard to equal quotes too (q1 and m6 must fail); check the longer quote instead of the shorter; lower the length to 2 letters (g7 and g8 must fail); empty the stop list; remove "the" from the stop list (g2 and q5 must fail).

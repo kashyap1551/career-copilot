@@ -275,3 +275,37 @@ describe("totals and the target", () => {
     expect(total).toMatchObject({ mustTotal: 3, found: 2, missedMust: 1, invented: 0 });
   });
 });
+
+describe("the short-quote guard in accepted extras and conditions (docs/PLAN-3.2.md)", () => {
+  const LEAD = "including lead scoring, nurturing, and funnel optimization";
+  const extraOnly = (acceptedQuote: string, aiQuote: string) =>
+    scoreAd(
+      keyOf({ acceptedExtras: [{ quote: acceptedQuote }] }),
+      result({ requirements: [E(aiQuote, "must", "new:x")] }),
+      skills,
+    ).requirements;
+
+  it("a1 and a2 a quote with no real word is not accepted", () => {
+    expect(extraOnly(LEAD, "and")).toMatchObject({ invented: 1, accepted: 0 });
+    expect(extraOnly(LEAD, "of the")).toMatchObject({ invented: 1, accepted: 0 });
+  });
+
+  it("a3 to a5 a short quote with a real word is still accepted", () => {
+    expect(extraOnly(LEAD, "lead scoring")).toMatchObject({ invented: 0, accepted: 1 });
+    expect(extraOnly("Proficiency in Excel/Google Sheets", "Excel")).toMatchObject({ invented: 0, accepted: 1 });
+    expect(extraOnly("strong ability to build dashboards, track ROI, and analyze campaign performance metrics", "track ROI")).toMatchObject({ invented: 0, accepted: 1 });
+  });
+
+  it("a6 equal short quotes are accepted", () => {
+    expect(extraOnly("AI", "AI")).toMatchObject({ invented: 0, accepted: 1 });
+  });
+
+  it("a7 a condition that is only 'and' is not found, and counts as extra", () => {
+    const s = scoreAd(
+      keyOf({ otherConditions: [{ quote: "Degree required." }] }),
+      result({ conditions: ["and"] }),
+      skills,
+    ).constraints.conditions;
+    expect(s).toEqual({ found: 0, missed: 1, extra: 1 });
+  });
+});

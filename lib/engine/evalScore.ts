@@ -1,6 +1,7 @@
 import type { AnswerKey } from "./answerKey";
 import { keyIds, matchRequirements } from "./evalMatch";
 import type { BuildResult, RemovedItem } from "./fromAd";
+import { quotesMatch } from "./quoteMatch";
 import { foldText, normalizeText } from "./text";
 import type { Job, Skill } from "./types";
 
@@ -55,11 +56,8 @@ export type AdScore = {
 };
 
 const same = (a: string, b: string) => normalizeText(a) === normalizeText(b);
-const contains = (a: string, b: string) => {
-  const x = normalizeText(a);
-  const y = normalizeText(b);
-  return x !== "" && y !== "" && (x.includes(y) || y.includes(x));
-};
+// Equal quotes, or one inside the other with a real word (see quoteMatch.ts).
+const contains = quotesMatch;
 const sameSet = (a: string[], b: string[]) => [...new Set(a)].sort().join("|") === [...new Set(b)].sort().join("|");
 
 function verdict<T>(key: T | null, out: T | null, equal: (a: T, b: T) => boolean): FieldVerdict {

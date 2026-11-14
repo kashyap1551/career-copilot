@@ -145,3 +145,37 @@ describe("other rules of the pairing", () => {
     expect(r.pairs).toHaveLength(1);
   });
 });
+
+describe("the short-quote guard in the matcher (docs/PLAN-3.2.md)", () => {
+  const long = "strong ability to build dashboards, track ROI, and analyze campaign performance metrics";
+
+  it("m1 a quote that is only 'and' does not pair with a line that contains it", () => {
+    const r = run([K("SQL and Excel skills", "must", "SQL")], [E("and", "must", "sql")]);
+    expect(r.pairs).toEqual([]);
+    expect(r.missedKeys).toEqual([0]);
+    expect(r.extras).toEqual([0]);
+  });
+
+  it("m2 'of the' does not pair", () => {
+    expect(run([K("Head of the team", "must", "Leadership")], [E("of the", "must", "new:x")]).pairs).toEqual([]);
+  });
+
+  it("m3 to m5 a short quote with a real word still pairs", () => {
+    expect(pairs(run([K("including lead scoring, nurturing, and funnel optimization", "must", "Lead scoring")], [E("lead scoring", "must", "new:lead-scoring")]))).toEqual([[0, 0]]);
+    expect(pairs(run([K("Proficiency in Excel/Google Sheets", "must", "Excel")], [E("Excel", "must", "excel")]))).toEqual([[0, 0]]);
+    expect(pairs(run([K(long, "must", "ROI tracking")], [E("track ROI", "must", "new:roi-tracking")]))).toEqual([[0, 0]]);
+  });
+
+  it("m6 equal short quotes pair", () => {
+    expect(pairs(run([K("AI", "must", "AI")], [E("AI", "must", "new:ai")]))).toEqual([[0, 0]]);
+  });
+
+  it("m7 'and' pairs with none of two key items that contain it", () => {
+    const r = run(
+      [K("SQL and Excel", "must", "SQL"), K("Python and R", "must", "Python")],
+      [E("and", "must", "sql")],
+    );
+    expect(r.pairs).toEqual([]);
+    expect(r.missedKeys).toEqual([0, 1]);
+  });
+});

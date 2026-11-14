@@ -1,4 +1,5 @@
 import type { KeyRequirement } from "./answerKey";
+import { guardedContains } from "./quoteMatch";
 import { skillIdFor } from "./skillIds";
 import { normalizeText } from "./text";
 import type { Requirement, Skill } from "./types";
@@ -7,7 +8,8 @@ import type { Requirement, Skill } from "./types";
 // (docs/PLAN-3.2.md, section 4). Pure code.
 //
 // One-to-one and greedy. A key item and an extracted item are a candidate when
-// their normalised quotes are equal or one contains the other. All candidates
+// their normalised quotes are equal, or one contains the other and the shorter
+// one has a real word (a quote like "and" never pairs; see quoteMatch.ts). All candidates
 // are ranked, and the best is taken first, each item used once. Rank, best
 // first:
 //   1. equal quotes beat contained quotes
@@ -47,7 +49,7 @@ export function matchRequirements(
     extracted.forEach((ex, e) => {
       if (kq[k] === "" || eq[e] === "") return;
       const equal = kq[k] === eq[e];
-      if (!equal && !kq[k].includes(eq[e]) && !eq[e].includes(kq[k])) return;
+      if (!equal && !guardedContains(kq[k], eq[e])) return;
       const shared = ex.skillIds.some((id) => kIds[k].includes(id));
       candidates.push({
         key: k,
