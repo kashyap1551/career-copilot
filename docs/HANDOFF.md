@@ -28,6 +28,7 @@ Read this and docs/PLAN-3.1.md, then continue. Written at the end of the session
 3. Fjordlight sample: the AI made "pull-request reviews" its own skill and wrote "accessibility standards" in full (so an unlisted id).
 4. Lindenberg: SQL and "Python or R" were given the same whole-line quote; skill names can come back in lower case ("product metrics"). Skill level words like "Sehr gute" are ignored (partly met is out of the model).
 5. 7 of the 13 skills in the Lindenberg ad are not in the 17-skill list, so their requirements will count as not met until Day 5.
+6. Intensifiers in language wording ("very good German", ad-07): "very good" is not an entry in the wording table; it reads as B2 only because "good" is inside it, so the ad-07 key says German level null. If the eval returns B2 for it, choose in 3.3 between a "very good" table entry and ignoring intensifiers such as "very" (see docs/DECISIONS.md).
 
 ## (b) The next action
 
