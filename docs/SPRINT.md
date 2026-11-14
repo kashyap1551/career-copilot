@@ -33,7 +33,7 @@ Goal: fit levels and unlock counts work on hand-made data, proven by tests.
 - [x] **2.2** `match()` and `fitLevel()` from the written rules, with constraint checks for languages, location and remote, years of experience and start date.
   Check: twenty hand-checked cases pass, including "no evidence, never met".
   Note: years of experience in an ad (`minYears`) are compared with the person's total years, not years per skill, and the report says so (see docs/DECISIONS.md).
-- [ ] **2.3** `rolesUnlockedBy()`, the ranking of missing skills, and dated counts from skills in progress.
+- [x] **2.3** `rolesUnlockedBy()`, the ranking of missing skills, and dated counts from skills in progress.
   Note: a requirement can list several acceptable skills (`skillIds`, "Power BI or Tableau"). `rolesUnlockedBy` must handle this: gaining any one of them unlocks the job.
   Check: on the fixtures, the results match a hand count, dates included.
 - [ ] **2.4** A command-line report: `npm run report` prints one profile's fit reports and roadmap.
@@ -96,6 +96,8 @@ Goal: a person builds up a list of jobs, each with a clear report.
 ## Day 7: The roadmap
 
 Goal: the part no chat window offers.
+
+Later: treat closing a closable conflict (language one level, one year of experience) as an unlock candidate, so the roadmap can say 'reach C1 English and N more jobs open up'.
 
 - [ ] **7.1** Gap list across saved jobs: each missing skill with how many jobs ask for it, must and nice counted apart.
   Check: the counts match a hand count for one test profile.
