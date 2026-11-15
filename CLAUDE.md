@@ -13,7 +13,7 @@ A career co-pilot: a person uploads a CV once and confirms their skills, pastes 
 5. No real CVs in the repo. Tests use made-up CVs and public job ads only.
 6. Show counts, never invented percentages.
 7. €0: free tiers only. Ask before adding any paid service or new dependency.
-8. Never commit ad text, answer keys, anything in eval-runs/, or .env files (fixtures/real-ads/*.txt and fixtures/answer-keys/ are gitignored; keep their content out of docs, tests and prompts).
+8. Never commit real ad text, the answer keys of real ads, anything in eval-runs/, or .env files (fixtures/real-ads/*.txt and fixtures/answer-keys/ are gitignored; keep their content out of docs, tests and prompts). Made-up fixtures may be committed: the barista known case, and made-up CV fixtures and their keys in fixtures/synthetic-cvs/ (they describe no real person).
 9. The holdout ads (ad-09, ad-10) stay hidden: totals only, never --reveal or their per-item output, until I say tuning is done.
 
 ## Git, cost, reports
