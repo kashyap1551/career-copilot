@@ -259,7 +259,31 @@ Per ad: found / R4 / R3+R3b defect lines of its lines (of the 11) / R8 / invente
 | ad-08 | 5 of 5 / 5 / 0 of 0 / - / 5 / 0 | 3 of 5 / 5 / 0 of 0 / - / 5 / 0 | 5 of 5 / 6 / 0 of 0 / - / 6 / 0 |
 | **Sum of the four ads** | found 32, R4 5, R3+R3b 3, R8 1, invented 6, outside 0 | found 33, R4 5, R3+R3b 4, R8 1, invented 9, outside 1 | found 30, R4 6, R3+R3b 1, R8 1, invented 9, outside 1 |
 
-**Still missing:** the baseline for ad-01, ad-03, ad-05 and ad-07 (two readings each, about 36,000 tokens). The four noise ads hold 4 of the 11 R3/R3b lines (ad-04#0, #3, #4 and ad-06#0); the other 7 are in the four missing ads (ad-01#0, ad-01#5, ad-03#0, ad-05#9, #13, #14, ad-07#0). Until the baseline is complete, the 8-ad baseline cannot be computed and the keep rule cannot be applied.
+### Reading 1, all 8 ads (same settings; computed by script from the tables above and the new baseline files)
+
+| Ad (source) | Found | R4 | R3+R3b (lines) | R8 | Invented | Outside |
+|---|---|---|---|---|---|---|
+| ad-01 (baseline) | 7 of 9 | 0 | 0 of 2 | - | 0 | 0 |
+| ad-02 (noise) | 12 of 13 | 0 | 0 of 0 | 1 | 0 | 0 |
+| ad-03 (baseline) | 14 of 14 | 0 | 1 of 1 | - | 3 | 0 |
+| ad-04 (noise) | 11 of 13 | 0 | 2 of 3 | - | 1 | 0 |
+| ad-05 (baseline) | 13 of 23 | 0 | 3 of 3 | - | 0 | 0 |
+| ad-06 (noise) | 4 of 8 | 0 | 1 of 1 | - | 0 | 0 |
+| ad-07 (baseline) | 9 of 15 | 0 | 0 of 1 | - | 0 | 0 |
+| ad-08 (noise) | 5 of 5 | 5 | 0 of 0 | - | 5 | 0 |
+| **Reading 1, all 8 ads** | **75 of 100** | **5** | **7 of 11** | **1** | **9** | **0** |
+
+Reading 1 for ad-02, ad-04, ad-06 and ad-08 is the first noise repeat; for ad-01, ad-03, ad-05 and ad-07 it is the new baseline run.
+
+### Settled, and still open (2026-11-15)
+
+**Settled:**
+- **R4:** ad-08 alone gives 5, 5 and 6 in the three same-settings readings, and the other seven ads can only add to a reading, so the best 8-ad baseline is **5**. A version needs **4 or less in both runs**.
+- **R8:** the baseline is 1 in every reading (ad-02's location is missed every time), so a version needs **0**.
+
+**Baseline prompt:** the baseline readings were taken with the prompt at commit 427c2ab: INSTRUCTIONS 3,347 characters and the old location description ("...names several cities."). They predate fingerprint format 2 (commit 034d7fb), so their reports carry no fingerprint line; the format 2 line and the request hash start with the next reading.
+
+**Still open:** reading 2 of ad-01, ad-03, ad-05 and ad-07 (about 19,000 tokens). It decides the thresholds for R3+R3b, for the found total and for outside. Until then, the 8-ad baseline has only reading 1 (above) for these four ads, plus the 4-ad readings 2 and 3 for the noise ads. The four noise ads hold 4 of the 11 R3/R3b lines (ad-04#0, #3, #4 and ad-06#0); the other 7 are in ad-01#0, ad-01#5, ad-03#0, ad-05#9, #13, #14 and ad-07#0.
 
 ### Context only: default settings (not baseline)
 
@@ -271,7 +295,7 @@ Per ad: found / R4 / R3+R3b defect lines of its lines (of the 11) / R8 / invente
 (The same two runs on the four noise ads only: found 32 and 26, R4 2 and 13, R3+R3b 1 and 4, invented 5 and 15.)
 
 ### Notes on the rule
-- With the baseline above, R4 must come in below 5 or whatever the full baseline's best turns out to be, and R8 must be 0 (the baseline's best is 1).
+- R4 must come in at 4 or less and R8 at 0 (both settled above). The other thresholds wait for reading 2.
 - The baseline's own spread is large (R3+R3b 1 to 4 on four ads, found 30 to 33 on four ads, invented 6 to 9), so criterion 1 asks for a version to beat the best baseline reading, not the average.
 - The "narrowed" counter looks only at the first paired item when several AI items share a quote, so it can flag a correct split reading. That is why ad-02#0 was dropped (HANDOFF, ideas for later).
 - For the later versions (R1, R2, R6) their own target lines are proposed when they are due.
