@@ -74,8 +74,9 @@ Goal: a person's profile from their CV, confirmed by them.
 - [x] **4.1** PDF or Word to text in the browser with pdf.js and mammoth, so the file never leaves the device.
   Check: text appears for a made-up test CV.
   Note: live check done: made-up PDF gave the 7 lines, image-only PDF gave the no-text message.
-- [ ] **4.2** Code numbers the CV lines (after contact details are removed); the AI proposes skills and returns, for each, a line number and a quote from that line, which code checks.
+- [x] **4.2** Code numbers the CV lines (after contact details are removed); the AI proposes skills and returns, for each, a line number and a quote from that line, which code checks.
   Check: on two full runs of five made-up CVs with the same fingerprint, every skill is tied to a line and nothing is invented (PLAN-4.1 section 3 defines invented).
+  Note: check done: calibration run, then two counted runs with the same fingerprint (75c0a4668c): invented 0, every skill tied to a line, injected 0; found 25 and 23 of 42 (no target).
 - [ ] **4.3** Confirm screen: keep or remove each skill, add skills in progress with expected dates, set constraints.
   Check: a profile is confirmed in under 3 minutes.
 
