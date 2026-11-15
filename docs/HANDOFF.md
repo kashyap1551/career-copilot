@@ -5,8 +5,8 @@ Read this and docs/PLAN-3.1.md, then continue. Written at the end of the session
 ## (a) Where we are
 
 - **Done:** Day 1 (skeleton, live), Day 2 (rules engine, no AI) and **step 3.1** (the full job schema and extraction). Steps 1.1 to 1.5 and 2.1 to 2.4 are ticked. **3.1 and the build part of 3.2 are done and committed but not ticked**: per CLAUDE.md, ticks and log lines are written at the end of the day, so tick 3.1 to 3.4 and add the Day 3 log lines when Day 3 ends.
-- **Commits:** the 3.1 commit is "3.1: full job schema and extraction" (latest in `git log`). Before it: `03c3add` handoff notes, `7318a7d` working lanes, `684a234` 2.4, `932ff08` 2.3, `89a34cb` 2.2, `f1f6dc2` 2.1.
-- **Tests:** 554 pass, in 19 files.
+- **Latest commits (3.2):** `56306fa` preferred-years rule, `886a28c` heading rule and the very-good question, `3090b6f` ad sources, `25a30de` short-quote guard, `9e99d82` 3.2b eval matcher and script, `c8e02e5` 3.2a German wording endings. (Older:) the 3.1 commit is "3.1: full job schema and extraction" (latest in `git log`). Before it: `03c3add` handoff notes, `7318a7d` working lanes, `684a234` 2.4, `932ff08` 2.3, `89a34cb` 2.2, `f1f6dc2` 2.1.
+- **Tests:** 596 pass, in 20 files.
 - **Live site:** https://career-copilot-theta-seven.vercel.app. Vercel redeploys on every push to `main`, so after the 3.1 push the live `/api/read` returns the new shape: `{ job, removed, moved, unlisted }`. The page shows the checked JSON, what was removed and why, what moved to "check this yourself", and skills not in our list. The fit report on the page comes in 3.4.
 - **Repo:** https://github.com/kashyap1551/career-copilot, branch `main`.
 - **Commands that work:** `npm test`; `npm run -s report -- <id>` (ids: `maya`, `jonas`, `ana`, `sam`, `ravi`, `lena`; `-- all`; no id lists them); `npm run build` (run before every push); `npm run lint`; `npx tsc --noEmit`; `npm run dev` (needs `.env.local` on the owner's machine).
@@ -32,25 +32,31 @@ Read this and docs/PLAN-3.1.md, then continue. Written at the end of the session
 
 ## (b) The next action
 
-**Day 3, step 3.2, careful lane, in progress.** The matcher, scoring, runner, report and `npm run eval` are built, tested and committed, and the barista known case works end to end (the AI resisted the injection). The plan is in docs/PLAN-3.2.md.
+**Day 3, step 3.2, careful lane: the build and all ten answer keys are DONE. The first full eval waits for the owner's go.** (The plan is docs/PLAN-3.2.md.)
 
-1. **The owner saves ten real public ads** as `fixtures/real-ads/ad-01.txt` to `ad-10.txt` in VS Code (full text, each from a company other than his employer and not from Picnic, contact details removed) and fills in `fixtures/real-ads/SOURCES.md`. Claude never retypes or pastes ad text.
-2. When the owner says they are saved, Claude **verifies**: ten files exist, none empty, no email addresses or phone numbers (grep), none from Picnic. Then Claude **drafts the keys from the files alone** (`fixtures/answer-keys/ad-NN.ts`, status "draft"), before the eval has run on them.
-3. The owner **reviews the keys** in batches of 2 or 3 ads (every must-have and every constraint). Only then is a key set to "reviewed".
-4. The first full `npm run eval`. **Holdout: ad-09 and ad-10.** Until the owner says tuning is done, the eval prints only totals for them, and Claude does not read their per-item output (never use `--reveal`).
-5. Then step 3.3 (tune the prompt until at least 45 of 50 must-haves, or the equivalent count, are found and nothing is invented, on two runs in a row) and 3.4 (the rough page with the fit report). Remember the 3.4 note about unlisted skills.
+State at the end of the session of 2026-11-15:
+- The ten real ads are in `fixtures/real-ads/ad-01.txt` to `ad-10.txt` and the ten keys, all `reviewed` and passing `checkKey`, in `fixtures/answer-keys/ad-01.ts` to `ad-10.ts`. **Both folders are gitignored: they exist only on the owner's machine, not in git** (SOURCES.md and `fixtures/known-cases/` are committed). `fixtures/real-ads/extra-talent-pool.txt` is a spare ad, ignored and not part of the set.
+- The keys hold **128 must-haves** in total, so the 3.3 target is **116 or more found, with 0 invented**.
+- `npm run eval` is built and tested and was run once, on the barista known case only (`--only barista-injection`): the AI resisted the injection.
+
+Next:
+1. **Wait for the owner's go.** Then run `npm run eval` once: 11 Groq calls (the ten ads and the barista known case), 3 seconds apart, about 2 minutes. Show only what the report prints. ad-09 and ad-10 appear as totals only. Never use `--reveal`, and never read their per-item output, until the owner says tuning is done.
+2. The first run is a baseline. Expect NOT MET: the AI will probably return extra items (for example from responsibilities lines) that count as invented.
+3. **Step 3.3:** tune the prompt (`INSTRUCTIONS` in `lib/ai/readJob.ts`) from the findings on the tuning set (ad-01 to ad-08 and the known case) until found is at least 116 of 128 and invented is 0, on two full runs in a row with the same fingerprint (prompt, model, keys). Keep ad content out of the prompt. Reading issues to consider are in (a) and in docs/DECISIONS.md. Careful lane: plan first, hand-worked expectations, deliberate breaks.
+4. **Step 3.4:** the rough page with the fit report (note in SPRINT.md about unlisted skills).
+5. Ticks and the Day 3 log lines happen at the end of Day 3, not before.
 
 ## (c) What the owner still has to do
 
-- Save the ten ads and fill in SOURCES.md; tell Claude when they are saved.
-- Review each batch of keys: OK or corrections per ad.
-- Say when tuning is done, so the holdout can be revealed.
+- Say "go" for the first full eval.
+- Later, in 3.3: say when tuning is done, so the holdout ads can be revealed.
+- Consider backing up `fixtures/real-ads/` and `fixtures/answer-keys/` somewhere outside git: they are not in the repository and exist only on this machine.
 
 ## (d) Rules to remember
 
 - **The two lanes** (in CLAUDE.md). Fast lane: pages, scripts, wiring, docs, formatting, display code. Build, check, commit, summarise in five lines. Careful lane: anything the AI reads or writes, rules and schemas in lib/engine and lib/schemas, prompts, the skill vocabulary, privacy, secrets, cost, anything that could invent facts. Plan first and wait for OK, work out expected values by hand first, then break the code on purpose. A step that mixes the lanes is careful lane. All of Day 3 touches what the AI reads, so treat it as careful lane unless it is purely display.
 - **Expectations come from hand work, never from the code's output.** If a test fails, say whether the code or the hand count is wrong. Never change an expectation to make a test pass.
-- **No secrets.** Never read, print or ask for `.env` files or keys. The owner puts keys only in `.env.local` and in Vercel. `.claude/settings.json` blocks reading `.env` files.
+- **No secrets.** Never read, print or ask for `.env` files or keys. The deny rule in `.claude/settings.json` blocks even `ls` on `.env.local`; `test -f` (existence only) is allowed. `npm run eval` loads `.env.local` itself. The owner puts keys only in `.env.local` and in Vercel. `.claude/settings.json` blocks reading `.env` files.
 - **No real CVs** in the repository. Tests use made-up CVs and public ads only. Job ads must be public, apart from the recorded exception for the 3 synthetic samples.
 - **No percentages.** Counts only.
 - **The AI reads and writes; plain code decides and counts.** Never invent experience; every "met" cites a CV line; "not stated" beats a guess.
