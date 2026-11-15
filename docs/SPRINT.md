@@ -71,8 +71,9 @@ Goal: paste an ad, get a fit report on the live link. Rough is fine; working end
 
 Goal: a person's profile from their CV, confirmed by them.
 
-- [ ] **4.1** PDF or Word to text in the browser with pdf.js and mammoth, so the file never leaves the device.
+- [x] **4.1** PDF or Word to text in the browser with pdf.js and mammoth, so the file never leaves the device.
   Check: text appears for a made-up test CV.
+  Note: live check done: made-up PDF gave the 7 lines, image-only PDF gave the no-text message.
 - [ ] **4.2** Code numbers the CV lines (after contact details are removed); the AI proposes skills and returns, for each, a line number and a quote from that line, which code checks.
   Check: on two full runs of five made-up CVs with the same fingerprint, every skill is tied to a line and nothing is invented (PLAN-4.1 section 3 defines invented).
 - [ ] **4.3** Confirm screen: keep or remove each skill, add skills in progress with expected dates, set constraints.
