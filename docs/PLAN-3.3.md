@@ -283,6 +283,8 @@ Reading 1 for ad-02, ad-04, ad-06 and ad-08 is the first noise repeat; for ad-01
 
 **Baseline prompt:** the baseline readings were taken with the prompt at commit 427c2ab: INSTRUCTIONS 3,347 characters and the old location description ("...names several cities."). They predate fingerprint format 2 (commit 034d7fb), so their reports carry no fingerprint line; the format 2 line and the request hash start with the next reading.
 
+**Baseline prompt request hash: `85357f8fac`** (fingerprint format 2, INSTRUCTIONS 3,347 characters, taken call-free on 2026-11-15 from the working tree at commit e1f0c4f with the run 1 change stashed; the run 1 prompt has request hash `0306366684`, INSTRUCTIONS 4,000). Baseline reading 2 for ad-01, 03, 05 and 07 is run with `EXPECT_REQUEST_HASH=85357f8fac`, so the guard aborts before any call if the prompt is not this one.
+
 **Still open:** reading 2 of ad-01, ad-03, ad-05 and ad-07 (about 19,000 tokens). It decides the thresholds for R3+R3b, for the found total and for outside. Until then, the 8-ad baseline has only reading 1 (above) for these four ads, plus the 4-ad readings 2 and 3 for the noise ads. The four noise ads hold 4 of the 11 R3/R3b lines (ad-04#0, #3, #4 and ad-06#0); the other 7 are in ad-01#0, ad-01#5, ad-03#0, ad-05#9, #13, #14 and ad-07#0.
 
 ### Context only: default settings (not baseline)
