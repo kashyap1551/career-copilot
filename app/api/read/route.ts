@@ -24,7 +24,8 @@ export async function POST(request: Request) {
   try {
     // { job, removed, moved, unlisted }: the checked job, what was dropped,
     // what moved to otherConditions, and skills not in the skill list yet.
-    return Response.json(await readJobAd(parsed.data.text));
+    const { job, removed, moved, unlisted } = await readJobAd(parsed.data.text);
+    return Response.json({ job, removed, moved, unlisted });
   } catch (error) {
     if (error instanceof ReadAdError) {
       return Response.json(

@@ -6,6 +6,8 @@ import { injectionVerdict, sumScores, targetCount, targetMet, type AdScore, type
 // of totals: no per-ad line, no quote, no skill name.
 
 export type ReportInput = {
+  usage?: { inputTokens: number; outputTokens: number; calls: number };
+  limits?: Record<string, string>;
   partial?: boolean; // a run of some ads only (--only): no totals, no target
   scored: ScoredAd[];
   failed: { id: string; reason: string }[];
@@ -14,7 +16,7 @@ export type ReportInput = {
 };
 
 const countsLine = (t: Totals) =>
-  `must-haves found ${t.found} of ${t.mustTotal} | wrong importance ${t.wrongImportance} | missed ${t.missedMust} must, ${t.missedNice} nice | invented ${t.invented} | name differs ${t.nameDiffers} | removed ${t.removed}`;
+  `must-haves found ${t.found} of ${t.mustTotal} | wrong importance ${t.wrongImportance} | missed ${t.missedMust} must, ${t.missedNice} nice | invented ${t.invented} | name differs ${t.nameDiffers} | widened ${t.widened} | narrowed ${t.narrowed} | removed ${t.removed}`;
 
 const constraintCounts = (t: Totals) =>
   `constraints: right ${t.fields.right}, not stated ${t.fields.notStated}, wrong ${t.fields.wrong}, missed ${t.fields.missed}, invented ${t.fields.invented} | languages: right ${t.languages.right}, wrong ${t.languages.wrong}, missed ${t.languages.missed}, invented ${t.languages.invented} | conditions: found ${t.conditions.found}, missed ${t.conditions.missed}, extra ${t.conditions.extra}`;
@@ -23,12 +25,14 @@ function adLines(id: string, s: AdScore): string[] {
   const r = s.requirements;
   const c = s.constraints;
   const lines = [
-    `${id}: must-haves found ${r.found} of ${r.mustTotal} | wrong importance ${r.mustReadAsNice + r.niceReadAsMust} | missed ${r.missedMust} must, ${r.missedNice} nice | invented ${r.invented} | name differs ${r.nameDiffers} | removed ${s.removed.length}`,
+    `${id}: must-haves found ${r.found} of ${r.mustTotal} | wrong importance ${r.mustReadAsNice + r.niceReadAsMust} | missed ${r.missedMust} must, ${r.missedNice} nice | invented ${r.invented} | name differs ${r.nameDiffers} | widened ${r.widened} | narrowed ${r.narrowed} | removed ${s.removed.length}`,
   ];
   for (const m of r.details.missed) lines.push(`  missed (${m.importance}): "${m.quote}" [${m.skills.join(", ")}]`);
   for (const w of r.details.wrongImportance) lines.push(`  wrong importance: "${w.quote}" (key ${w.key}, AI ${w.ai})`);
   for (const i of r.details.invented) lines.push(`  invented: "${i.quote}" [${i.skills.join(", ")}]`);
   for (const n of r.details.nameDiffers) lines.push(`  name differs: "${n.quote}": key [${n.key.join(", ")}], AI [${n.ai.join(", ")}]`);
+  for (const w of r.details.widened) lines.push(`  widened: "${w.quote}": key [${w.key.join(", ")}], AI [${w.ai.join(", ")}]`);
+  for (const w of r.details.narrowed) lines.push(`  narrowed: "${w.quote}": key [${w.key.join(", ")}], AI [${w.ai.join(", ")}]`);
   for (const h of r.details.mergeHints) lines.push(`  merge hint: "${h.quote}" shares its quote with a matched item, so the AI may have merged two requirements`);
   for (const x of s.removed) lines.push(`  removed by the check: ${x.what} (${x.why}): "${x.text}"`);
   const f = c.fields;
@@ -88,8 +92,19 @@ export function formatReport(input: ReportInput): string {
   for (const s of skipped) out.push(`SKIPPED: ${s.id} (${s.reason})`);
   if (failed.length > 0 || skipped.length > 0) out.push("");
 
+  const budget = () => {
+    const n = (v: number) => v.toLocaleString("en-US");
+    if (input.usage) {
+      const u = input.usage;
+      out.push(`TOKENS: in ${n(u.inputTokens)}, out ${n(u.outputTokens)}, total ${n(u.inputTokens + u.outputTokens)} (from ${u.calls} calls)`);
+    }
+    if (input.limits && Object.keys(input.limits).length > 0) {
+      out.push(`RATE LIMITS (Groq's answer to the last call): ${Object.entries(input.limits).map(([k, v]) => `${k}=${v}`).join(", ")}`);
+    }
+  };
   if (input.partial) {
     out.push("PARTIAL RUN (--only): no totals and no target for this run.");
+    budget();
     return out.join("\n") + "\n";
   }
   const { totals, complete, met } = summarize(input);
@@ -97,5 +112,6 @@ export function formatReport(input: ReportInput): string {
   out.push(
     `TARGET: found ${totals.found} of ${totals.mustTotal}; target ${targetCount(totals.mustTotal)} or more; invented ${totals.invented} -> ${met ? "MET" : "NOT MET"}${complete ? "" : " (INCOMPLETE RUN: an ad failed or was skipped)"}`,
   );
+  budget();
   return out.join("\n") + "\n";
 }

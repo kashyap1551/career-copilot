@@ -15,6 +15,7 @@ const REASONS: Record<RemovalReason, string> = {
   "date-mismatch": "its date didn't match the quoted words",
   "level-not-in-quote": "the level wording wasn't in the quoted words",
   "several-cities": "the ad names several cities",
+  "tag-not-sentence": "it was only a tag, not a sentence",
 };
 
 export default function Home() {

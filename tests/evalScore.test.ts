@@ -309,3 +309,54 @@ describe("the short-quote guard in accepted extras and conditions (docs/PLAN-3.2
     expect(s).toEqual({ found: 0, missed: 1, extra: 1 });
   });
 });
+
+describe("C5: widened and narrowed (docs/PLAN-3.3.md), information only", () => {
+  // widened = the AI listed MORE alternatives than the key for a paired item (the
+  // engine reads them as "any one is enough", so the fit is overstated);
+  // narrowed = FEWER. Worked out by hand before the code.
+  const score = (keyNames: string[], aiIds: string[]) =>
+    scoreAd(
+      keyOf({ requirements: [K("Same line", "must", ...keyNames)] }),
+      result({ requirements: [E("Same line", "must", ...aiIds)] }),
+      skills,
+    ).requirements;
+
+  it("one key skill, two AI skills: widened 1", () => {
+    expect(score(["SQL"], ["sql", "new:docker"])).toMatchObject({ widened: 1, narrowed: 0 });
+  });
+
+  it("three key alternatives, one AI skill: narrowed 1", () => {
+    expect(score(["Excel", "Word", "Outlook"], ["excel"])).toMatchObject({ widened: 0, narrowed: 1 });
+  });
+
+  it("the same number of skills, even if different: neither", () => {
+    expect(score(["Excel", "Word"], ["new:x", "new:y"])).toMatchObject({ widened: 0, narrowed: 0 });
+    expect(score(["SQL"], ["new:other"])).toMatchObject({ widened: 0, narrowed: 0 });
+  });
+
+  it("a key item with no partner, or an AI item with no partner, is not counted", () => {
+    const s = scoreAd(
+      keyOf({ requirements: [K("Key only line", "must", "A", "B", "C")] }),
+      result({ requirements: [E("AI only line", "must", "new:p", "new:q")] }),
+      skills,
+    ).requirements;
+    expect(s).toMatchObject({ widened: 0, narrowed: 0 });
+  });
+
+  it("the details name the quote and both id lists", () => {
+    const s = score(["SQL"], ["sql", "new:docker"]);
+    expect(s.details.widened).toEqual([{ quote: "Same line", key: ["sql"], ai: ["sql", "new:docker"] }]);
+    const n = score(["Excel", "Word", "Outlook"], ["excel"]);
+    expect(n.details.narrowed).toEqual([{ quote: "Same line", key: ["excel", "new:word", "new:outlook"], ai: ["excel"] }]);
+  });
+
+  it("they add up over ads", () => {
+    const a = scoreAd(keyOf({ requirements: [K("L1", "must", "SQL")] }), result({ requirements: [E("L1", "must", "sql", "new:x")] }), skills);
+    const b = scoreAd(keyOf({ requirements: [K("L2", "must", "A", "B")] }), result({ requirements: [E("L2", "must", "new:a")] }), skills);
+    expect(sumScores([a, b])).toMatchObject({ widened: 1, narrowed: 1 });
+  });
+
+  it("they never change the target", () => {
+    expect(targetMet({ found: 9, mustTotal: 10, invented: 0, widened: 7, narrowed: 7 } as never, true)).toBe(true);
+  });
+});

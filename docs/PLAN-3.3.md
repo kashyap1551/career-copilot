@@ -1,0 +1,161 @@
+STATUS: approved by the owner with five changes (listed below). Run 0 (no prompt change) is being built and run first. Nothing in the prompt changes until the owner says so. Careful lane.
+
+# Plan for 3.3: tune the prompt until at least 90% of must-haves are found and nothing is invented
+
+The check (docs/SPRINT.md): found 116 or more of 128 must-haves, invented 0, on two full runs in a row with the same fingerprint. Rules are judged on the tuning set only (ad-01 to ad-08, plus the barista known case). ad-09 and ad-10 stay the holdout.
+
+## Changes made when the plan was approved
+1. **The tuning-set goal is 94 or more of 100, invented 0, wrong importance 0** (not 90), because the final check counts the holdout too: 116 of 128 needs the holdout's 28 to be close to the tuning set's level.
+2. **Every example and sample line was checked** against all ten ad files and against each other (section 6). No example word of 5 or more letters appears in any real ad or in another example.
+3. **R7 is on hold.** It is added only if the tuning set is still short after run 3.
+4. **Budget** (section 8): the number of Groq calls and tokens for the whole plan, and how it is split over days. If a daily limit stops a run, the run is marked incomplete and I stop and tell the owner.
+5. **Rules are short**, and the size of `INSTRUCTIONS` is reported before and after each rule (section 5).
+
+## 1. Starting point
+Tuning set only (first full run, nothing tuned): found **74 of 100**, missed 25 must-haves plus 1 nice-to-have, wrong importance 1, invented 9, name differs 35.
+
+## 2. The ad-02 key against the ad (checked)
+The two quotes the AI returned that the key did not have are ad-02 **line 30** and **line 35**, under the heading **`Requirements:` (line 24)**, in the same list as every keyed requirement (lines 27 to 37). Both lines are already keyed (line 30 as "Time management" and "Prioritization", line 35 as "Best practices"), so the extras are the AI's other reading of keyed lines. By the rule of 2026-11-14 (simpler reading in the key, other reading accepted) the key should have accepted them: **a key gap, fixed by K1** (add both lines to ad-02's `acceptedExtras`).
+
+## 3. How alternatives are represented (checked in the code)
+Several names in one item mean "any one is enough": the prompt says so, the schema describes `skills` as "Alternatives", `buildJob` keeps all names in one `skillIds`, and the engine meets a requirement when any one is met. If the AI puts two required skills in one item, the fit is overstated. First run, tuning set: widened 4 times (ad-04 once, ad-07 three times), narrowed 8 times (only some alternatives kept). The eval counted both only as "name differs", which never reaches the score. C5 counts them.
+
+## 4. Finding groups from the first run (tuning set only)
+
+| Group | Findings | Rule |
+|---|---|---|
+| (a) soft traits skipped or merged | 12 missed | R2 |
+| (b) several skills in one line merged | 12 missed + 1 nice, 4 widened | R1 |
+| (c) alternatives split or dropped | 5 invented, 8 narrowed, 1 missed | R3, R3b |
+| (d) duty lines read as requirements | 2 invented | R4 |
+| (e) "#LI-" tag read as a work mode | 2 constraint inventions | C1 (code), R5 |
+| (f) name from a neighbouring line | about 6 | R6 |
+| (g) "is a plus" on the wrong item | 1 wrong importance | R7, **on hold** |
+| key gap | 2 invented | K1 |
+| vocabulary only | about 20 name differs | Day 5 |
+
+Missed must-haves: 12 + 12 + 1 = 25. Invented: 5 + 2 + 2 = 9.
+
+## 5. The rules (short wording; sizes of `INSTRUCTIONS`)
+
+`INSTRUCTIONS` now: **3,347 characters**. Each rule is one bullet added to `lib/ai/readJob.ts`. R1 and R3 **replace** the two existing bullets about "and" lists and alternatives (245 characters), so the net growth is smaller. Sizes are measured again, and reported, when each rule is actually added.
+
+| Order | Rule (the draft text) | Added | Size after (adding only) |
+|---|---|---|---|
+| R4 | Only text about what the candidate must or should have is a requirement. Text about what the employee will do (under headings like "Typical week" or "A day on the farm") is a duty: write no items from it, even if it names a tool. | +232 | 3,579 |
+| R3 | Alternatives ("A or B", "A, B or C", "A / B", "A or equivalent") are ONE item listing every alternative named. Never split them and never keep only some. | +156 | 3,735 |
+| R3b | A line with years that also names fields ("4 years in A, B or C") gives the years in minYears and the fields as an item. A vague phrase ("a parallel role") is not a skill. | +174 | 3,909 |
+| R1 | One item per skill: when a sentence names several skills with "and", "as well as", "both ... and" or commas, write one item for each, all with the same quote. Put several names in one item only for alternatives. | +214 | 4,123 |
+| R2 | Personal qualities and ways of working that the ad asks for (being tidy, or good with animals) are requirements too: write an item for each, with a short plain name. | +168 | 4,291 |
+| R5 | A hashtag (such as "#QQ-staff") is a label, not a sentence. Never use one for workMode. | +90 | 4,381 |
+| R6 | Name a skill only if its own quote names or clearly means it. Never take a name from a neighbouring sentence. | +112 | 4,493 |
+
+If R1 and R3 replace the two old bullets, the end size is about **4,250 characters** (+27%).
+
+What each rule should fix, and how it could backfire:
+- **R4** fixes 2 invented. Backfire: an ad with its real requirements under a duty-sounding heading loses items.
+- **R3 and R3b** fix 5 invented, 8 narrowed (not scored), 1 missed. Backfire: a list that mixes "and" and "or" gets merged wrongly; vague "years" lines produce vague items.
+- **R1** fixes up to 12 missed plus 1 nice, and the 4 widened. Realistic: 8 to 12. Backfire: a fixed phrase split in two, whose extra half counts as invented.
+- **R2** fixes up to 12 missed. Realistic: 8 to 12. Backfire: qualities invented from duty text or the company description.
+- **R5** (with C1) fixes 2 constraint inventions. Backfire: an ad that gives its work mode only as a tag reads as not stated (the agreed decision).
+- **R6** fixes about 6 name mismatches (not scored, but wrong skill ids). Backfire: names too literal, items dropped.
+
+## 6. Example check (change 2): result
+Criterion: no word of 5 or more letters in an example may appear in any of the ten real ads (a match also counts when one word starts with the other, so "background" hits "backgrounds"), and none may appear in two different examples. The rules' own vocabulary (years, fields, skills, names, write, label, being) and plain connectors are not examples.
+
+First candidates failed: "workshop" (a heading example), "children", "display" and "expect" (sample lines) appear in the ads, and "glass" was shared by two samples. They were replaced. **Final result: all clear, 15 of 15 examples and samples pass.**
+
+| Where | Example or sample line |
+|---|---|
+| R2 | being tidy, or good with animals |
+| R3 | A or B, A, B or C, A / B, A or equivalent |
+| R3b | 4 years in A, B or C; a parallel role |
+| R4 | headings "Typical week", "A day on the farm" |
+| R5 | #QQ-staff |
+| sample S1a | You can throw pots, glaze them and fire a kiln. |
+| sample S1b | Able to make sourdough, laminated dough and pastry cream. |
+| sample S1c | A knack for arts and crafts. |
+| sample S2 | You are punctual, calm and kind to pupils. |
+| sample S3 | Can lay Tuscan, Venetian or Lombard plaster. |
+| sample S3b | 3+ years in pottery, tiling or glasswork. |
+| sample S3c | 3+ years in an allied role. |
+| sample S4 | Your assignments: Repair the greenhouse gutters. What we ask: Welding certificates. |
+| sample S5 | #ZZ-telework |
+| sample S6 | Holds a forklift licence. Can pickle cucumbers. |
+
+The samples differ from the rule examples on purpose, so a sample is a real test and not a copy of the rule's own example.
+
+## 7. Hand-worked expectations for the samples (prompt-check ads)
+
+| Rule | Sample | Correct reading |
+|---|---|---|
+| R1 | S1a | 3 items (throw pots, glaze, fire a kiln), same quote |
+| R1 | S1b | 3 items (sourdough, laminated dough, pastry cream) |
+| R1 (not over-split) | S1c | 1 item |
+| R2 | S2 | at least 1 item covering the line (split readings accepted) |
+| R3 | S3 | ONE item: Tuscan, Venetian, Lombard plaster |
+| R3b | S3b | years 3, plus ONE item with the three fields |
+| R3b (vague) | S3c | years 3, no requirement item |
+| R4 | S4 | one item, from the line under "What we ask" only |
+| R5 | S5 | work mode not stated |
+| R6 | S6 | the second item is named for pickling, not for the forklift or the licence |
+
+They live in a separate committed folder, `fixtures/prompt-checks/`, run with `npm run eval -- --checks`, so the 10-ad eval keeps its 11 calls. Deliberate breaks: for each rule, run its samples with the rule removed (they should fail as the first run did) and with the rule inverted (they should fail the other way); a sample that does not flip proves nothing.
+
+## 8. Budget (change 4)
+
+**Limits** (Groq's rate-limit page, openai/gpt-oss-120b; the table is labelled Developer plan and the page has no separate free column): 30 requests a minute, 1,000 a day, **8,000 tokens a minute, 200,000 tokens a day**. Limits come back as HTTP 429. Run 0 reads the real limits from Groq's response headers.
+
+**Calls for the whole plan:**
+
+| Part | Calls |
+|---|---|
+| Full evals: run 0, runs 1 to 4, the final two | 7 x 11 = 77 |
+| `--show` for ad-02 and ad-07 | 2 |
+| Prompt-check samples: 10 samples x (3 runs of the kept version + 1 "rule removed" + 1 "rule inverted") | 50 |
+| **Total** | **129** (140 if R7 is added) |
+
+**Tokens (rough, to be replaced by the measured numbers from run 0):** a full-eval call is about 3,000 to 3,500 tokens in (prompt about 850, the schema, the ad about 1,400) and 2,000 to 4,000 out (reasoning plus the JSON), so about 5,000 to 8,000; a sample call about 2,000 to 4,000. That gives about 65,000 tokens per full run, 150,000 for the sample checks, and **about 600,000 tokens in total (range 450,000 to 900,000)**.
+
+**Against the limits:** the 200,000-token daily limit allows about 2 full runs a day, so the plan would not fit in a day: about 3 to 5 days. The 8,000-a-minute limit means one call uses most of a minute, so a full run may take 10 to 15 minutes, not 2, with the retries (5, 15, 45 seconds) doing most of the waiting.
+
+**How I would split it, if the limits are the ones above:**
+- Day A: run 0, the two `--show` calls, run 1.
+- Day B: run 2 and the R1 samples.
+- Day C: run 3, run 4 and the remaining samples.
+- Day D: the final two full runs.
+
+**Cuts that save calls, if you want them:** 2 runs per sample instead of 3 (saves 10 calls), and "rule inverted" only for R1, R2 and R3 (saves 14). A daily limit that stops a run marks it incomplete: I stop and tell you, and do not rerun until you say. Before any prompt-check run I will give the measured token numbers.
+
+## 9. Run 0 (no prompt change), in this order
+
+1. **K1:** add ad-02 lines 30 and 35 to its `acceptedExtras`; one line in DECISIONS.md.
+2. **C1:** a work-mode quote that is only hashtags is rejected (reason "tag, not a sentence"; not moved to conditions). Hand table: `#LI-onsite`, `#LI-remote`, `#remote`, `#LI-onsite #LI-VA1` rejected; `Hybrid: three days a week #LI-hybrid` and `We work remotely` accepted. Breaks: remove the guard; reject any quote containing "#"; reject only the prefix "#LI"; reject quotes with fewer than 3 words.
+3. **C4:** `npm run eval -- --show <ad id>` prints the AI's reading next to the key. It refuses ad-09, ad-10 and any holdout ad **before making any AI call**. Test for the refusal and a deliberate break that removes it.
+4. **C5:** "widened" and "narrowed" counts per ad and in the totals (information only, never in the target). Expected from the first run: widened 4, narrowed 8 on the tuning set.
+5. **German level, option B:** intensified forms ("very good", "sehr gut", "really good", "very fluent") read as not stated (null). Hand table: very good, sehr gut, really good, very fluent give null; good, gut give B2; native gives C2; a stated level still wins ("very good (B2)" gives B2). The ad-07 key stays null.
+6. **Added for the budget:** the report prints the tokens used and the rate limits Groq returned, so the budget above can be replaced by measured numbers.
+7. Run the full tests, `tsc`, lint and build; run the eval once with the prompt unchanged; run `--show ad-02` and `--show ad-07`; commit and push; stop.
+
+Expected from run 0 on the tuning set: found 74 of 100 (it can differ by a few, because the model is not deterministic), invented 7, no work-mode inventions, widened 4, narrowed 8, and ad-07's German level right.
+
+## 10. Order of runs after run 0 (one or two rules per run, tuning set only)
+
+| Run | Change | Expected on the tuning set (found / invented) |
+|---|---|---|
+| 1 | R4, R3, R3b | about 75 / 0 |
+| 2 | R1 | about 83 to 87 / 0 to 2 |
+| 3 | R2 | about 90 to 95 / 0 to 2 |
+| 4 | R6 (R7 only if still short) | about 92 to 96 / 0 |
+| 5 and 6 | no change: the final two full runs in a row | tuning set 94 or more of 100, whole set 116 or more of 128, invented 0 |
+
+A rule is kept only if its group improves and invented does not rise elsewhere; otherwise it is reverted before the next run.
+
+## 11. Constraint findings: prompt, code or key
+- **ad-01 and ad-02 work mode ("#LI-" tag):** code first (C1), prompt second (R5).
+- **ad-02 location missed:** probably the prompt (the AI most likely returned null because the ad lists "Frankfurt am Main" and "Frankfurt"); `--show ad-02` in run 0 shows what it returned.
+- **ad-07 company wrong:** probably key or scoring, not the prompt (the ad writes "DSV" and "DSV Holding Germany GmbH"); `--show ad-07` shows what it returned.
+- **ad-07 German level:** code (the wording table) and the key, not the prompt. Decided: option B, intensified forms read as not stated.
+
+## 12. Keeping ad-09 and ad-10 unseen
+Reports show them as one block of totals; no `--reveal`; no per-item output read; `--show` refuses them before any AI call. Every rule is judged on ad-01 to ad-08 and the known case only. The holdout totals in the report are not used to accept or reject a rule. No ad text, and nothing taken from the holdout ads, goes into the prompt; the examples and samples above were checked against all ten ads.

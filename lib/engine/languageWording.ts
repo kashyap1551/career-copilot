@@ -46,6 +46,11 @@ const KEY_PATTERNS = [
   .sort((a, b) => b.key.length - a.key.length)
   .map(({ pattern, level }) => [pattern, level] as const);
 
+// Words that raise or soften a level ("very good", "sehr gut", "really good").
+// Wording with one of them is not placed on the scale: "very good" could be B2
+// or C1, and "not stated" beats a guess (option B, docs/DECISIONS.md, step 3.3).
+const INTENSIFIER = /\b(?:very|really|extremely|highly|truly|sehr|ausserst|besonders|ausgesprochen)\b/;
+
 // A stated level (A1 to C2, as a whole word) wins. Otherwise the first key
 // found, longest first. Nothing found gives null: "not stated" beats a guess.
 export function levelFromWording(wording: string | null | undefined): LanguageLevel | null {
@@ -53,6 +58,7 @@ export function levelFromWording(wording: string | null | undefined): LanguageLe
   const folded = foldText(wording);
   const stated = folded.match(/\b([abc][12])\b/);
   if (stated) return stated[1].toUpperCase() as LanguageLevel;
+  if (INTENSIFIER.test(folded)) return null;
   for (const [pattern, level] of KEY_PATTERNS) {
     if (pattern.test(folded)) return level;
   }

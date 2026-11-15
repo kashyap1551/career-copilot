@@ -23,12 +23,19 @@ export type RequirementScore = {
   accepted: number; // AI items with no partner that the key accepts
   nameDiffers: number;
   mergeHints: number; // missed key items that share their quote with a paired AI item
+  // Information only, never in the target. For a paired item, the AI listed more
+  // (widened) or fewer (narrowed) alternatives than the key. The engine reads
+  // several names in one item as "any one is enough", so widening overstates the fit.
+  widened: number;
+  narrowed: number;
   details: {
     missed: { quote: string; importance: "must" | "nice"; skills: string[] }[];
     wrongImportance: { quote: string; key: "must" | "nice"; ai: "must" | "nice" }[];
     invented: { quote: string; skills: string[] }[];
     nameDiffers: { quote: string; key: string[]; ai: string[] }[];
     mergeHints: { quote: string }[];
+    widened: { quote: string; key: string[]; ai: string[] }[];
+    narrowed: { quote: string; key: string[]; ai: string[] }[];
   };
 };
 
@@ -84,7 +91,9 @@ function scoreRequirements(key: AnswerKey, job: Job, skills: Skill[]): Requireme
     accepted: 0,
     nameDiffers: 0,
     mergeHints: 0,
-    details: { missed: [], wrongImportance: [], invented: [], nameDiffers: [], mergeHints: [] },
+    widened: 0,
+    narrowed: 0,
+    details: { missed: [], wrongImportance: [], invented: [], nameDiffers: [], mergeHints: [], widened: [], narrowed: [] },
   };
 
   for (const p of m.pairs) {
@@ -97,6 +106,15 @@ function scoreRequirements(key: AnswerKey, job: Job, skills: Skill[]): Requireme
       s.details.wrongImportance.push({ quote: keyItem.quote, key: keyItem.importance, ai: ai.importance });
     }
     const wanted = keyIds(keyItem, skills);
+    const keyCount = new Set(wanted).size;
+    const aiCount = new Set(ai.skillIds).size;
+    if (aiCount > keyCount) {
+      s.widened++;
+      s.details.widened.push({ quote: keyItem.quote, key: wanted, ai: ai.skillIds });
+    } else if (keyCount > aiCount) {
+      s.narrowed++;
+      s.details.narrowed.push({ quote: keyItem.quote, key: wanted, ai: ai.skillIds });
+    }
     if (!sameSet(wanted, ai.skillIds)) {
       s.nameDiffers++;
       s.details.nameDiffers.push({ quote: keyItem.quote, key: wanted, ai: ai.skillIds });
@@ -192,6 +210,8 @@ export type Totals = {
   accepted: number;
   nameDiffers: number;
   mergeHints: number;
+  widened: number;
+  narrowed: number;
   removed: number;
   fields: Record<FieldVerdict, number>;
   languages: LanguageScore;
@@ -211,6 +231,8 @@ export function sumScores(scores: AdScore[]): Totals {
     accepted: 0,
     nameDiffers: 0,
     mergeHints: 0,
+    widened: 0,
+    narrowed: 0,
     removed: 0,
     fields: { right: 0, notStated: 0, wrong: 0, missed: 0, invented: 0 },
     languages: { right: 0, wrong: 0, missed: 0, invented: 0 },
@@ -228,6 +250,8 @@ export function sumScores(scores: AdScore[]): Totals {
     t.accepted += r.accepted;
     t.nameDiffers += r.nameDiffers;
     t.mergeHints += r.mergeHints;
+    t.widened += r.widened;
+    t.narrowed += r.narrowed;
     t.removed += s.removed.length;
     for (const v of Object.values(s.constraints.fields)) t.fields[v]++;
     for (const k of ["right", "wrong", "missed", "invented"] as const) t.languages[k] += s.constraints.languages[k];

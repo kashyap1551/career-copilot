@@ -27,7 +27,7 @@ const B: [string, string | null, LanguageLevel | null][] = [
   ["B20", "working knowledge", null],
   ["B21a", "", null],
   ["B21b", null, null],
-  ["B22", "very good", "B2"],
+  ["B22", "very good", null], // changed in 3.3 (option B): an intensifier makes it "not stated"
   ["B23", "upper intermediate", null],
   ["B24", "muttersprachlich", "C2"],
   ["B25", "gute", "B2"],
@@ -96,11 +96,11 @@ describe("languageCodeFor", () => {
 // out by hand before the code changed. The four German stems gut, fließend,
 // verhandlungssicher and muttersprachlich take the endings e, em, en, er, es.
 
-const endings: [string, LanguageLevel][] = [
+const endings: [string, LanguageLevel | null][] = [
   ["gutes", "B2"],
   ["gutem", "B2"],
   ["Gute", "B2"],
-  ["sehr gutes", "B2"],
+  ["sehr gutes", null], // changed in 3.3 (option B)
   ["gutem Englisch", "B2"],
   ["fließende", "C1"],
   ["fließendes", "C1"],
@@ -117,7 +117,7 @@ const endings: [string, LanguageLevel][] = [
   ["muttersprachliche", "C2"],
   ["muttersprachlicher", "C2"],
   ["muttersprachlich", "C2"],
-  ["sehr gut bis ausgezeichnet", "B2"],
+  ["sehr gut bis ausgezeichnet", null], // changed in 3.3 (option B)
 ];
 
 describe("levelFromWording: German adjective endings", () => {
@@ -139,5 +139,38 @@ describe("levelFromWording: German adjective endings", () => {
 
   it("a stated level still wins over an ending", () => {
     expect(levelFromWording("gutes B1")).toBe("B1");
+  });
+});
+
+// Step 3.3 run 0, option B (docs/PLAN-3.3.md and docs/DECISIONS.md): wording with an
+// intensifier ("very", "sehr", "really"...) is not placed on the scale: "very good"
+// could be B2 or C1, and "not stated" beats a guess. A stated level (B2) still wins.
+// The table was worked out by hand before the code.
+describe("levelFromWording: intensified wording reads as not stated", () => {
+  const table: [string, LanguageLevel | null][] = [
+    ["very good", null],
+    ["sehr gut", null],
+    ["really good", null],
+    ["very fluent", null],
+    ["extremely good", null],
+    ["highly fluent", null],
+    ["sehr gute", null],
+    ["besonders gut", null],
+    ["äußerst gut", null],
+    ["very", null],
+    ["good", "B2"],
+    ["gut", "B2"],
+    ["gutes", "B2"],
+    ["native", "C2"],
+    ["fluent", "C1"],
+    ["fließend", "C1"],
+    ["verhandlungssicher", "C1"],
+    ["very good (B2)", "B2"], // a stated level always wins
+    ["sehr gut, C1", "C1"],
+    ["everything is good", "B2"], // "everything" contains "very" but is not the word
+    ["delivery is good", "B2"],
+  ];
+  it.each(table)("%j gives %s", (wording, level) => {
+    expect(levelFromWording(wording)).toBe(level);
   });
 });

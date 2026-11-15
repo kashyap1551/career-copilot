@@ -6,12 +6,15 @@ import { skills } from "../fixtures/skills";
 import { INSTRUCTIONS, readJobAd } from "../lib/ai/readJob";
 import { checkKey, type AnswerKey } from "../lib/engine/answerKey";
 import { formatReport, summarize } from "../lib/engine/evalReport";
+import { formatShow, showRefusal } from "../lib/engine/evalShow";
 import { runEval, twoInARow, type EvalAd, type RunState } from "../lib/engine/evalRun";
 
 // npm run eval                      every ad that has a reviewed key
 // npm run eval -- --only <ad id>    one ad (a wiring check; no totals, no target)
 // npm run eval -- --reveal          also print the holdout ads' per-ad lines
 //                                   (only once the owner says tuning is done)
+// npm run eval -- --show <ad id>    one tuning ad: the AI's reading next to the key.
+//                                   Refuses the holdout before any AI call.
 //
 // This script only reads files, calls the AI and prints. The matching, the
 // scoring and the wording of the report live in lib/engine and are unit-tested.
@@ -22,6 +25,17 @@ const root = process.cwd();
 const args = process.argv.slice(2);
 const only = args.includes("--only") ? (args[args.indexOf("--only") + 1] ?? "") : null;
 const reveal = args.includes("--reveal");
+const show = args.includes("--show") ? (args[args.indexOf("--show") + 1] ?? "") : null;
+
+// --show never works on the holdout, whatever else is on the command line.
+// This runs before anything is loaded or any AI call is made.
+if (show !== null) {
+  const refusal = showRefusal(show, HOLDOUT);
+  if (refusal) {
+    console.error(refusal);
+    process.exit(1);
+  }
+}
 
 // Load the settings from .env.local into this process (a Node built-in). The
 // file's contents are never printed.
@@ -90,6 +104,22 @@ async function loadAds(): Promise<{ ads: EvalAd[]; skipped: { id: string; reason
 
 async function main() {
   const loaded = await loadAds();
+
+  if (show !== null) {
+    const wanted = loaded.ads.find((a) => a.id === show.trim().toLowerCase());
+    if (!wanted) {
+      console.error(`No ad "${show}" with a reviewed key. Available: ${loaded.ads.filter((a) => !a.holdout).map((a) => a.id).join(", ") || "none"}`);
+      process.exit(1);
+    }
+    const result = await readJobAd(wanted.text);
+    process.stdout.write(formatShow(wanted, result, skills));
+    if (result.usage) console.log(`\nTOKENS (this one call): in ${result.usage.inputTokens.toLocaleString("en-US")}, out ${result.usage.outputTokens.toLocaleString("en-US")}`);
+    if (result.limits && Object.keys(result.limits).length > 0) {
+      console.log(`RATE LIMITS (Groq's answer): ${Object.entries(result.limits).map(([k, v]) => `${k}=${v}`).join(", ")}`);
+    }
+    return;
+  }
+
   let ads = loaded.ads;
   let early = loaded.skipped;
 
@@ -122,6 +152,8 @@ async function main() {
     skipped: [...early, ...run.skipped],
     reveal,
     partial: only !== null,
+    usage: run.usage,
+    limits: run.limits,
   };
   let text = formatReport(input);
 

@@ -1,8 +1,10 @@
 import { APICallError, generateText, NoObjectGeneratedError, Output } from "ai";
 import { skills } from "@/fixtures/skills";
-import { buildJob, type BuildResult } from "@/lib/engine/fromAd";
+import type { ReadOutcome } from "@/lib/engine/evalRun";
+import { buildJob } from "@/lib/engine/fromAd";
 import { extractedAdSchema, type ExtractedAd } from "@/lib/schemas/job";
 import { getModel, MissingSettingError } from "./model";
+import { pickRateLimitHeaders } from "./usage";
 
 // An error with a plain-language message that is safe to show the person,
 // plus the HTTP status the route should answer with.
@@ -44,22 +46,30 @@ Example, made up, only to show the shape (never copy from it):
 Ad: "Data Analyst at Acme GmbH, Berlin. Hybrid, two days in the office. You have 3+ years of experience, strong SQL and Excel, and fluent German. Nice to have: Python or R. A Master's degree is required. Start on 1 March 2027."
 Reading: title "Data Analyst"; company "Acme GmbH"; location "Berlin"; workMode {hybrid, "Hybrid, two days in the office"}; minYears {3, "3+ years of experience"}; startDate {"2027-03-01", "Start on 1 March 2027"}; languages [{German, "fluent", "fluent German"}]; otherConditions [{"A Master's degree is required"}]; requirements [{"strong SQL and Excel", must, [SQL]}, {"strong SQL and Excel", must, [Excel]}, {"Python or R", nice, [Python, R]}].`;
 
-export type ReadResult = BuildResult;
+export type ReadResult = ReadOutcome;
 
 // Until Day 5's vocabulary exists, the skill list is the one the fixtures use.
 export async function readJobAd(text: string): Promise<ReadResult> {
   let output: ExtractedAd;
+  let usage: ReadResult["usage"];
+  let limits: ReadResult["limits"];
   try {
-    ({ output } = await generateText({
+    const result = await generateText({
       model: getModel(),
       instructions: INSTRUCTIONS,
       output: Output.object({ schema: extractedAdSchema }),
       prompt: `Read this job ad.\n\n<job_ad>\n${text}\n</job_ad>`,
-    }));
+    });
+    output = result.output;
+    usage = {
+      inputTokens: result.usage.inputTokens ?? 0,
+      outputTokens: result.usage.outputTokens ?? 0,
+    };
+    limits = pickRateLimitHeaders(result.response?.headers);
   } catch (error) {
     throw toReadAdError(error);
   }
-  return buildJob(output, text, skills, { id: "pasted-ad", source: null });
+  return { ...buildJob(output, text, skills, { id: "pasted-ad", source: null }), usage, limits };
 }
 
 // Turns anything that can go wrong into a message a person can act on.

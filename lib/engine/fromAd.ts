@@ -1,6 +1,7 @@
 import type { ExtractedAd } from "../schemas/job";
 import { datesInText } from "./dates";
 import { languageCodeFor, levelFromWording } from "./languageWording";
+import { hasRealWord } from "./quoteMatch";
 import { skillIdFor } from "./skillIds";
 import { foldText, isInAd, normalizeText } from "./text";
 import type { Job, JobLanguage, Requirement, Skill } from "./types";
@@ -29,7 +30,8 @@ export type RemovalReason =
   | "no-full-date"
   | "date-mismatch"
   | "level-not-in-quote"
-  | "several-cities";
+  | "several-cities"
+  | "tag-not-sentence";
 
 export type RemovedItem = { what: RemovedWhat; why: RemovalReason; text: string };
 
@@ -131,8 +133,15 @@ export function buildJob(
   // ---- work mode
   let remote: Job["constraints"]["remote"] = null;
   if (ex.workMode !== null) {
-    if (isInAd(ex.workMode.quote, adText)) remote = ex.workMode.value;
-    else drop("workMode", "not-in-ad", ex.workMode.quote);
+    const { value, quote } = ex.workMode;
+    if (!isInAd(quote, adText)) {
+      drop("workMode", "not-in-ad", quote);
+    } else if (!hasRealWord(quote.replace(/#\S+/g, " "))) {
+      // Only hashtags, such as "#LI-onsite": a label, not the ad's own words.
+      drop("workMode", "tag-not-sentence", quote);
+    } else {
+      remote = value;
+    }
   }
 
   // ---- years of experience

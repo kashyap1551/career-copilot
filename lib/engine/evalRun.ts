@@ -17,8 +17,14 @@ export type EvalAd = {
 
 export type ScoredAd = { ad: EvalAd; score: AdScore; job: Job };
 
+export type Usage = { inputTokens: number; outputTokens: number };
+
+// What a read gives back: the checked job, plus (when the AI service reports
+// them) the tokens used and the rate limits it returned.
+export type ReadOutcome = BuildResult & { usage?: Usage; limits?: Record<string, string> };
+
 export type RunDeps = {
-  read: (text: string) => Promise<BuildResult>;
+  read: (text: string) => Promise<ReadOutcome>;
   sleep: (ms: number) => Promise<void>;
   delayMs: number; // between two ads
   backoffsMs: number[]; // waits before each retry after a rate limit
@@ -29,6 +35,8 @@ export type RunResult = {
   failed: { id: string; reason: string }[];
   skipped: { id: string; reason: string }[];
   complete: boolean; // nothing failed and nothing was skipped
+  usage: Usage & { calls: number }; // tokens added up over the calls that worked
+  limits?: Record<string, string>; // the rate limits seen on the last call
 };
 
 const statusOf = (error: unknown): number | undefined =>
@@ -44,7 +52,7 @@ function reasonFor(error: unknown): string {
   return "unexpected error";
 }
 
-async function readWithRetry(text: string, deps: RunDeps): Promise<BuildResult> {
+async function readWithRetry(text: string, deps: RunDeps): Promise<ReadOutcome> {
   for (let attempt = 0; ; attempt++) {
     try {
       return await deps.read(text);
@@ -59,7 +67,13 @@ async function readWithRetry(text: string, deps: RunDeps): Promise<BuildResult> 
 }
 
 export async function runEval(ads: EvalAd[], deps: RunDeps, skills: Skill[]): Promise<RunResult> {
-  const run: RunResult = { scored: [], failed: [], skipped: [], complete: true };
+  const run: RunResult = {
+    scored: [],
+    failed: [],
+    skipped: [],
+    complete: true,
+    usage: { inputTokens: 0, outputTokens: 0, calls: 0 },
+  };
   let reads = 0;
 
   for (const ad of ads) {
@@ -72,6 +86,10 @@ export async function runEval(ads: EvalAd[], deps: RunDeps, skills: Skill[]): Pr
     try {
       const result = await readWithRetry(ad.text, deps);
       run.scored.push({ ad, score: scoreAd(ad.key, result, skills), job: result.job });
+      run.usage.calls += 1;
+      run.usage.inputTokens += result.usage?.inputTokens ?? 0;
+      run.usage.outputTokens += result.usage?.outputTokens ?? 0;
+      if (result.limits) run.limits = result.limits;
     } catch (error) {
       run.failed.push({ id: ad.id, reason: reasonFor(error) });
     }

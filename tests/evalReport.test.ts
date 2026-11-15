@@ -147,3 +147,38 @@ describe("a partial run (--only)", () => {
     expect(text).toContain("ad-01:");
   });
 });
+
+describe("the tokens and limits lines (C6)", () => {
+  it("prints them when given, with thousands separators", () => {
+    const text = formatReport({
+      scored, failed: [], skipped: [], reveal: false,
+      usage: { inputTokens: 31234, outputTokens: 40120, calls: 11 },
+      limits: { "x-ratelimit-limit-tokens": "8000", "x-ratelimit-remaining-tokens": "7000" },
+    });
+    expect(text).toContain("TOKENS: in 31,234, out 40,120, total 71,354 (from 11 calls)");
+    expect(text).toContain("RATE LIMITS (Groq's answer to the last call): x-ratelimit-limit-tokens=8000, x-ratelimit-remaining-tokens=7000");
+  });
+
+  it("prints neither when not given", () => {
+    const text = formatReport({ scored, failed: [], skipped: [], reveal: false });
+    expect(text).not.toContain("TOKENS:");
+    expect(text).not.toContain("RATE LIMITS");
+  });
+});
+
+describe("the widened and narrowed lines (C5)", () => {
+  it("are on the ad's line and in the detail lines", () => {
+    const key = (ad: string): AnswerKey => ({ ...scored[0].ad.key, ad, requirements: [{ quote: "Same line", importance: "must", skills: ["SQL"] }], acceptedExtras: [] });
+    const k = key("ad-77");
+    const res: BuildResult = {
+      job: { id: "x", title: "Untitled job", company: null, source: null,
+        constraints: { languages: [], location: null, remote: null, minYears: null, startDate: null, otherConditions: [] },
+        requirements: [{ skillIds: ["sql", "new:docker"], importance: "must", quote: "Same line" }] },
+      removed: [], moved: [], unlisted: [],
+    };
+    const ad: EvalAd = { id: "ad-77", text: "x", key: k, holdout: false, known: false };
+    const text = formatReport({ scored: [{ ad, score: scoreAd(k, res, skills), job: res.job }], failed: [], skipped: [], reveal: false });
+    expect(text).toContain("widened 1 | narrowed 0");
+    expect(text).toContain('widened: "Same line": key [sql], AI [sql, new:docker]');
+  });
+});

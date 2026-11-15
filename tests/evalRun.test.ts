@@ -134,3 +134,24 @@ describe("twoInARow", () => {
     expect(twoInARow(null, run("a", true))).toBe(false);
   });
 });
+
+describe("tokens and rate limits (C6)", () => {
+  it("adds up the tokens of every call and keeps the last limits seen", async () => {
+    const answers = [
+      { ...goodResult, usage: { inputTokens: 100, outputTokens: 50 }, limits: { "x-ratelimit-limit-tokens": "8000" } },
+      { ...goodResult, usage: { inputTokens: 200, outputTokens: 70 }, limits: { "x-ratelimit-limit-tokens": "9000" } },
+    ];
+    let i = 0;
+    const d = deps(async () => answers[i++]);
+    const run = await runEval([ad("ad-01"), ad("ad-02")], d.deps, skills);
+    expect(run.usage).toEqual({ inputTokens: 300, outputTokens: 120, calls: 2 });
+    expect(run.limits).toEqual({ "x-ratelimit-limit-tokens": "9000" });
+  });
+
+  it("counts a call without usage as a call with no tokens", async () => {
+    const d = deps(async () => goodResult);
+    const run = await runEval([ad("ad-01")], d.deps, skills);
+    expect(run.usage).toEqual({ inputTokens: 0, outputTokens: 0, calls: 1 });
+    expect(run.limits).toBeUndefined();
+  });
+});
