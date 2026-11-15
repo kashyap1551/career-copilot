@@ -94,6 +94,7 @@ Not in the sprint. Each one that changes a schema goes through the careful lane.
 - Personal-quality lines in an ad (for example "a team player", "a positive attitude", "a curious mind") cannot be proven by a CV, so they probably should not count against the fit verdict. Decide this in the product step (3.4 onward); it also changes what "must-have found" should mean for these lines.
 - Stability: the same ad gives different readings on repeat; consider reading three times and keeping the items found at least twice (plain code decides), at three times the cost. Decide after the rules.
 - Check the sprint check "invented 0 on two full runs" against the measured noise (a single ad swung from 0 to 5 invented on identical input). Decide after the rules.
+- Narrowed counts a correct split reading as narrowed when the first paired item has fewer skills than the key (several AI items share the quote, the rest are accepted extras). Information only; fix the scorer if it keeps misleading.
 
 ## (g) Eval run log
 
