@@ -420,3 +420,57 @@ Run A used the same duty lines as baseline readings 1 and 2 (ad-08 L9, L11, L12,
 - **R4 as worded and R3 as worded are reverted.** R3b shows no gain (ad-05 #13 and #14 are still missed). **R8 is kept pending a cheap confirmation** (ad-02's location was right in run A; the baseline gave 1 in every reading).
 - **Next candidate: "1b"**, the run 1 prompt with three edits: the R1 wording as the first requirements bullet plus one sentence in the alternatives bullet saying that a list joined with "and", or with commas and no "or", is not alternatives, and the R4 bullet rewritten in two variants (A: cue by the meaning of the heading; B: cue by a question asked of each line). R8 stays; R6 and R2 are not in it. The wording is drafted in the scratch folder and is not applied.
 - **Order:** candidate 1b first, on the ads that carry its targets only (the screen, see the HANDOFF idea); then the full two runs only if the screen passes; then R6 and R2 from section 16 as run 2 without R1, which is already in 1b.
+
+## 18. Screen of candidate 1b-A (2026-11-15)
+
+Numbers and item or line numbers only. Candidate 1b-A is the run 1 prompt with three edits: the R1 wording as the first requirements bullet, one sentence in the alternatives bullet (a list joined with "and", or with commas and no "or", is not alternatives), and the R4 bullet rewritten as a cue by heading meaning (variant A). R8 stays; R6 and R2 are not in it. 1b-B was not built into the file and not run.
+
+**Hashes.** Baseline prompt: request `85357f8fac`, INSTRUCTIONS 3,347. Run 1 prompt: `0306366684`, 4,000. Candidate 1b-A: `4d3d2f6710`, 4,199 (variant B would be 4,153). Every call ran behind `EXPECT_REQUEST_HASH` and `EXPECT_INSTRUCTIONS_LEN`, and the reports carry the line `FINGERPRINT: format 2 | request 4d3d2f6710 | INSTRUCTIONS 4,199`.
+
+### The pass lines, fixed before the run
+
+| Line | Ad | Passes when |
+|---|---|---|
+| S1 | ad-08 | distinct duty lines at most 4, and found at least 4 of 5 |
+| S2 | ad-05 | found at least 13 of 23, and items of shared-quote groups not found (the R1 sibling count) at most 3 |
+| S3 | ad-02 | found at least 11 of 13, location right, widened at most 1 |
+| S4 | ad-03 | invented 0, and found at least 13 of 14 |
+| S5 | ad-04 | R3+R3b defect lines at most 1 of 3, and found at least 10 of 13 |
+
+### Results (one reading per ad)
+
+| Ad | Found | Invented | Widened | Narrowed | Tokens |
+|---|---|---|---|---|---|
+| ad-02 | 12 of 13 | 0 | 0 | 1 | 5,990 |
+| ad-03 | 14 of 14 | 0 | 0 | 0 | 5,284 |
+| ad-04 | 8 of 13 | 2 | 0 | 3 | 5,848 |
+| ad-05 | 9 of 23 | 0 | 0 | 0 | 5,729 |
+| ad-08 | 5 of 5 | 0 | 0 | 1 | 3,741 |
+
+| Line | Result | Detail |
+|---|---|---|
+| S1 ad-08 | **PASS** | 0 duty lines read as requirements (the baseline: 5 lines, 5 items; run 1 run A: 5 lines, 11 items); found 5 of 5 |
+| S2 ad-05 | **FAIL** | found 9 of 23 (needs 13); R1 sibling items not found 4 (needs 3 or less) |
+| S3 ad-02 | **PASS** | found 12 of 13; location right; widened 0 |
+| S4 ad-03 | **PASS** | invented 0; found 14 of 14 |
+| S5 ad-04 | **FAIL** | R3+R3b defect lines 3 of 3 (needs 1 or less); found 8 of 13 (needs 10) |
+
+Screen: S2 and S5 fail. Total tokens of the five readings: 26,592.
+
+**Every call, including the failed one.** The first attempt (3 ads and a failed ad-05) was run on 2026-11-15: ad-02, ad-03 and ad-04 finished; the **ad-05 call failed** ("AI service error (status 500)", no reading, no tokens counted) and the script stopped, so ad-08 did not run. The runner was then changed to retry a 5xx once after 20 seconds, and ad-05 and ad-08 were run again as a second invocation under the same label: both finished at the first attempt (no "retried" line in either report).
+
+**About that failure.** The status in the report is the reader's generic 500, not necessarily Groq's: a 5xx or a 429 that outlasts the AI SDK's own three attempts reaches the runner as the same generic 500 (the detail text is "Failed after 3 attempts. Last error: ..."), so the cause of the ad-05 failure is not known. A side effect: the runner's 429 backoff cannot fire on the real path. The fix belongs in `lib/ai/readJob.ts` (unwrap the SDK's retry error); that file holds the uncommitted run 1 prompt and was not touched.
+
+### Decision made in advance, followed exactly
+
+S2 failed, so no further calls were made (no extra ad-04 readings, no 1b-B).
+
+**Why ad-05 lost items (candidate 1b-A against the baseline).** 14 of the 23 key items are not found: #0, #1, #2, #5, #6, #9, #13, #14, #17, #18, #19, #20, #21, #22. Items found in both baseline readings but not found now: **#5 and #9**. Cause by item: **merged 0** (widened 0 in the report); **absent 13** (no AI item has the skill and none uses the quote); skill present under another quote 1 (#14). None lies inside the duty range (lines 28-35): the lost items are on lines 21 to 23 and 38 to 44. The four R1 sibling items not found (#0, #1, #2, #5) are all on line 21. The baseline missed 10 items in reading 1 and 8 in reading 2 (the same lines 38 to 44 and #2, #6, #13, #14 among them), so a part of this is the old loss; the new losses against reading 1 are #0, #1, #5, #9, and against reading 2 #5, #9, #13, #14, #21, #22.
+
+### The S5 rule written down for the extra readings (not used, because S2 failed)
+
+S5 as fixed above is one reading of the noisiest ad, a weak test: ad-04's baseline gave found 11, 12 and 7, and R3+R3b defect lines 2, 3 and 0 on the same text. The rule decided before any extra reading existed: **S5 passes if at least 2 of its 3 readings have defect lines at most 1 and found at least 10.** It would have been applied by running ad-04 twice more (`START=2`, label c1bA) only if S1 and S2 had both passed. They did not, so S5 stays recorded as FAIL on its single reading.
+
+### What the screen shows
+- Variant A's cue by heading meaning removed the duty-line reading in ad-08 (S1), with found unchanged at 5 of 5.
+- The same prompt lost items in ad-05 that no heading or merge explains (S2), and ad-04 kept splitting its alternatives line (invented 2, S5).

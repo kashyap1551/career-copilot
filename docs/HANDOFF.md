@@ -97,6 +97,7 @@ Not in the sprint. Each one that changes a schema goes through the careful lane.
 - Narrowed counts a correct split reading as narrowed when the first paired item has fewer skills than the key (several AI items share the quote, the rest are accepted extras). Information only; fix the scorer if it keeps misleading.
 - Duties by structure instead of wording: each requirement item gets a "section" label from the AI (for example "requirements", "duties", "company", "benefits") and plain code drops the duty ones (the AI reads, the code decides). Use it only if the R4 wording fails twice.
 - Protocol: a candidate prompt first runs only on the ads that carry its targets (the screen); the full two runs of the tuning set happen only after the screen passes.
+- Error mapping in lib/ai/readJob.ts: the AI SDK retries a retryable error twice and then throws a retry error, which toReadAdError reports as a generic 500 ("Failed after 3 attempts..."). So a 429 or a 5xx that outlasts the SDK's retries has no code on the way out, and the runner's 429 backoff cannot fire on the real path. Fix: unwrap the retry error's last error in toReadAdError (and then the runner's 5xx retry can use the real code). Do it when readJob.ts is next committed.
 
 ## (g) Eval run log
 
@@ -117,3 +118,4 @@ Counts only. Holdout (ad-09, ad-10) is included in the totals as numbers; its pe
   - ad-08: found 5, 3, 5 of 5; invented 5, 5, 6
   - Tokens about 19,000 per repeat of the four ads; identical input tokens each time.
 - 2026-11-15, baseline reading 2 (ad-01, 03, 05, 07, old prompt, request hash 85357f8fac): found 6, 14, 15, 8; 8-ad found 76 of 100, invented 13, R4 items 5, R3+R3b 7 of 11, outside 1. Run 1 run A (run 1 prompt, request hash 0306366684, INSTRUCTIONS 4,000): found 65 of 100, R4 items 11 (lines 5), R3+R3b 4 of 11, R8 0, invented 11, outside 0. Details in PLAN-3.3 section 17.
+- 2026-11-15, screen of candidate 1b-A (request hash 4d3d2f6710, INSTRUCTIONS 4,199) on ad-02, 03, 04, 05, 08: S1 PASS (ad-08 duty lines 0, found 5 of 5), S2 FAIL (ad-05 found 9 of 23), S3 PASS, S4 PASS, S5 FAIL (ad-04 found 8 of 13, R3+R3b defect lines 3 of 3). One call failed (ad-05, generic status 500) and was rerun after the runner change. Details in PLAN-3.3 section 18.
