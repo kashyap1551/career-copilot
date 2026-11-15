@@ -190,3 +190,33 @@ Counts only. The holdout (ad-09, ad-10) is in the totals and nothing else.
 - The 8,000-tokens-a-minute limit is the tight one: after the 11th call only 74 tokens were left in the minute. The 3-second delay plus the retries got through with 0 failed ads.
 - Whole plan: 7 full runs about 340,000 tokens, `--show` calls about 5,500 each, and 50 sample calls (a sample call still carries the prompt and schema, so about 3,500 to 4,500 tokens, not 2,000 to 4,000): about 200,000. Total about **550,000 tokens, about 3 days at the daily limit** (Day A: noise test and run 1; Day B: runs 2 and 3 and samples; Day C: run 4, samples and the final two runs).
 - If a daily limit stops a run it is marked incomplete and I stop and tell the owner.
+
+## 14. Noise test result (2026-11-15)
+
+**What was done:** after run 0, the generation settings were fixed in one object (temperature 0, a fixed seed, reasoning effort medium; a test with the real Groq provider on a fake fetch proves all three reach the request body, and the SDK gives no warnings). Then ad-02, ad-04, ad-06 and ad-08 (the four that moved most) were read three times, prompt unchanged. 12 calls, 0 failed, no rate-limit error. Input tokens were identical in every repeat, so the prompt was the same.
+
+| Ad | Repeat 1: found / wrong importance / invented / tokens | Repeat 2 | Repeat 3 |
+|---|---|---|---|
+| ad-02 | 12 of 13 / 0 / 0 / 5,337 | 12 of 13 / 0 / 0 / 5,573 | 12 of 13 / 0 / 0 / 5,107 |
+| ad-04 | 11 of 13 / 0 / 2 / 5,251 | 12 of 13 / 0 / 5 / 5,456 | 7 of 13 / 0 / 0 / 4,867 |
+| ad-06 | 4 of 8 / 1 / 0 / 4,135 | 6 of 8 / 1 / 0 / 4,515 | 6 of 8 / 1 / 3 / 4,598 |
+| ad-08 | 5 of 5 / 0 / 5 / 4,044 | 3 of 5 / 0 / 5 / 4,329 | 5 of 5 / 0 / 6 / 4,531 |
+
+**Criterion, fixed in advance by the owner:** with temperature 0, a fixed seed and medium effort the reader should repeat itself. **Result: failed.** ad-04 gave 7, 11 and 12 found and 0, 2 and 5 invented on the same text; ad-06 gave 0, 0 and 3 invented; ad-08 gave 3 to 5 found. Only ad-02 was stable. Output token counts differ in every repeat, so the model really answers differently. Groq documents the seed as a best effort ("determinism is not guaranteed"), and gpt-oss always reasons.
+
+**What it means:** a single full run cannot judge a rule, with or without these settings. A change of a few found or a few invented between two runs is not evidence. The settings are kept anyway (no harm, in the fingerprint).
+
+**The new judging method:**
+- Every prompt version gets **two runs of the tuning set** (ad-01 to ad-08).
+- The **baseline** at the current settings is completed for ad-01, ad-03, ad-05 and ad-07, two repeats each (ad-02, ad-04, ad-06 and ad-08 already have three), so the baseline has two or more readings of every tuning ad.
+- A rule is judged **first on the lines it targets** (the items the rule is about: counted per line, over both runs), **then on the tuning-set totals**. How much improvement counts as a keep is the owner's decision, not fixed here.
+- Run 1 is **R4, R3, R3b and R8** (R8: the same city written twice is one city). Then R1, R2 and R6, one version each.
+- ad-09 and ad-10 stay unseen; they are in the totals of the final two full runs only.
+
+**Budget, redone:** a tuning-set run (8 calls) is about 35,000 tokens.
+- Baseline (ad-01, 03, 05, 07, two repeats = 8 calls): about 36,000
+- Four versions x 2 runs x about 35,000: about 280,000
+- Final two full runs (11 calls each, about 48,000): about 96,000
+- Sample checks (about 50 calls): about 200,000
+- Sum about 612,000; with `--show` calls and one or two reruns, **about 650,000, about 3 to 4 days** at the 200,000-a-day limit.
+- Used so far today: **about 170,000** tokens. The earlier figure of 122,000 left out the first full run (about 48,000).

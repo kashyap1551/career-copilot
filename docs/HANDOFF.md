@@ -92,6 +92,8 @@ Not in the sprint. Each one that changes a schema goes through the careful lane.
 - Employment type (full-time, part-time, working student) is not a field in the job schema. Ads state it (for example 'Vollzeit') and it matters for people who can only work part-time, such as students. Not in the sprint; needs a schema change, so it goes through the careful lane.
 - Years per skill (for example 'at least 2 years in growth') cannot be expressed: the schema has one years field per job, and ads state per-skill years often. Not in the sprint; needs a schema change, so it goes through the careful lane.
 - Personal-quality lines in an ad (for example "a team player", "a positive attitude", "a curious mind") cannot be proven by a CV, so they probably should not count against the fit verdict. Decide this in the product step (3.4 onward); it also changes what "must-have found" should mean for these lines.
+- Stability: the same ad gives different readings on repeat; consider reading three times and keeping the items found at least twice (plain code decides), at three times the cost. Decide after the rules.
+- Check the sprint check "invented 0 on two full runs" against the measured noise (a single ad swung from 0 to 5 invented on identical input). Decide after the rules.
 
 ## (g) Eval run log
 
@@ -105,3 +107,9 @@ Counts only. Holdout (ad-09, ad-10) is included in the totals as numbers; its pe
   - TARGET: found 83 of 128; target 116 or more; invented 16 -> NOT MET
   - Tuning set (ad-01 to ad-08) summed: found 66 of 100, invented 16, widened 6, narrowed 6. The first run had found 74 of 100 with 9 invented. The prompt was identical, so the difference (8 found, 7 invented on the tuning set; 8 found, 6 invented on all ten ads) is the model's own variation.
   - Tokens: 48,261 in total for 11 calls (27,567 in, 20,694 out), about 4,400 a call. Groq limits seen: 8,000 tokens a minute, 1,000 requests a day.
+- 2026-11-15, noise test, prompt unchanged, temperature 0, fixed seed, medium effort (ad-02, ad-04, ad-06, ad-08 read three times; 12 calls, 0 failed). Criterion "repeatable": failed.
+  - ad-02: found 12, 12, 12 of 13; invented 0, 0, 0
+  - ad-04: found 11, 12, 7 of 13; invented 2, 5, 0
+  - ad-06: found 4, 6, 6 of 8; invented 0, 0, 3 (wrong importance 1 each time)
+  - ad-08: found 5, 3, 5 of 5; invented 5, 5, 6
+  - Tokens about 19,000 per repeat of the four ads; identical input tokens each time.
