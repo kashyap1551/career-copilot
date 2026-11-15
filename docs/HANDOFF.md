@@ -91,3 +91,11 @@ Not in the sprint. Each one that changes a schema goes through the careful lane.
 
 - Employment type (full-time, part-time, working student) is not a field in the job schema. Ads state it (for example 'Vollzeit') and it matters for people who can only work part-time, such as students. Not in the sprint; needs a schema change, so it goes through the careful lane.
 - Years per skill (for example 'at least 2 years in growth') cannot be expressed: the schema has one years field per job, and ads state per-skill years often. Not in the sprint; needs a schema change, so it goes through the careful lane.
+
+## (g) Eval run log
+
+Counts only. Holdout (ad-09, ad-10) is included in the totals as numbers; its per-item output has not been read.
+
+- 2026-11-15, first full run, a baseline with nothing tuned (complete: 0 failed, 0 skipped; barista known case: resisted):
+  - TOTALS (10 ads, known cases left out): must-haves found 91 of 128 | wrong importance 1 | missed 36 must, 1 nice | invented 10 | name differs 46 | removed 1
+  - TARGET: found 91 of 128; target 116 or more; invented 10 -> NOT MET
