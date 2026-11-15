@@ -1,10 +1,11 @@
-import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { skills } from "../fixtures/skills";
 import { INSTRUCTIONS, readJobAd } from "../lib/ai/readJob";
+import { GENERATION_SETTINGS } from "../lib/ai/settings";
 import { checkKey, type AnswerKey } from "../lib/engine/answerKey";
+import { evalFingerprint } from "../lib/engine/evalFingerprint";
 import { formatReport, summarize } from "../lib/engine/evalReport";
 import { formatShow, showRefusal } from "../lib/engine/evalShow";
 import { runEval, twoInARow, type EvalAd, type RunState } from "../lib/engine/evalRun";
@@ -54,8 +55,6 @@ async function loadKey(file: string): Promise<AnswerKey | null> {
   const mod = (await import(pathToFileURL(file).href)) as { key?: AnswerKey };
   return mod.key ?? null;
 }
-
-const sha = (s: string) => createHash("sha256").update(s).digest("hex");
 
 async function loadAds(): Promise<{ ads: EvalAd[]; skipped: { id: string; reason: string }[] }> {
   const ads: EvalAd[] = [];
@@ -160,13 +159,16 @@ async function main() {
   // "Two runs in a row" only counts for full runs with the same prompt, model and keys.
   if (only === null) {
     const { met, complete } = summarize(input);
-    const fingerprint = sha(
-      [INSTRUCTIONS, process.env.GROQ_MODEL ?? "", ...ads.map((a) => `${a.id}:${sha(a.text)}:${sha(JSON.stringify(a.key))}`)].join("\n"),
-    );
+    const fingerprint = evalFingerprint({
+      instructions: INSTRUCTIONS,
+      model: process.env.GROQ_MODEL ?? "",
+      settings: GENERATION_SETTINGS,
+      ads,
+    });
     const current: RunState = { fingerprint, met, complete };
     const stateFile = path.join(root, "eval-runs/state.json");
     const previous: RunState | null = fs.existsSync(stateFile) ? JSON.parse(fs.readFileSync(stateFile, "utf8")) : null;
-    text += `TWO IN A ROW: ${twoInARow(previous, current) ? "yes" : "no"} (previous run ${previous === null ? "none" : previous.fingerprint === fingerprint ? (previous.met ? "met the target" : "did not meet it") : "used a different prompt, model or keys"})\n`;
+    text += `TWO IN A ROW: ${twoInARow(previous, current) ? "yes" : "no"} (previous run ${previous === null ? "none" : previous.fingerprint === fingerprint ? (previous.met ? "met the target" : "did not meet it") : "used a different prompt, model, settings or keys"})\n`;
     fs.mkdirSync(path.dirname(stateFile), { recursive: true });
     fs.writeFileSync(stateFile, JSON.stringify(current));
   }

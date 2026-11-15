@@ -4,6 +4,7 @@ import type { ReadOutcome } from "@/lib/engine/evalRun";
 import { buildJob } from "@/lib/engine/fromAd";
 import { extractedAdSchema, type ExtractedAd } from "@/lib/schemas/job";
 import { getModel, MissingSettingError } from "./model";
+import { GENERATION_SETTINGS } from "./settings";
 import { pickRateLimitHeaders } from "./usage";
 
 // An error with a plain-language message that is safe to show the person,
@@ -58,6 +59,7 @@ export async function readJobAd(text: string): Promise<ReadResult> {
       model: getModel(),
       instructions: INSTRUCTIONS,
       output: Output.object({ schema: extractedAdSchema }),
+      ...GENERATION_SETTINGS,
       prompt: `Read this job ad.\n\n<job_ad>\n${text}\n</job_ad>`,
     });
     output = result.output;
