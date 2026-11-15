@@ -552,3 +552,53 @@ Total tokens of the three calls: 15,990.
 **Decision: none taken here.** The result goes to the owner. R6 and R2 did what they were written for on the items both baselines missed (C1 at exactly the line), and the guard and loss lines fail on ad-03 (merged lists), ad-05 (found 10) and ad-07 (one split list on line 69).
 
 **Prompt after the screen:** restored to the run 1 files (request hash `0306366684`, INSTRUCTIONS 4,000, diff identical to `run1.patch`).
+
+## 20. Step 3.3 closed on the baseline prompt (2026-11-15)
+
+Numbers and item or line numbers only; no ad text. The three versions that were tried are reverted: `git checkout -- lib/ai/readJob.ts lib/schemas/job.ts`, after confirming that `eval-runs/tuning-tools/` (gitignored) holds `run1.patch`, `candidate-1b-A.patch`, `run2.patch` and `readJob.c2.ts`. `git status --short` is empty, and the call-free fingerprint reads `format 2 | request 85357f8fac | INSTRUCTIONS 3,347 characters`, the baseline prompt.
+
+### Every version tried (found per ad, key items; one reading per cell)
+
+Key sizes: ad-01 9, ad-02 13, ad-03 14, ad-04 13, ad-05 23, ad-06 8, ad-07 15, ad-08 5 (100 in all).
+
+| Version (request hash, INSTRUCTIONS) | ad-01 | ad-02 | ad-03 | ad-04 | ad-05 | ad-06 | ad-07 | ad-08 | Found | Invented |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Baseline reading 1 (85357f8fac, 3,347) | 7 | 12 | 14 | 11 | 13 | 4 | 9 | 5 | **75 of 100** | 9 |
+| Baseline reading 2 (85357f8fac, 3,347) | 6 | 12 | 14 | 12 | 15 | 6 | 8 | 3 | **76 of 100** | 13 |
+| Run A, run 1 prompt (0306366684, 4,000) | 6 | 10 | 14 | 11 | 5 | 5 | 9 | 5 | 65 of 100 | 11 |
+| 1b-A, 5 ads (4d3d2f6710, 4,199) | - | 12 | 14 | 8 | 9 | - | - | 5 | 48 of 68 | 2 |
+| Run 2, 3 ads (69e383137b, 3,776) | - | - | 7 | - | 10 | - | 11 | - | 28 of 52 | 4 |
+
+The baseline on the same ads, from its saved reports: on the 5 ads of 1b-A, found 55 and 56 of 68 (invented 10 and 14); on the 3 ads of run 2, found 36 and 37 of 52 (invented 3 and 4). Invented totals of the baseline rows are the current-key figures of section 17 (9 and 13); the per-ad invented counts in the saved reports add up to 10 and 14, one more in each reading. The reason for that difference (and which ad carries it) was not checked here. Invented per ad in the three tried versions: run A ad-08 11, all others 0; 1b-A ad-04 2, others 0; run 2 ad-07 3, ad-05 1, ad-03 0.
+
+### Verdict of each version against its own pass lines (fixed before its calls)
+
+| Version | Verdict | Lines |
+|---|---|---|
+| Baseline | Not the target | 75 and 76 of 100 found, against 94; invented 9 and 13, against 0 |
+| Run A | Rejected, reverted (R8 kept pending a cheap check) | R4 FAIL (11 items on 5 lines; needs 4 or less on both); R3+R3b FAIL on blamed loss (4: ad-02 #10, ad-05 #4, #5, #16); R8 PASS |
+| 1b-A | Rejected, stopped after the screen | S1 PASS (ad-08), S2 FAIL (ad-05 found 9, needs 13), S3 PASS (ad-02), S4 PASS (ad-03), S5 FAIL (ad-04 found 8, defect lines 3 of 3) |
+| Run 2 (R8 + R6 + R2) | Rejected, not run further | C1 PASS (4 of 8 target items found, needs 4); C2 FAIL (lost: ad-05 3, ad-03 7); C3 FAIL (ad-07 invented 3, ad-03 found 7 of 14) |
+
+### The decision
+
+- **The committed baseline prompt stays** (request hash 85357f8fac, INSTRUCTIONS 3,347 characters). Nothing from run A, 1b-A or run 2 is in the code.
+- **The target was NOT met.** The target was 94 of 100 found on the tuning set (116 of 128 on all ten ads) and invented 0, on two full runs in a row. The baseline gave 75 and 76 of 100 found and 9 and 13 invented. No version reached it, and the reader failed the repeatability test of section 14.
+- **Step 3.3 is closed at 75 and 76 of 100.** The step is not ticked in docs/SPRINT.md; the owner decides how to mark it.
+- The two full runs the target asks for were never made, because no candidate passed its screen. The holdout (ad-09, ad-10) was never revealed.
+
+### What was learned
+
+- Each version fixed what it was written for and cost more somewhere else: run A removed no duty line with R4 (5 lines before and after; items 5 to 11) and lost found items (65); 1b-A cleared ad-08's duty lines (S1) and lost ad-05 (9 of 23); run 2 found 4 of its 8 target items (C1) and lost ad-03 and ad-05.
+- **ad-03's loss is real:** 14 of 14 found in both baseline readings and 7 of 14 under run 2 (7 widened items on lines 104 to 110; widened was 0 in both baselines).
+- **R4 was not the cause of the ad-05 loss.** The only duty heading is on line 27, over lines 28 to 35; no key item sits there and no AI item was written there in any of the four readings. The lost lines are on lines 21 to 23 and 38 to 44, under the two requirements headings (lines 19 and 36), which the R4 cue does not cover. (The heading words themselves are left out here, because they are ad text.)
+- **Run 2 bundled three edits** (R8, R6, R2), so which of them caused the ad-03, ad-05 and ad-07 changes is not known; one reading per ad could not tell them apart.
+- The reader is noisy at temperature 0 with a fixed seed (section 14: ad-04 found 7, 11 and 12 on the same text), so differences of a few items between single readings are not evidence.
+
+### Backlog (also in docs/HANDOFF.md, ideas)
+
+- **(a) R8 alone**, tested in isolation: a city written twice gives a null location.
+- **(b) R6 alone**, tested in isolation.
+- **(c) Another Groq-hosted model** through GROQ_MODEL, after checking that it supports the strict structured-output mode this app uses.
+- **(d) Read the ad twice and compare**, with plain code keeping what both readings agree on (the stability idea; about twice the cost).
+- **(e) Personal-quality lines** a CV cannot prove: decide in step 3.4 how to show them.
