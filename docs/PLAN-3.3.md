@@ -474,3 +474,52 @@ S5 as fixed above is one reading of the noisiest ad, a weak test: ad-04's baseli
 ### What the screen shows
 - Variant A's cue by heading meaning removed the duty-line reading in ad-08 (S1), with found unchanged at 5 of 5.
 - The same prompt lost items in ad-05 that no heading or merge explains (S2), and ad-04 kept splitting its alternatives line (invented 2, S5).
+
+## 19. Screen of candidate "run 2" (c2): R6 + R2 (+ R8), pass lines fixed before any call (2026-11-15)
+
+Numbers and item or line numbers only. The scratch tools now live in `eval-runs/tuning-tools/` (gitignored); reports of this screen are saved there as `c2-r1-<ad>.txt`.
+
+**Parked for this round:** R3, R3b, R4, R1. R4 wording failed twice (run A no effect; 1b-A fixed ad-08, failed ad-05). R3 leaked onto "and" lists. R8 kept.
+
+**Why the R4 cue is not blamed for ad-05 (reason line, from the no-call check of the four ad-05 readings by line block).** The heading cue of 1b-A names a heading about what the employee will do. ad-05 has one such heading (L27), over L28-35. No key item sits in L28-35 and no AI item was written there in any of the four readings (baseline 1, baseline 2, run A, 1b-A). The lines lost sit under two requirements headings (L19 over L21-27, and L36 over L38-44), which the cue as worded does not cover (answer: no). In L21-27 1b-A found 7 of 13 against 11 and 9 in the baselines, and that block holds line 21, which the R1 wording of 1b-A also touches, so the two cannot be told apart. In L36-45 1b-A found 2 of 10, inside the baseline range (2 and 6). The cause of the ad-05 loss is therefore not shown.
+
+### The candidate
+
+- **Base:** HEAD's committed prompt (INSTRUCTIONS 3,347) plus **R8** (the location sentence in the prompt, +133 characters, and the same sentence in the location description of `lib/schemas/job.ts`; both exactly as in `run1.patch`), plus **R6** (+117 characters) and **R2** (+179 characters) with the words of `run2.patch` unchanged. **Nothing else from run 1 or from 1b:** no R1, R3, R3b, R4.
+- **Fingerprint (call-free):** `format 2 | request 69e383137b | full 7de5ff1475 | INSTRUCTIONS 3,776 characters` (3,347 + 429). Every call runs behind `EXPECT_REQUEST_HASH=69e383137b` and `EXPECT_INSTRUCTIONS_LEN=3776`.
+- **Example words:** the only example words in the new lines are in R2 ("tidy", "animals") and in R8 ("Husum", "Nordsee"); none occurs in ad-01 to ad-08. (ad-09 and ad-10 were not opened for this check.)
+
+### Which ads, and why
+
+Target items of R6 and R2 that **both** baseline readings missed (key item numbers; an item in both lists is counted once as a distinct item):
+
+| Ad | R6 | R2 | Distinct |
+|---|---|---|---|
+| ad-07 | #3, #9, #10 | #10, #14 | 4 |
+| ad-05 | none | #17, #18, #19, #20 | 4 |
+| ad-01 | #1 | #3 | 2 |
+| ad-02 | #2 | #2 | 1 |
+| ad-04 | #8 | none | 1 |
+| ad-03, ad-06, ad-08 | none | none | 0 |
+
+The two ads with most are **X = ad-07** and **Y = ad-05**: 8 distinct items together (9 by list), above the stop line of 6. **ad-03** is the guard.
+
+### Baselines on the three ads (same settings, readings 1 and 2)
+
+| Ad | Found | Invented (current keys) | Key items found in both |
+|---|---|---|---|
+| ad-07 | 9, 8 of 15 | 0, 0 | 9 (#0, #1, #4, #5, #6, #7, #8, #12, #15) |
+| ad-05 | 13, 15 of 23 | 0, 1 | 11 (#3, #4, #5, #7, #8, #9, #10, #11, #12, #15, #16) |
+| ad-03 | 14, 14 of 14 | 3, 3 (all on ad line 103) | 16 (#0 to #15) |
+
+**Note on ad-03, written before the call.** The three invented items of both baseline readings sit on one ad line (103), the alternatives line that R3 was written for, and R3 is parked in this candidate. So ad-03's guard "invented 0" is stricter than the baseline, which fails it in both readings. The line is kept exactly as set; the screen also prints how many of ad-03's invented items are on line 103 and how many elsewhere, so a failure can be read for what it is. This changes no verdict rule.
+
+### The pass lines (fixed now; one reading per ad, ad-07, ad-05, ad-03)
+
+| Line | Passes when |
+|---|---|
+| **C1** (the rules do their job) | of the 8 distinct R6 and R2 items on ad-07 and ad-05 that both baselines missed (ad-07 #3, #9, #10, #14; ad-05 #17, #18, #19, #20), **at least 4 are found**. R6 (3 items: ad-07 #3, #9, #10) and R2 (6 items: ad-07 #10, #14; ad-05 #17 to #20) are also printed separately; the verdict is the pooled one. |
+| **C2** (no loss) | items found in both baseline readings and not found now: **at most 1 per ad**, on ad-07, ad-05 and ad-03. |
+| **C3** (nothing made up) | invented (current keys): **ad-07 at most 0, ad-05 at most 1** (the highest baseline reading on each); **ad-03 invented 0 and found at least 13 of 14**. |
+
+Rules for the run: a guard that stops stops the run; a stopped call is never retried by hand (the runner retries a 5xx once by itself); no extra readings and no wording changes after seeing results. The prompt is put back to the run 1 files (request hash `0306366684`, INSTRUCTIONS 4,000) afterwards.
