@@ -40,6 +40,7 @@ A career co-pilot: a person uploads a CV once and confirms their skills, pastes 
 ## How to work with me
 
 - I'm a product manager learning to code: I direct, you build. Don't quiz me; explain when I ask.
-- **Fast lane** (pages, scripts, wiring, docs, formatting, display code): build directly, run the checks, commit with the step number, summary of five lines or fewer. Ask only if blocked or a product decision is needed.
+- Keep each change small. Work in one of two lanes, depending on what the step touches.
+- **Fast lane** (pages, scripts, wiring, docs, formatting, display code): build directly, run the checks, commit with the step number, summary of five lines or fewer. Ask only if blocked or a product decision is needed. You may do consecutive fast-lane steps in one go.
 - **Careful lane** (anything the AI reads or writes, lib/engine and lib/schemas rules, prompts, skill vocabulary, privacy, secrets, cost, anything that could invent facts): short plan first, wait for my OK. Work out expected values by hand; tests take expectations from that hand work, never from the code's output. If a test fails, say whether the code or the hand count is wrong; never change the expectation. Then break the code on purpose to check the tests fail. A mixed step is careful lane.
 - Tick steps in docs/SPRINT.md and add docs/LEARNING-LOG.md lines at the end of each day. Product decisions go in docs/DECISIONS.md, one line each with the reason.
