@@ -9,6 +9,8 @@ import type { Job } from "@/lib/engine/types";
 //   constraints: English C1, Manchester, hybrid, 3 years; no start date.
 //   otherConditions: the right-to-work sentence and the start-within-two-months one.
 
+const NOT_JUDGED = " Location, language, work mode, years and start date are not judged here.";
+
 const northwind = jobs.find((j) => j.id === "northwind-operations-analyst") as Job;
 
 function report(listText: string, job: Job = northwind, unlisted: { id: string; name: string }[] = []) {
@@ -40,6 +42,9 @@ describe("skillsOnlyReport", () => {
     const r = report(six);
     expect(r.fitLabel).toBe("Good (skills only)");
     expect(r.counts).toEqual({ mustsMet: 2, mustsTotal: 3, nicesMet: 2, nicesTotal: 2 });
+    expect(r.explanation).toBe(
+      "One must-have is missing: Communication." + NOT_JUDGED,
+    );
     expect(r.unlistedRequirements).toBe(0);
     expect(r.rows.map((x) => [x.status, x.detail])).toEqual([
       ["met", 'SQL: from your list, line 1: "SQL"'],
@@ -68,6 +73,9 @@ describe("skillsOnlyReport", () => {
   it("S5: an empty list meets nothing: 3 musts missing is Long shot", () => {
     const r = report("");
     expect(r.fitLabel).toBe("Long shot (skills only)");
+    expect(r.explanation).toBe(
+      "3 of 3 must-haves are missing: SQL, Excel, Communication." + NOT_JUDGED,
+    );
     expect(r.counts.mustsMet).toBe(0);
     expect(r.rows.every((x) => x.status === "missing")).toBe(true);
   });
@@ -75,6 +83,7 @@ describe("skillsOnlyReport", () => {
   it("S6: the full list on the three musts is Strong", () => {
     const r = report("SQL\nExcel\nCommunication");
     expect(r.fitLabel).toBe("Strong (skills only)");
+    expect(r.explanation).toBe("You meet all 3 must-haves on your list." + NOT_JUDGED);
     expect(r.counts).toEqual({ mustsMet: 3, mustsTotal: 3, nicesMet: 0, nicesTotal: 2 });
   });
 
@@ -99,6 +108,7 @@ describe("skillsOnlyReport", () => {
       },
     ]);
     expect(r.unlistedRequirements).toBe(1);
+    expect(r.explanation).toBe("One must-have is missing: Docker." + NOT_JUDGED);
     expect(r.counts.mustsMet).toBe(0);
     expect(r.fitLabel).toBe("Good (skills only)");
   });
@@ -124,5 +134,33 @@ describe("skillsOnlyReport", () => {
     const r = report(six, bare);
     expect(r.notJudged).toEqual([]);
     expect(r.checkYourself).toEqual([]);
+  });
+
+  it("S11: no must-haves in the ad", () => {
+    const none: Job = {
+      ...northwind,
+      requirements: [{ skillIds: ["python"], importance: "nice", quote: "Python for data cleaning." }],
+    };
+    expect(report(six, none).explanation).toBe("The ad lists no must-haves." + NOT_JUDGED);
+  });
+
+  it("S12: two of three missing, in the ad's order", () => {
+    expect(report("SQL").explanation).toBe(
+      "2 of 3 must-haves are missing: Excel, Communication." + NOT_JUDGED,
+    );
+  });
+
+  it("S13: exactly one must-have, met", () => {
+    const one: Job = {
+      ...northwind,
+      requirements: [{ skillIds: ["sql"], importance: "must", quote: "Strong SQL for querying large data sets." }],
+    };
+    expect(report("SQL", one).explanation).toBe("You meet the only must-have on your list." + NOT_JUDGED);
+  });
+
+  it("S14: the explanation never claims anything about what stands in the way", () => {
+    for (const list of ["", "SQL", six, "SQL\nExcel\nCommunication"]) {
+      expect(report(list).explanation).not.toMatch(/stands? in the way|conflict/i);
+    }
   });
 });

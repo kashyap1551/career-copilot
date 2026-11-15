@@ -1,4 +1,4 @@
-import { explainFit, levelName } from "@/lib/engine/explain";
+import { levelName } from "@/lib/engine/explain";
 import { languageName, match, MODE_NAMES } from "@/lib/engine/match";
 import { skillIdFor } from "@/lib/engine/skillIds";
 import type { Job, Profile, Skill } from "@/lib/engine/types";
@@ -118,6 +118,22 @@ export function notJudgedLines(job: Job): string[] {
   return out.map((s) => `${s}: not judged`);
 }
 
+const NOT_JUDGED_SENTENCE =
+  "Location, language, work mode, years and start date are not judged here.";
+
+// Written here, not by explainFit: that text says what "stands in the way",
+// which is unknown when the job's constraints are not judged. This one only
+// says what the counts show.
+export function skillsOnlyExplanation(total: number, missing: string[]): string {
+  let first: string;
+  if (total === 0) first = "The ad lists no must-haves.";
+  else if (missing.length === 0)
+    first = total === 1 ? "You meet the only must-have on your list." : `You meet all ${total} must-haves on your list.`;
+  else if (missing.length === 1) first = `One must-have is missing: ${missing[0]}.`;
+  else first = `${missing.length} of ${total} must-haves are missing: ${missing.join(", ")}.`;
+  return `${first} ${NOT_JUDGED_SENTENCE}`;
+}
+
 export function skillsOnlyReport(
   job: Job,
   cvLines: string[],
@@ -156,7 +172,10 @@ export function skillsOnlyReport(
 
   return {
     fitLabel: `${levelName(result.level)} (skills only)`,
-    explanation: explainFit(result, nameOf),
+    explanation: skillsOnlyExplanation(
+      result.counts.mustsTotal,
+      result.musts.filter((m) => !m.met).map((m) => labelOf(m.requirement.skillIds)),
+    ),
     counts: result.counts,
     rows,
     unlistedRequirements: rows.filter((r) => r.status === "unlisted").length,
