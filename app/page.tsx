@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { skills } from "@/fixtures/skills";
 import type { BuildResult, RemovalReason } from "@/lib/engine/fromAd";
+import CvBox from "./CvBox";
 import { readSkillList, skillsOnlyReport } from "./skillsOnly";
 
 // Steps 3.1 and 3.4: paste a job ad and a list of skills. The AI reads the ad;
@@ -70,6 +71,9 @@ export default function Home() {
         Paste a job ad and a list of your skills, and see where you stand on skills.
       </p>
 
+      <CvBox />
+
+      <h2 className="text-lg font-semibold">The job ad</h2>
       <textarea
         value={text}
         onChange={(e) => setText(e.target.value)}

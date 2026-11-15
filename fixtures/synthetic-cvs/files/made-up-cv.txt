@@ -1,0 +1,7 @@
+Alex Example, Data Assistant, Sampletown
+2021-2024 Data Assistant, Imaginary Retail GmbH
+Built weekly sales reports in Excel with pivot tables
+Wrote SQL queries to pull order data for the finance team
+Learning Python through an online course
+Languages: English (fluent), German (B1)
+BSc Business Administration, 2020
