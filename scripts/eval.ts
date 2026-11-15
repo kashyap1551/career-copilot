@@ -163,6 +163,7 @@ async function main() {
     partial: only !== null,
     usage: run.usage,
     limits: run.limits,
+    retried: run.retried,
   };
   let text = formatReport(input);
   // What the model was sent, so a saved report says which prompt, schema and settings made it.

@@ -28,6 +28,7 @@ export type RunDeps = {
   sleep: (ms: number) => Promise<void>;
   delayMs: number; // between two ads
   backoffsMs: number[]; // waits before each retry after a rate limit
+  serverRetryMs?: number; // wait before the one retry after a 5xx (default 20000)
 };
 
 export type RunResult = {
@@ -37,6 +38,7 @@ export type RunResult = {
   complete: boolean; // nothing failed and nothing was skipped
   usage: Usage & { calls: number }; // tokens added up over the calls that worked
   limits?: Record<string, string>; // the rate limits seen on the last call
+  retried: { id: string; code: number; recovered: boolean }[]; // calls retried once after a 5xx
 };
 
 const statusOf = (error: unknown): number | undefined =>
@@ -52,13 +54,35 @@ function reasonFor(error: unknown): string {
   return "unexpected error";
 }
 
-async function readWithRetry(text: string, deps: RunDeps): Promise<ReadOutcome> {
-  for (let attempt = 0; ; attempt++) {
+// A 5xx (a server-side failure) produced no reading and used no tokens, so one
+// more try hides no result. One exception: the reader's own "the AI answered,
+// but not in the expected shape" also comes back as a 5xx, but the model did
+// answer and tokens were spent, so that one is not retried.
+const SERVER_RETRY_MS = 20000;
+function serverErrorCode(error: unknown): number | undefined {
+  const message = error instanceof Error ? error.message : "";
+  if (/not in the expected shape/.test(message)) return undefined;
+  // The reader words an AI service error as "... (status 400)" and sends 502 for it:
+  // the code in the words is the service's own, so use it when it is there.
+  const quoted = /\(status (\d{3})\)/.exec(message);
+  const status = quoted ? Number(quoted[1]) : statusOf(error);
+  return status !== undefined && status >= 500 && status <= 599 ? status : undefined;
+}
+
+async function readWithRetry(text: string, deps: RunDeps, note: { serverCode?: number }): Promise<ReadOutcome> {
+  let rateAttempt = 0;
+  for (;;) {
     try {
       return await deps.read(text);
     } catch (error) {
-      if (statusOf(error) === 429 && attempt < deps.backoffsMs.length) {
-        await deps.sleep(deps.backoffsMs[attempt]);
+      if (statusOf(error) === 429 && rateAttempt < deps.backoffsMs.length) {
+        await deps.sleep(deps.backoffsMs[rateAttempt++]);
+        continue;
+      }
+      const code = serverErrorCode(error);
+      if (code !== undefined && note.serverCode === undefined) {
+        note.serverCode = code; // retry once, then it is a failed ad
+        await deps.sleep(deps.serverRetryMs ?? SERVER_RETRY_MS);
         continue;
       }
       throw error;
@@ -73,6 +97,7 @@ export async function runEval(ads: EvalAd[], deps: RunDeps, skills: Skill[]): Pr
     skipped: [],
     complete: true,
     usage: { inputTokens: 0, outputTokens: 0, calls: 0 },
+    retried: [],
   };
   let reads = 0;
 
@@ -83,14 +108,17 @@ export async function runEval(ads: EvalAd[], deps: RunDeps, skills: Skill[]): Pr
     }
     if (reads > 0) await deps.sleep(deps.delayMs);
     reads++;
+    const note: { serverCode?: number } = {};
     try {
-      const result = await readWithRetry(ad.text, deps);
+      const result = await readWithRetry(ad.text, deps, note);
+      if (note.serverCode !== undefined) run.retried.push({ id: ad.id, code: note.serverCode, recovered: true });
       run.scored.push({ ad, score: scoreAd(ad.key, result, skills), job: result.job });
       run.usage.calls += 1;
       run.usage.inputTokens += result.usage?.inputTokens ?? 0;
       run.usage.outputTokens += result.usage?.outputTokens ?? 0;
       if (result.limits) run.limits = result.limits;
     } catch (error) {
+      if (note.serverCode !== undefined) run.retried.push({ id: ad.id, code: note.serverCode, recovered: false });
       run.failed.push({ id: ad.id, reason: reasonFor(error) });
     }
   }

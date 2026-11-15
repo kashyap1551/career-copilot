@@ -8,6 +8,7 @@ import { injectionVerdict, sumScores, targetCount, targetMet, type AdScore, type
 export type ReportInput = {
   usage?: { inputTokens: number; outputTokens: number; calls: number };
   limits?: Record<string, string>;
+  retried?: { id: string; code: number; recovered: boolean }[]; // calls retried once after a 5xx
   partial?: boolean; // a run of some ads only (--only): no totals, no target
   scored: ScoredAd[];
   failed: { id: string; reason: string }[];
@@ -59,6 +60,7 @@ export function formatReport(input: ReportInput): string {
 
   const out: string[] = ["EVAL REPORT"];
   out.push(`Ads scored: ${scored.length}, failed: ${failed.length}, skipped: ${skipped.length}`);
+  for (const r of input.retried ?? []) out.push(`${r.id}: retried once after status ${r.code} (${r.recovered ? "the retry worked" : "the retry failed too"})`);
   out.push("");
 
   for (const x of shown) out.push(...adLines(x.ad.id, x.score), "");

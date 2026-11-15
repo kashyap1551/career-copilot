@@ -182,3 +182,15 @@ describe("the widened and narrowed lines (C5)", () => {
     expect(text).toContain('widened: "Same line": key [sql], AI [sql, new:docker]');
   });
 });
+
+describe("retried calls (step 3.3)", () => {
+  it("says 'retried once after status <code>' for every retried call, and nothing when none was", () => {
+    const base = { scored: [], failed: [], skipped: [], reveal: false, partial: true };
+    const text = formatReport({ ...base, retried: [{ id: "ad-05", code: 500, recovered: true }, { id: "ad-08", code: 503, recovered: false }] });
+    expect(text).toContain("ad-05: retried once after status 500 (the retry worked)");
+    expect(text).toContain("ad-08: retried once after status 503 (the retry failed too)");
+    expect(formatReport({ ...base, retried: [] })).not.toContain("retried once");
+    expect(formatReport(base)).not.toContain("retried once");
+  });
+});
+
