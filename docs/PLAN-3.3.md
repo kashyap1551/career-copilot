@@ -159,3 +159,34 @@ A rule is kept only if its group improves and invented does not rise elsewhere; 
 
 ## 12. Keeping ad-09 and ad-10 unseen
 Reports show them as one block of totals; no `--reveal`; no per-item output read; `--show` refuses them before any AI call. Every rule is judged on ad-01 to ad-08 and the known case only. The holdout totals in the report are not used to accept or reject a rule. No ad text, and nothing taken from the holdout ads, goes into the prompt; the examples and samples above were checked against all ten ads.
+
+## 13. Run 0 result (2026-11-15, prompt unchanged)
+
+Counts only. The holdout (ad-09, ad-10) is in the totals and nothing else.
+
+**First run against run 0, per ad (tuning set):**
+
+| Ad | First run: found | invented | Run 0: found | invented |
+|---|---|---|---|---|
+| ad-01 | 6 of 9 | 0 | 5 of 9 | 0 |
+| ad-02 | 12 of 13 | 2 | 8 of 13 | 0 |
+| ad-03 | 13 of 14 | 0 | 13 of 14 | 0 |
+| ad-04 | 8 of 13 | 2 | 9 of 13 | 3 |
+| ad-05 | 15 of 23 | 2 | 14 of 23 | 0 |
+| ad-06 | 7 of 8 | 3 | 4 of 8 | 0 |
+| ad-07 | 8 of 15 | 0 | 8 of 15 | 0 |
+| ad-08 | 5 of 5 | 0 | 5 of 5 | 13 |
+| **Tuning set** | **74 of 100** | **9** | **66 of 100** | **16** |
+| Holdout (totals only) | 17 of 28 | 1 | 17 of 28 | 0 |
+| **All ten ads** | **91 of 128** | **10** | **83 of 128** | **16** |
+
+(The first run's two ad-02 "invented" were the key gap fixed by K1, so they are not model variation. Run 0 also counts the work-mode guard: the "#LI-onsite" tag was removed twice, no work-mode inventions.)
+
+**The finding:** the same prompt gave 8 fewer found and 7 more invented on the tuning set (8 fewer found and 6 more invented on all ten ads) between two runs. Single items moved by as much as 4 found (ad-02) and 13 invented (ad-08, duty lines read as requirements). Any rule that moves the tuning set by less than about this much cannot be judged from one run. This is why the plan measures the noise first (a run with temperature 0, a fixed seed and a fixed reasoning effort, three times, on the four ads that moved most) before any rule goes into the prompt.
+
+**Budget, redone with the measured numbers (replaces the rough numbers in section 8):**
+- One full-eval call costs about **4,400 tokens** (27,567 in, 20,694 out over 11 calls).
+- One full run (11 calls) is about **48,000 tokens**; the 200,000-token daily limit allows about **4 full runs a day** (fewer once `--show` calls and sample checks are added).
+- The 8,000-tokens-a-minute limit is the tight one: after the 11th call only 74 tokens were left in the minute. The 3-second delay plus the retries got through with 0 failed ads.
+- Whole plan: 7 full runs about 340,000 tokens, `--show` calls about 5,500 each, and 50 sample calls (a sample call still carries the prompt and schema, so about 3,500 to 4,500 tokens, not 2,000 to 4,000): about 200,000. Total about **550,000 tokens, about 3 days at the daily limit** (Day A: noise test and run 1; Day B: runs 2 and 3 and samples; Day C: run 4, samples and the final two runs).
+- If a daily limit stops a run it is marked incomplete and I stop and tell the owner.

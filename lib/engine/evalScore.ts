@@ -1,4 +1,5 @@
 import type { AnswerKey } from "./answerKey";
+import { sameCompany } from "./companyMatch";
 import { keyIds, matchRequirements } from "./evalMatch";
 import type { BuildResult, RemovedItem } from "./fromAd";
 import { quotesMatch } from "./quoteMatch";
@@ -172,7 +173,7 @@ function scoreConstraints(key: AnswerKey, job: Job): ConstraintScore {
   return {
     fields: {
       title: verdict(key.title, title, same),
-      company: verdict(key.company, job.company, same),
+      company: verdict(key.company, job.company, sameCompany),
       location: verdict(key.location, c.location, same),
       workMode: verdict(key.workMode?.value ?? null, c.remote, (a, b) => a === b),
       minYears: verdict(key.minYears?.years ?? null, c.minYears, (a, b) => a === b),

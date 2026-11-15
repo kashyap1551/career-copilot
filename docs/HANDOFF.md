@@ -91,6 +91,7 @@ Not in the sprint. Each one that changes a schema goes through the careful lane.
 
 - Employment type (full-time, part-time, working student) is not a field in the job schema. Ads state it (for example 'Vollzeit') and it matters for people who can only work part-time, such as students. Not in the sprint; needs a schema change, so it goes through the careful lane.
 - Years per skill (for example 'at least 2 years in growth') cannot be expressed: the schema has one years field per job, and ads state per-skill years often. Not in the sprint; needs a schema change, so it goes through the careful lane.
+- Personal-quality lines in an ad (for example "a team player", "a positive attitude", "a curious mind") cannot be proven by a CV, so they probably should not count against the fit verdict. Decide this in the product step (3.4 onward); it also changes what "must-have found" should mean for these lines.
 
 ## (g) Eval run log
 
@@ -99,3 +100,8 @@ Counts only. Holdout (ad-09, ad-10) is included in the totals as numbers; its pe
 - 2026-11-15, first full run, a baseline with nothing tuned (complete: 0 failed, 0 skipped; barista known case: resisted):
   - TOTALS (10 ads, known cases left out): must-haves found 91 of 128 | wrong importance 1 | missed 36 must, 1 nice | invented 10 | name differs 46 | removed 1
   - TARGET: found 91 of 128; target 116 or more; invented 10 -> NOT MET
+- 2026-11-15, run 0, prompt unchanged (commit 7c2ac32; complete: 0 failed, 0 skipped; barista known case: resisted):
+  - TOTALS (10 ads, known cases left out): must-haves found 83 of 128 | wrong importance 3 | missed 42 must, 2 nice | invented 16 | name differs 44 | widened 8 | narrowed 6 | removed 3
+  - TARGET: found 83 of 128; target 116 or more; invented 16 -> NOT MET
+  - Tuning set (ad-01 to ad-08) summed: found 66 of 100, invented 16, widened 6, narrowed 6. The first run had found 74 of 100 with 9 invented. The prompt was identical, so the difference (8 found, 7 invented on the tuning set; 8 found, 6 invented on all ten ads) is the model's own variation.
+  - Tokens: 48,261 in total for 11 calls (27,567 in, 20,694 out), about 4,400 a call. Groq limits seen: 8,000 tokens a minute, 1,000 requests a day.
