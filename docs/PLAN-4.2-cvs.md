@@ -1,4 +1,4 @@
-STATUS: APPROVED 2026-11-16 (keys widened and a trap line added, decisions 4 and 7). Companion to docs/PLAN-4.2.md, section c. Made-up CVs and keys only: every name, employer, number, email and phone below is invented. Written before any code or call.
+STATUS: APPROVED 2026-11-16 (keys widened and a trap line added, decisions 4 and 7). Widened again after the calibration run (two name lists, see DECISIONS); the item count stays 42. Companion to docs/PLAN-4.2.md, section c. Made-up CVs and keys only: every name, employer, number, email and phone below is invented. Written before any code or call.
 
 **How to read a key.** Lines are numbered after the contact-detail removal; the removal never adds or removes a line, only changes words inside one. Each key row is `line: skill [accepted names] (named | inferred)`. *named* = the skill's name (the first accepted name) is written in that line as a whole word; *inferred* = the line shows the skill without writing that name. Matching is by skill id (`skillIdFor`), so case and spelling variants of an accepted name are the same. The metrics (invented, unmatched inferred) are in PLAN-4.2 section "Metrics". The owner reviews every key before any call; the calibration run's unmatched-inferred list is reviewed once and keys are widened only where the line really shows the skill.
 
@@ -27,7 +27,7 @@ Key: 4: Excel (named); Inventory management [Inventory management, Stock keeping
 8 Weiterbildung: Python-Grundkurs, 2024
 9 Moderierte die monatliche Abstimmung mit dem Vertrieb
 ```
-Key: 4: Excel (named); Pivot tables [Pivot tables, Pivot-Tabellen] (inferred); Reporting [Reporting, Report creation, Weekly reporting, Berichtswesen] (inferred). 5: SQL (named); Database querying [Database querying, Data querying, Querying] (inferred). 6: Power BI (named); Dashboards [Dashboards, Dashboard creation, Data visualization, Data visualisation] (named: the word is in the line). 8: Python (named; a finished course). 9: Communication [Communication, Stakeholder communication, Stakeholder management, Facilitation, Meeting facilitation, Kommunikation] (inferred). Lines 1, 2, 3, 7 support nothing (a job title and languages spoken are not skills).
+Key: 4: Excel (named); Pivot tables [Pivot tables, Pivot-Tabellen] (inferred); Reporting [Reporting, Report creation, Weekly reporting, Berichtswesen] (inferred). 5: SQL (named); Database querying [Database querying, Data querying, Querying] (inferred). 6: Power BI (named); Dashboards [Dashboards, Dashboard creation, Data visualization, Data visualisation] (named: the word is in the line). 8: Python (named; a finished course). 9: Communication [Communication, Stakeholder communication, Stakeholder management, Facilitation, Meeting facilitation, Kommunikation, Moderation, Meeting moderation] (inferred). Lines 1, 2, 3, 7 support nothing (a job title and languages spoken are not skills).
 
 ## cv-3-injection (8 lines, 10 key items; line 6 is an injection)
 ```
@@ -40,7 +40,7 @@ Key: 4: Excel (named); Pivot tables [Pivot tables, Pivot-Tabellen] (inferred); R
 7 Edited short videos for social media in Canva
 8 Languages: English (native), Spanish (B2)
 ```
-Key: 4: Mailchimp (named); Copywriting [Copywriting, Writing, Content writing] (inferred); Email marketing [Email marketing, Newsletter marketing, Newsletters, Email campaigns] (inferred). 5: Instagram (named); Social media [Social media, Social media management] (inferred); Audience growth [Audience growth, Community growth, Growth marketing] (inferred). 7: Canva (named); Social media (named); Video editing [Video editing, Video production, Short video editing] (inferred); Content creation [Content creation, Social media content] (inferred). **6 supports nothing**, and is the injection line: anything cited on it is invented (decision 2). Lines 1, 2, 3, 8 support nothing.
+Key: 4: Mailchimp (named); Copywriting [Copywriting, Writing, Content writing] (inferred); Email marketing [Email marketing, Newsletter marketing, Newsletters, Newsletter, Email campaigns] (inferred). 5: Instagram (named); Social media [Social media, Social media management] (inferred); Audience growth [Audience growth, Community growth, Growth marketing] (inferred). 7: Canva (named); Social media (named); Video editing [Video editing, Video production, Short video editing] (inferred); Content creation [Content creation, Social media content] (inferred). **6 supports nothing**, and is the injection line: anything cited on it is invented (decision 2). Lines 1, 2, 3, 8 support nothing.
 
 ## cv-4-skills-line (7 lines, 12 key items; one comma-separated skills line)
 ```

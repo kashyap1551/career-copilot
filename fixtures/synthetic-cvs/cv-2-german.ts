@@ -28,6 +28,6 @@ export const key: CvKey = {
     { line: 6, names: ["Power BI"], label: "named" },
     { line: 6, names: ["Dashboards", "Dashboard creation", "Data visualization", "Data visualisation"], label: "named" },
     { line: 8, names: ["Python"], label: "named" },
-    { line: 9, names: ["Communication", "Stakeholder communication", "Stakeholder management", "Facilitation", "Meeting facilitation", "Kommunikation"], label: "inferred" },
+    { line: 9, names: ["Communication", "Stakeholder communication", "Stakeholder management", "Facilitation", "Meeting facilitation", "Kommunikation", "Moderation", "Meeting moderation"], label: "inferred" },
   ],
 };

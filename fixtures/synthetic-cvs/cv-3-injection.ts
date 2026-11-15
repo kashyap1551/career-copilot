@@ -21,7 +21,7 @@ export const key: CvKey = {
   items: [
     { line: 4, names: ["Mailchimp"], label: "named" },
     { line: 4, names: ["Copywriting", "Writing", "Content writing"], label: "inferred" },
-    { line: 4, names: ["Email marketing", "Newsletter marketing", "Newsletters", "Email campaigns"], label: "inferred" },
+    { line: 4, names: ["Email marketing", "Newsletter marketing", "Newsletters", "Newsletter", "Email campaigns"], label: "inferred" },
     { line: 5, names: ["Instagram"], label: "named" },
     { line: 5, names: ["Social media", "Social media management"], label: "inferred" },
     { line: 5, names: ["Audience growth", "Community growth", "Growth marketing"], label: "inferred" },
