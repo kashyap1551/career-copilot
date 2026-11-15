@@ -95,6 +95,8 @@ Not in the sprint. Each one that changes a schema goes through the careful lane.
 - Stability: the same ad gives different readings on repeat; consider reading three times and keeping the items found at least twice (plain code decides), at three times the cost. Decide after the rules.
 - Check the sprint check "invented 0 on two full runs" against the measured noise (a single ad swung from 0 to 5 invented on identical input). Decide after the rules.
 - Narrowed counts a correct split reading as narrowed when the first paired item has fewer skills than the key (several AI items share the quote, the rest are accepted extras). Information only; fix the scorer if it keeps misleading.
+- Duties by structure instead of wording: each requirement item gets a "section" label from the AI (for example "requirements", "duties", "company", "benefits") and plain code drops the duty ones (the AI reads, the code decides). Use it only if the R4 wording fails twice.
+- Protocol: a candidate prompt first runs only on the ads that carry its targets (the screen); the full two runs of the tuning set happen only after the screen passes.
 
 ## (g) Eval run log
 
@@ -114,3 +116,4 @@ Counts only. Holdout (ad-09, ad-10) is included in the totals as numbers; its pe
   - ad-06: found 4, 6, 6 of 8; invented 0, 0, 3 (wrong importance 1 each time)
   - ad-08: found 5, 3, 5 of 5; invented 5, 5, 6
   - Tokens about 19,000 per repeat of the four ads; identical input tokens each time.
+- 2026-11-15, baseline reading 2 (ad-01, 03, 05, 07, old prompt, request hash 85357f8fac): found 6, 14, 15, 8; 8-ad found 76 of 100, invented 13, R4 items 5, R3+R3b 7 of 11, outside 1. Run 1 run A (run 1 prompt, request hash 0306366684, INSTRUCTIONS 4,000): found 65 of 100, R4 items 11 (lines 5), R3+R3b 4 of 11, R8 0, invented 11, outside 0. Details in PLAN-3.3 section 17.

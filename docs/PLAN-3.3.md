@@ -221,11 +221,16 @@ Counts only. The holdout (ad-09, ad-10) is in the totals and nothing else.
 - Sum about 612,000; with `--show` calls and one or two reruns, **about 650,000, about 3 to 4 days** at the 200,000-a-day limit.
 - Used so far today: **about 170,000** tokens. The earlier figure of 122,000 left out the first full run (about 48,000).
 
-## 15. Keep rule and target lines for run 1 (approved by the reviewer 2026-11-15 with two changes)
+## 15. Keep rule and target lines for run 1 (approved by the reviewer 2026-11-15 with three changes)
 
 **Changes made when it was approved:**
 1. The R3 plus R3b target drops two lines that no rule can fix. **ad-02#0:** the AI splits a plain comma list as the prompt says and the key accepts it, but the narrowed counter still flags it, because it only looks at the first paired item. **ad-06#9:** the key lists a generic skill next to Python and R, and the AI names only the two languages. **11 lines remain.** Invented items that overlap the two dropped lines now count as "outside the target".
 2. **Each rule is judged on its own target.** A failing rule is reverted, and the next version doubles as the confirming run for the rest.
+
+3. **Change 3 (after run 1 run A, 2026-11-15), three amendments:**
+   - **Attribution.** When found drops, the loss is attributed before a rule is blamed. The items found in BOTH baseline readings but not found in the version run are split into (a) siblings of an AI item that merged several key items (a widened line in the version run) and (b) unexplained; for (b) the ad line number and whether it lies inside the ad's duty range or within 3 lines of it are printed. The attribution is information for the owner's decision on which rule to revert; criterion 2 as written (the tuning-set found total) stays the gate. (Script in scratch: loss.py.)
+   - **R4 is counted by lines as well as by items.** Items can rise only because a duty line is split into several skills; lines show whether a different set of duty lines became requirements. Both counts are reported, and criterion 1 for R4 needs both at 4 or less (the baseline's best is 5 on both: see the table below).
+   - **R1 is judged as a guard**, not as a gain: its target count must be at most the baseline's highest reading, which is 4. This replaces "1 or less" for R1 in section 16.
 
 **Keys changed first (2026-11-15):** four quotes were added to acceptedExtras (ad-01#7, ad-04#12, ad-07#5, ad-07#7; reason in DECISIONS). All counts below are "under the current keys": an invented line that a current acceptedExtras quote covers is not counted. The saved reports predate the change, so their invented numbers are re-counted from their own invented lines (no new AI call).
 
@@ -287,6 +292,19 @@ Reading 1 for ad-02, ad-04, ad-06 and ad-08 is the first noise repeat; for ad-01
 
 **Still open:** reading 2 of ad-01, ad-03, ad-05 and ad-07 (about 19,000 tokens). It decides the thresholds for R3+R3b, for the found total and for outside. Until then, the 8-ad baseline has only reading 1 (above) for these four ads, plus the 4-ad readings 2 and 3 for the noise ads. The four noise ads hold 4 of the 11 R3/R3b lines (ad-04#0, #3, #4 and ad-06#0); the other 7 are in ad-01#0, ad-01#5, ad-03#0, ad-05#9, #13, #14 and ad-07#0.
 
+### R4 by lines (added in change 3): duty lines that became requirement items, baseline and run 1 run A
+
+Distinct ad lines inside the duty ranges whose text became a requirement item, next to the item count (the items are all invented items, because no key item sits on a duty line):
+
+| Reading | Ads | Distinct duty lines | Items (R4) | Where |
+|---|---|---|---|---|
+| Baseline reading 1 | 8 | 5 | 5 | ad-08 L9, L11, L12, L13, L14 |
+| Baseline reading 2 | 8 | 5 | 5 | ad-08 L9, L11, L12, L13, L14 |
+| Baseline reading 3 | 4 | 6 | 6 | ad-08 L9-L14 |
+| Run 1 run A | 8 | 5 | 11 | ad-08 L9, L11, L12, L13, L14 |
+
+ad-04 has no duty line read as a requirement in any reading. Baseline best: 5 lines and 5 items.
+
 ### Context only: default settings (not baseline)
 
 | Run | Found (8 ads) | R4 | R3+R3b lines (of 11) | R8 | Invented (current keys) | Outside |
@@ -331,7 +349,7 @@ R2 audit: every keyed soft line is in the list above. Lines in the requirement s
 |---|---|---|---|---|
 | R6 | 7 (ad-01 #1; ad-02 #2; ad-04 #8; ad-06 #5; ad-07 #3, #9, #10) | 6 (the same minus ad-06 #5) | 6 | **5 or less** |
 | R2 | 12 (ad-01 #3; ad-02 #2; ad-04 #11; ad-05 #17-#22; ad-06 #7; ad-07 #10, #14) | 10 (ad-01 #3; ad-02 #2; ad-05 #17-#20; ad-07 #10, #14; ad-08 #2, #3) | 10 | **9 or less** |
-| R1 | 2 (ad-05 #2; ad-07 #13) | 4 (ad-05 #0, #1, #2; ad-07 #13) | 2 | **1 or less** |
+| R1 | 2 (ad-05 #2; ad-07 #13) | 4 (ad-05 #0, #1, #2; ad-07 #13) | 2 | ~~1 or less~~ **guard: 4 or less** (section 15, change 3) |
 
 The noise repeat 3 (four ads) gave R6 2, R2 3, R1 0 on those four ads. R1's baseline is small (2 and 4), so criterion 1 for R1 is sensitive to noise.
 
@@ -349,3 +367,54 @@ The noise repeat 3 (four ads) gave R6 2, R2 3, R1 0 on those four ads. R1's base
 - **R1 and R3b:** R1 splits a comma list, R3b keeps "years in A, B or C" as one item. A comma list under years with no "or" (ad-02 #0, dropped from the R3/R3b target) is read both ways; the key accepts both.
 - **R1 and R3:** "A, B or C" is one item (R3); the bracket in R1 ("but not when 'or' joins them") carries that. A line mixing "and" and "or" is ambiguous.
 - **R5** (hashtag is not a work mode) is implemented in code (the tag guard) and is not in the prompt, so nothing conflicts.
+
+## 17. Run 1 run A result (2026-11-15, run 1 prompt, request hash 0306366684, INSTRUCTIONS 4,000)
+
+Numbers and item or line numbers only. One run (8 calls, 38,640 tokens), 0 failed.
+
+### Comparison with the same-settings baseline (8 ads)
+
+| | Baseline reading 1 | Baseline reading 2 | Run 1 run A |
+|---|---|---|---|
+| Found | 75 of 100 | 76 of 100 | **65 of 100** |
+| R4 items | 5 | 5 | **11** |
+| R4 distinct duty lines | 5 | 5 | 5 |
+| R3+R3b defect lines (of 11) | 7 | 7 | 4 |
+| R8 (ad-02 location not right) | 1 | 1 | 0 |
+| Invented (current keys) | 9 | 13 | 11 |
+| Outside | 0 | 1 | 0 |
+
+### Keep-rule check for run 1 (run B not run, so only the first run is judged)
+
+| Rule | Criterion 1 (own target) | Criterion 2 (found at least 75) | Criterion 3 (outside at most 1) |
+|---|---|---|---|
+| R4 | FAIL (11 items; needs 4 or less) | FAIL (65) | PASS (0) |
+| R3+R3b | PASS (4; needs 6 or less) | FAIL (65) | PASS (0) |
+| R8 | PASS (0) | FAIL (65) | PASS (0) |
+
+### Attribution of the found loss (change 3)
+
+Key items found in both baseline readings: ad-01 6, ad-02 12, ad-03 14, ad-04 11, ad-05 11, ad-06 4, ad-07 8, ad-08 3. **9 of them are not found in run A**; 0 items missed by both baseline readings were found in run A.
+
+| Ad | Lost | (a) sibling of a widened AI item | (b) unexplained |
+|---|---|---|---|
+| ad-01 | 1 | 0 | 1 |
+| ad-02 | 2 | 1 | 1 |
+| ad-05 | 6 | 3 | 3 |
+| other ads | 0 | 0 | 0 |
+| **Total** | **9** | **4** | **5** |
+
+- **(a):** ad-02 #10; ad-05 #4, #5, #16.
+- **(b):** ad-01 #2 (ad line 22, 3 lines after the duty range 14-19); ad-02 #4 (line 30, 7 lines from the range 15-23); ad-05 #8 (line 22, 6 lines before the range 28-35); ad-05 #10 and #12 (line 24, 4 lines before it). None of the five lies inside a duty range; one is within 3 lines of one.
+- The loss is therefore not items inside the duty ranges disappearing. The 9 lost items are 9 of the 10 to 11 points of the drop; the rest is items found in only one baseline reading.
+
+### R4 by lines
+
+Run A used the same duty lines as baseline readings 1 and 2 (ad-08 L9, L11, L12, L13, L14), 5 lines in both. Only the item count changed (5 to 11): lines L11 and L12 were split into 5 and 3 items. So R4 as worded did not remove a single duty line.
+
+### Decisions
+
+- Run B is not run.
+- **R4 as worded and R3 as worded are reverted.** R3b shows no gain (ad-05 #13 and #14 are still missed). **R8 is kept pending a cheap confirmation** (ad-02's location was right in run A; the baseline gave 1 in every reading).
+- **Next candidate: "1b"**, the run 1 prompt with three edits: the R1 wording as the first requirements bullet plus one sentence in the alternatives bullet saying that a list joined with "and", or with commas and no "or", is not alternatives, and the R4 bullet rewritten in two variants (A: cue by the meaning of the heading; B: cue by a question asked of each line). R8 stays; R6 and R2 are not in it. The wording is drafted in the scratch folder and is not applied.
+- **Order:** candidate 1b first, on the ads that carry its targets only (the screen, see the HANDOFF idea); then the full two runs only if the screen passes; then R6 and R2 from section 16 as run 2 without R1, which is already in 1b.
