@@ -301,3 +301,51 @@ Reading 1 for ad-02, ad-04, ad-06 and ad-08 is the first noise repeat; for ad-01
 - The baseline's own spread is large (R3+R3b 1 to 4 on four ads, found 30 to 33 on four ads, invented 6 to 9), so criterion 1 asks for a version to beat the best baseline reading, not the average.
 - The "narrowed" counter looks only at the first paired item when several AI items share a quote, so it can flag a correct split reading. That is why ad-02#0 was dropped (HANDOFF, ideas for later).
 - For the later versions (R1, R2, R6) their own target lines are proposed when they are due.
+
+## 16. Version run2: R6 + R2 + R1 (PROPOSED, NOT YET APPROVED)
+
+Nothing here is decided. The owner approves, changes or rejects it before run2 is built. Item numbers are the key item numbers in fixtures/answer-keys (counted from 0); line numbers are ad line numbers. No ad text is in this section.
+
+**Base prompt:** the run 1 prompt minus any run 1 rule that the keep rule reverts (decided from both run 1 runs). The wording is drafted as a patch in the scratch folder against the full run 1 prompt (INSTRUCTIONS 4,000 characters; 4,399 after the patch: R1 replaces the first requirements bullet, +103; R6 +117; R2 +179). If a run 1 rule is reverted first, the patch may need a line or two of fuzz where the run 1 bullets sit around it.
+
+**What each rule is for (from the gap analysis of the 25 misses in reading 1):**
+- **R6** (name a skill only from its own quote; never from a neighbouring sentence): the 7 "skill taken from another line" misses.
+- **R1** (one item per skill when "and", "as well as", "both ... and" or commas join them): the same-line merges (ad-07 #13 in the gap analysis), and keeping sibling items apart.
+- **R2** (personal qualities and ways of working are requirements too): the soft-trait misses.
+
+### Targets (key item numbers). Lower is better for all three.
+
+A target item counts when it is **not found**: its key item is missed, or paired but read as nice.
+
+| Rule | Target items | Number |
+|---|---|---|
+| **R6** | ad-01 #1; ad-02 #2; ad-04 #8; ad-06 #5; ad-07 #3, #9, #10 | 7 |
+| **R2** (a proposed list of personal-quality and way-of-working items) | ad-01 #3; ad-02 #2-#7, #9-#13; ad-03 #3, #13-#15; ad-04 #9-#12; ad-05 #17-#22; ad-06 #6, #7; ad-07 #10, #14; ad-08 #2, #3 | 32 |
+| **R1** (items that share their quote with a sibling item, so one item per skill is needed) | ad-02 #9, #10; ad-03 #1, #2, #4-#7, #9-#15; ad-05 #0-#5, #15, #16; ad-07 #12, #13; ad-08 #5, #6 | 27 |
+
+R2 audit: every keyed soft line is in the list above. Lines in the requirement sections of the 8 tuning ads that no key item and no accepted extra covers: headings, degree and language lines (covered by the conditions and languages fields), and one personal-quality line, **ad-05 line 25** (a description of the role about owning problems without a roadmap). That line would count as invented once R2 works; it counts as "outside" (below). R2 items that are also in acceptedExtras (ad-01 #7, ad-02 #4, #5, #11, ad-03 #3, ad-04 #12, ad-05 #19-#22, ad-06 #7, ad-07 #10, ad-08 #3) are covered both ways. The R2 list is a judgment list and needs the owner's approval.
+
+### Baseline (same settings, 8 ads, from the saved reports; the not-found items are listed so they can be checked)
+
+| Rule | Reading 1 | Reading 2 | Best | A version needs |
+|---|---|---|---|---|
+| R6 | 7 (ad-01 #1; ad-02 #2; ad-04 #8; ad-06 #5; ad-07 #3, #9, #10) | 6 (the same minus ad-06 #5) | 6 | **5 or less** |
+| R2 | 12 (ad-01 #3; ad-02 #2; ad-04 #11; ad-05 #17-#22; ad-06 #7; ad-07 #10, #14) | 10 (ad-01 #3; ad-02 #2; ad-05 #17-#20; ad-07 #10, #14; ad-08 #2, #3) | 10 | **9 or less** |
+| R1 | 2 (ad-05 #2; ad-07 #13) | 4 (ad-05 #0, #1, #2; ad-07 #13) | 2 | **1 or less** |
+
+The noise repeat 3 (four ads) gave R6 2, R2 3, R1 0 on those four ads. R1's baseline is small (2 and 4), so criterion 1 for R1 is sensitive to noise.
+
+### Criteria (the same as section 15, applied to each rule on its own target, in both runs)
+1. the rule's target count beats every baseline reading (above);
+2. the tuning-set found total is not below the baseline's lowest reading (75);
+3. invented outside the target is not above the baseline's highest reading (1).
+
+**"Outside" is defined exactly as in run 1**, so the baseline stays comparable: invented items (current keys) that are in neither the R4 duty-section count nor an overlap with one of the 11 R3/R3b lines. The R6, R2 and R1 targets are not invented items, so they do not change it; a new soft-trait item the AI invents from a line with no key item (for example ad-05 line 25) counts as outside.
+
+**A failing rule is reverted alone;** the next version doubles as the confirming run for the rest (section 15, change 2).
+
+### Known wording conflicts (flagged in the patch review)
+- **R2 and R4:** R2 widens what counts as a requirement, R4 narrows it to what the candidate must have. Duty lines could be read as "ways of working", which would raise the R4 count; the target and the criteria watch for it.
+- **R1 and R3b:** R1 splits a comma list, R3b keeps "years in A, B or C" as one item. A comma list under years with no "or" (ad-02 #0, dropped from the R3/R3b target) is read both ways; the key accepts both.
+- **R1 and R3:** "A, B or C" is one item (R3); the bracket in R1 ("but not when 'or' joins them") carries that. A line mixing "and" and "or" is ambiguous.
+- **R5** (hashtag is not a work mode) is implemented in code (the tag guard) and is not in the prompt, so nothing conflicts.
