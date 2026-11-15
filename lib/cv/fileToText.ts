@@ -2,9 +2,9 @@
 // No AI, no network, nothing stored: the file is read from memory and the text
 // is handed back. Tests prove fetch is never called (tests/fileToText.test.ts).
 
-export const MAX_CV_FILE_BYTES = 5 * 1024 * 1024; // 5 MB
-export const MAX_CV_CHARS = 20_000; // the same limit as a pasted ad
-export const MAX_CV_PAGES = 20;
+import { MAX_CV_CHARS, MAX_CV_FILE_BYTES, MAX_CV_PAGES } from "./limits";
+
+export { MAX_CV_CHARS, MAX_CV_FILE_BYTES, MAX_CV_PAGES };
 
 export type FileTextProblem =
   | "too-big" // the file is over MAX_CV_FILE_BYTES

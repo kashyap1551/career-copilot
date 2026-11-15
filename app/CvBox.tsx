@@ -1,17 +1,48 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { fileToText, MAX_CV_CHARS } from "@/lib/cv/fileToText";
+import { MAX_CV_LINES, MAX_LINE_CHARS } from "@/lib/cv/limits";
+import { numberLines } from "@/lib/cv/numberLines";
+import { removeContactDetails } from "@/lib/cv/redact";
+import type { CvBuildResult, CvRemovalReason } from "@/lib/engine/fromCv";
 
-// Step 4.1: choose a CV file (PDF, Word or .txt) or paste the text; the text
-// appears in the box so the person sees exactly what was read. The file is read
-// on this device and nothing is sent anywhere in this step. The box is the
-// fallback for scans and unsupported files.
+// Steps 4.1 and 4.2: choose a CV file (PDF, Word or .txt) or paste the text.
+// The file is read on this device. Before anything is sent, email addresses,
+// phone numbers and web links are removed here and the lines are numbered; the
+// numbered lines shown below are EXACTLY what the "Send for reading" button
+// sends (docs/PLAN-4.2.md). Nothing is stored.
+
+const REASONS: Record<CvRemovalReason, string> = {
+  "no-name": "it had no usable name",
+  "name-too-long": "its name was too long",
+  "line-out-of-range": "it cited a line that does not exist",
+  "quote-too-short": "its quote had no real word",
+  "quote-not-in-line": "its quote is not in the line it cited",
+  "too-many": "there were too many skills",
+};
 
 export default function CvBox() {
   const [cvText, setCvText] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [reading, setReading] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<CvBuildResult | null>(null);
+
+  // What would be sent: contact details removed, then lines numbered.
+  const lines = useMemo(() => numberLines(removeContactDetails(cvText)), [cvText]);
+  const sentChars = lines.reduce((n, l) => n + l.length, 0);
+  const problem =
+    lines.length === 0
+      ? "Add your CV text first."
+      : sentChars > MAX_CV_CHARS
+        ? `Too long: ${sentChars.toLocaleString("en-US")} of ${MAX_CV_CHARS.toLocaleString("en-US")} characters.`
+        : lines.length > MAX_CV_LINES
+          ? `Too many lines: ${lines.length} of ${MAX_CV_LINES}.`
+          : lines.some((l) => l.length > MAX_LINE_CHARS)
+            ? `A line is longer than ${MAX_LINE_CHARS.toLocaleString("en-US")} characters; split it.`
+            : null;
 
   async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
     const input = e.target;
@@ -19,21 +50,44 @@ export default function CvBox() {
     if (!file) return;
     setReading(true);
     setMessage(null);
-    const result = await fileToText(file);
+    const r = await fileToText(file);
     setReading(false);
-    if (result.ok) {
-      setCvText(result.text);
+    if (r.ok) {
+      setCvText(r.text);
+      setResult(null);
+      setError(null);
     } else {
-      setMessage(result.message);
+      setMessage(r.message);
     }
     input.value = ""; // so the same file can be chosen again
   }
 
-  const tooLong = cvText.length > MAX_CV_CHARS;
+  async function send() {
+    setSending(true);
+    setError(null);
+    setResult(null);
+    try {
+      const res = await fetch("/api/cv", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lines }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) setError(data?.error ?? `The server returned an error (${res.status}).`);
+      else setResult(data as CvBuildResult);
+    } catch {
+      setError("Could not reach the server. Check your connection and try again.");
+    } finally {
+      setSending(false);
+    }
+  }
 
   return (
     <section className="flex flex-col gap-2">
       <h2 className="text-lg font-semibold">Your CV</h2>
+      <p className="rounded border border-amber-500 p-3 text-sm">
+        Testing only: use a made-up CV for now, not a real one.
+      </p>
       <label htmlFor="cv-file" className="text-sm font-medium">
         Choose a PDF, Word (.docx) or .txt file, or paste the text below
       </label>
@@ -46,7 +100,7 @@ export default function CvBox() {
         className="text-sm"
       />
       <p className="text-sm text-zinc-600 dark:text-zinc-400">
-        The file is read on your device. In this step nothing is sent anywhere.
+        The file is read on your device. Nothing is sent until you press &ldquo;Send for reading&rdquo;.
       </p>
 
       {reading && <p className="text-sm">Reading the file…</p>}
@@ -62,17 +116,82 @@ export default function CvBox() {
       <textarea
         id="cv-text"
         value={cvText}
-        onChange={(e) => setCvText(e.target.value)}
+        onChange={(e) => {
+          setCvText(e.target.value);
+          setResult(null);
+        }}
         placeholder="Your CV text appears here…"
-        rows={12}
+        rows={10}
         className="w-full rounded border border-zinc-300 bg-transparent p-3 font-mono text-sm dark:border-zinc-700"
       />
-      <p
-        className={`text-sm ${tooLong ? "text-red-600 dark:text-red-400" : "text-zinc-600 dark:text-zinc-400"}`}
-      >
-        {cvText.length.toLocaleString("en-US")} of {MAX_CV_CHARS.toLocaleString("en-US")} characters
-        {tooLong ? ": too long, shorten it before the next step" : ""}
-      </p>
+
+      {lines.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <p className="text-sm font-medium">What will be sent ({lines.length} lines, {sentChars.toLocaleString("en-US")} characters)</p>
+          <pre className="max-h-64 overflow-auto whitespace-pre-wrap break-words rounded bg-zinc-100 p-3 text-sm dark:bg-zinc-900">
+            {lines.map((l, i) => `${i + 1}: ${l}`).join("\n")}
+          </pre>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+            Email addresses, phone numbers and web links were removed on your device. Your name and
+            address are NOT removed. These numbered lines are sent through our server to an AI service
+            (Groq) to find your skills. We store nothing and do not log the text.
+          </p>
+        </div>
+      )}
+
+      <div>
+        <button
+          onClick={send}
+          disabled={sending || problem !== null}
+          className="rounded bg-foreground px-5 py-2 font-medium text-background disabled:opacity-40"
+        >
+          {sending ? "Reading…" : "Send for reading"}
+        </button>
+        {problem && lines.length > 0 && <span className="ml-3 text-sm text-red-600 dark:text-red-400">{problem}</span>}
+      </div>
+
+      {error && (
+        <p role="alert" className="rounded border border-red-400 p-3 text-sm text-red-600 dark:text-red-400">
+          {error}
+        </p>
+      )}
+
+      {result && (
+        <div className="flex flex-col gap-3">
+          <p className="font-medium">
+            {result.skills.length} {result.skills.length === 1 ? "skill" : "skills"} found
+            {result.duplicates > 0 ? `, ${result.duplicates} repeated ${result.duplicates === 1 ? "one" : "ones"} left out` : ""}
+          </p>
+          <ul className="flex flex-col gap-3">
+            {result.skills.map((s) => (
+              <li key={s.skillId} className="border-l-2 border-zinc-300 pl-3 dark:border-zinc-700">
+                <p className="text-sm">
+                  <span className="font-medium">{s.name}</span>{" "}
+                  <span className="text-zinc-600 dark:text-zinc-400">
+                    (line {s.line}; {s.label === "named" ? "named in your CV" : "from your wording: keep only if true"}
+                    {s.listed ? "" : "; not in our skill list yet"})
+                  </span>
+                </p>
+                <p className="text-sm text-zinc-600 dark:text-zinc-400">&ldquo;{s.quote}&rdquo;</p>
+              </li>
+            ))}
+          </ul>
+          {result.removed.length > 0 && (
+            <div className="text-sm text-zinc-600 dark:text-zinc-400">
+              <p>
+                {result.removed.length} {result.removed.length === 1 ? "item" : "items"} removed because a check failed:
+              </p>
+              <ul className="list-disc pl-5">
+                {result.removed.map((r, i) => (
+                  <li key={i}>
+                    {r.name} (line {r.line}): {REASONS[r.why]}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
     </section>
   );
 }

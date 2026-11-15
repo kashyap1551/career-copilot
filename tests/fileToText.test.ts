@@ -66,7 +66,7 @@ describe("fileToText", () => {
     expect(r2.ok === false && r2.problem).toBe("too-long"); // passes the size check, then fails the character limit
   });
 
-  it("F7: 20,000 characters pass, 20,001 do not", async () => {
+  it("F7: 12,000 characters pass, 12,001 do not", async () => {
     const ok = await fileToText(new File(["a".repeat(MAX_CV_CHARS)], "a.txt"));
     expect(ok.ok).toBe(true);
     const long = await fileToText(new File(["a".repeat(MAX_CV_CHARS + 1)], "a.txt"));

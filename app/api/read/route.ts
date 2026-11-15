@@ -1,8 +1,14 @@
+import { aiPaused, PAUSED_MESSAGE, PAUSED_STATUS } from "@/lib/ai/enabled";
 import { readJobAd, ReadAdError } from "@/lib/ai/readJob";
 import { readRequestSchema } from "@/lib/schemas/job";
 
 // POST { text } -> { job } (schema-checked), or { error } with a plain message.
 export async function POST(request: Request) {
+  // The kill switch: AI_ENABLED=false pauses this route without calling the AI.
+  if (aiPaused()) {
+    return Response.json({ error: PAUSED_MESSAGE }, { status: PAUSED_STATUS });
+  }
+
   let body: unknown;
   try {
     body = await request.json();

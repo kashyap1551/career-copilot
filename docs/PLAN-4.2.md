@@ -104,7 +104,7 @@ Prints (counts only): one row per CV: `kept | tied | named | inferred | removed 
 |---|---|---|
 | One full run (5 CVs) | 5 | 22,500 |
 | Calibration run plus two counted runs, prompt unchanged | 15 | 67,500 (a third of the 200,000 day) |
-Pacing: before each call wait until tokens used in the last 60 seconds plus the largest call so far (4,500 at the start) is at most 7,000 of the 8,000 a minute, using Groq's remaining-tokens header when present; at least 3 seconds apart; a 429 retries after 15 and 45 seconds, a 5xx once after 20 seconds. A run takes about 3 minutes; the three fit in one day, and the live site shares the quota. No call without the owner's go; a stopped call is never retried by hand.
+Pacing (as built): at least 3 seconds between calls, and after each call wait until Groq's own `x-ratelimit-remaining-tokens` header shows room for a call as large as the biggest so far (4,500 at the start; Groq refills limit/60 tokens a second, so only the missing part is waited for; no headers: 30 seconds); a 429 retries after 15 and 45 seconds, a 5xx once after 20 seconds. A run takes about 3 minutes; the three fit in one day, and the live site shares the quota. No call without the owner's go; a stopped call is never retried by hand.
 
 ## e. A stranger in a loop
 Today: no sign-in, no per-visitor limit, no daily budget. The only brakes are the size caps (20,000 characters an ad, 12,000 a CV). One call is about 4,500 tokens, so about **45 calls** use the 200,000-token day. The harm is not money (the free tier is not billed; confirm no card is on the Groq account) but that every honest user then gets "busy" until the day resets.

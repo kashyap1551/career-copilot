@@ -9,7 +9,8 @@
     "lint": "eslint",
     "test": "vitest run",
     "report": "tsx scripts/report.ts",
-    "eval": "tsx scripts/eval.ts"
+    "eval": "tsx scripts/eval.ts",
+    "eval-cv": "tsx scripts/evalCv.ts"
   },
   "dependencies": {
     "@ai-sdk/groq": "^4.0.83",

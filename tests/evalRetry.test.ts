@@ -60,16 +60,16 @@ describe("a Groq failure that outlasts the SDK's own retries", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
-  it("the contract the runner relies on: it reaches the runner as a generic 500, with no Groq code", async () => {
+  it("the contract the runner relies on (since 4.2): the SDK's last error is unwrapped, so the Groq code survives", async () => {
     generateText.mockRejectedValue(sdkGaveUp(500));
     const error = await readJobAd("x").catch((e) => e);
     expect(error).toBeInstanceOf(ReadAdError);
-    expect((error as ReadAdError).status).toBe(500);
-    expect((error as ReadAdError).message).toMatch(/Something went wrong/);
-    // a 429 that outlasts the SDK looks the same (this is why the runner cannot tell them apart):
+    expect((error as ReadAdError).status).toBe(502);
+    expect((error as ReadAdError).message).toContain("(status 500)");
+    // a 429 that outlasts the SDK is now a 429, so the runner's rate-limit backoff can fire:
     generateText.mockRejectedValue(sdkGaveUp(429));
     const error429 = await readJobAd("x").catch((e) => e);
-    expect((error429 as ReadAdError).status).toBe(500);
+    expect((error429 as ReadAdError).status).toBe(429);
   });
 
   it("500 then success: retried once after 20 s, the result is kept, the report says so", async () => {

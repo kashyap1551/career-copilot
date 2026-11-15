@@ -48,7 +48,11 @@ const statusOf = (error: unknown): number | undefined =>
 
 // The reason never contains the ad text or the error's own message.
 function reasonFor(error: unknown): string {
-  const status = statusOf(error);
+  // The reader words an AI service error as "... (status 500)" and answers 502:
+  // the code in the words is the service's own, so show that one.
+  const message = error instanceof Error ? error.message : "";
+  const quoted = /\(status (\d{3})\)/.exec(message);
+  const status = quoted ? Number(quoted[1]) : statusOf(error);
   if (status === 429) return "rate limited, even after every retry";
   if (status !== undefined) return `AI service error (status ${status})`;
   return "unexpected error";

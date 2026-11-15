@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Step 3.3 part 3b. readJobAd now returns token counts and Groq's rate-limit
 // headers for the eval script. The web route must never pass them on.
@@ -22,6 +22,7 @@ vi.mock("@/lib/ai/readJob", () => {
 });
 
 import { POST } from "@/app/api/read/route";
+import { readJobAd } from "@/lib/ai/readJob";
 
 const post = (body: unknown) =>
   POST(new Request("http://localhost/api/read", { method: "POST", body: JSON.stringify(body) }));
@@ -44,5 +45,21 @@ describe("POST /api/read", () => {
     expect(raw).not.toContain("ratelimit");
     expect(raw).not.toContain("12345");
     expect(raw).not.toContain("6789");
+  });
+
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("the kill switch: AI_ENABLED=false answers 503 'paused' and never calls the reader", async () => {
+    vi.stubEnv("AI_ENABLED", "false");
+    const res = await post({ text: "Some job ad text that is long enough to be read." });
+    expect(res.status).toBe(503);
+    expect((await res.json()).error).toMatch(/paused/i);
+    expect(readJobAd).not.toHaveBeenCalled();
+  });
+
+  it("any other value of AI_ENABLED means on", async () => {
+    vi.stubEnv("AI_ENABLED", "true");
+    const res = await post({ text: "Some job ad text that is long enough to be read." });
+    expect(res.status).toBe(200);
   });
 });
