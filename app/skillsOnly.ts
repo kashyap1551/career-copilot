@@ -124,15 +124,20 @@ const NOT_JUDGED_SENTENCE =
 // Written here, not by explainFit: that text says what "stands in the way",
 // which is unknown when the job's constraints are not judged. This one only
 // says what the counts show.
-export function skillsOnlyExplanation(total: number, missing: string[]): string {
-  let first: string;
-  if (total === 0) first = "The ad lists no must-haves.";
-  else if (missing.length === 0)
-    first = total === 1 ? "You meet the only must-have on your list." : `You meet all ${total} must-haves on your list.`;
-  else if (missing.length === 1) first = `One must-have is missing: ${missing[0]}.`;
-  else first = `${missing.length} of ${total} must-haves are missing: ${missing.join(", ")}.`;
-  return `${first} ${NOT_JUDGED_SENTENCE}`;
+// The counts sentence, shared with the confirmed-profile report (app/fitReport.ts).
+export function countsSentence(total: number, missing: string[], where = "on your list"): string {
+  if (total === 0) return "The ad lists no must-haves.";
+  if (missing.length === 0)
+    return total === 1 ? `You meet the only must-have ${where}.` : `You meet all ${total} must-haves ${where}.`;
+  if (missing.length === 1) return `One must-have is missing: ${missing[0]}.`;
+  return `${missing.length} of ${total} must-haves are missing: ${missing.join(", ")}.`;
 }
+
+export function skillsOnlyExplanation(total: number, missing: string[]): string {
+  return `${countsSentence(total, missing)} ${NOT_JUDGED_SENTENCE}`;
+}
+
+export { NOT_JUDGED_SENTENCE };
 
 export function skillsOnlyReport(
   job: Job,

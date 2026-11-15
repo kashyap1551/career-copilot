@@ -22,13 +22,15 @@ const REASONS: Record<CvRemovalReason, string> = {
   "too-many": "there were too many skills",
 };
 
-export default function CvBox() {
+export default function CvBox({ onRead }: { onRead: (lines: string[], result: CvBuildResult) => void }) {
   const [cvText, setCvText] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [reading, setReading] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<CvBuildResult | null>(null);
+  const [readLines, setReadLines] = useState<string | null>(null); // the lines of the last successful reading
+  const [fileName, setFileName] = useState<string | null>(null);
 
   // What would be sent: contact details removed, then lines numbered.
   const lines = useMemo(() => numberLines(removeContactDetails(cvText)), [cvText]);
@@ -49,14 +51,17 @@ export default function CvBox() {
     const file = input.files?.[0];
     if (!file) return;
     setReading(true);
-    setMessage(null);
+    setMessage(null); // an old red message goes away as soon as a new file is chosen
+    setError(null);
     const r = await fileToText(file);
     setReading(false);
     if (r.ok) {
       setCvText(r.text);
-      setResult(null);
+      setFileName(file.name);
+      setMessage(null);
       setError(null);
     } else {
+      setFileName(null);
       setMessage(r.message);
     }
     input.value = ""; // so the same file can be chosen again
@@ -65,6 +70,7 @@ export default function CvBox() {
   async function send() {
     setSending(true);
     setError(null);
+    setMessage(null);
     setResult(null);
     try {
       const res = await fetch("/api/cv", {
@@ -74,7 +80,11 @@ export default function CvBox() {
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) setError(data?.error ?? `The server returned an error (${res.status}).`);
-      else setResult(data as CvBuildResult);
+      else {
+        setResult(data as CvBuildResult);
+        setReadLines(lines.join("\n"));
+        onRead(lines, data as CvBuildResult);
+      }
     } catch {
       setError("Could not reach the server. Check your connection and try again.");
     } finally {
@@ -88,17 +98,24 @@ export default function CvBox() {
       <p className="rounded border border-amber-500 p-3 text-sm">
         Testing only: use a made-up CV for now, not a real one.
       </p>
-      <label htmlFor="cv-file" className="text-sm font-medium">
-        Choose a PDF, Word (.docx) or .txt file, or paste the text below
-      </label>
-      <input
-        id="cv-file"
-        type="file"
-        accept=".pdf,.docx,.txt"
-        onChange={onFile}
-        disabled={reading}
-        className="text-sm"
-      />
+      <p className="text-sm font-medium">Choose a PDF, Word (.docx) or .txt file, or paste the text below</p>
+      <div className="flex flex-wrap items-center gap-3">
+        <input
+          id="cv-file"
+          type="file"
+          accept=".pdf,.docx,.txt"
+          onChange={onFile}
+          disabled={reading}
+          className="peer sr-only"
+        />
+        <label
+          htmlFor="cv-file"
+          className="cursor-pointer rounded border-2 border-foreground px-5 py-2 text-sm font-semibold peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-disabled:opacity-40"
+        >
+          Choose file
+        </label>
+        <span className="text-sm text-zinc-600 dark:text-zinc-400">{fileName ?? "No file chosen"}</span>
+      </div>
       <p className="text-sm text-zinc-600 dark:text-zinc-400">
         The file is read on your device. Nothing is sent until you press &ldquo;Send for reading&rdquo;.
       </p>
@@ -157,25 +174,17 @@ export default function CvBox() {
       )}
 
       {result && (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2">
           <p className="font-medium">
             {result.skills.length} {result.skills.length === 1 ? "skill" : "skills"} found
-            {result.duplicates > 0 ? `, ${result.duplicates} repeated ${result.duplicates === 1 ? "one" : "ones"} left out` : ""}
+            {result.duplicates > 0 ? `, ${result.duplicates} repeated ${result.duplicates === 1 ? "one" : "ones"} left out` : ""}.
+            Confirm them below.
           </p>
-          <ul className="flex flex-col gap-3">
-            {result.skills.map((s) => (
-              <li key={s.skillId} className="border-l-2 border-zinc-300 pl-3 dark:border-zinc-700">
-                <p className="text-sm">
-                  <span className="font-medium">{s.name}</span>{" "}
-                  <span className="text-zinc-600 dark:text-zinc-400">
-                    (line {s.line}; {s.label === "named" ? "named in your CV" : "from your wording: keep only if true"}
-                    {s.listed ? "" : "; not in our skill list yet"})
-                  </span>
-                </p>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">&ldquo;{s.quote}&rdquo;</p>
-              </li>
-            ))}
-          </ul>
+          {readLines !== null && readLines !== lines.join("\n") && (
+            <p className="rounded border border-amber-500 p-3 text-sm">
+              Your CV text has changed since it was read. Press &ldquo;Send for reading&rdquo; again to use the change.
+            </p>
+          )}
           {result.removed.length > 0 && (
             <div className="text-sm text-zinc-600 dark:text-zinc-400">
               <p>

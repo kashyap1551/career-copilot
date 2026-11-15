@@ -2,13 +2,20 @@
 
 import { useMemo, useState } from "react";
 import { skills } from "@/fixtures/skills";
+import { buildProfile, initialConfirm, type ConfirmState } from "@/lib/cv/profile";
 import type { BuildResult, RemovalReason } from "@/lib/engine/fromAd";
+import type { CvBuildResult } from "@/lib/engine/fromCv";
+import ConfirmBox from "./ConfirmBox";
 import CvBox from "./CvBox";
+import { profileReport } from "./fitReport";
+import ReportView from "./ReportView";
 import { readSkillList, skillsOnlyReport } from "./skillsOnly";
 
-// Steps 3.1 and 3.4: paste a job ad and a list of skills. The AI reads the ad;
-// plain code judges it against the list, on skills only. The list is not a CV
-// (see docs/DECISIONS.md): Day 4 replaces it with real CV lines.
+// One page, in this order: your CV, confirm your profile, the job ad, the
+// report (D6; nothing is stored). The AI reads the CV and the ad; plain code
+// builds the profile from what the person confirms and judges the ad against it,
+// only on the constraints the person set. A typed list of skills (step 3.4)
+// stays as a collapsed option and is used only when no CV has been read.
 
 const REASONS: Record<RemovalReason, string> = {
   "not-in-ad": "it wasn't in your ad",
@@ -28,6 +35,9 @@ export default function Home() {
   const [result, setResult] = useState<BuildResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  // The last successful reading of the CV, and what the person has confirmed.
+  const [cvRead, setCvRead] = useState<{ lines: string[]; result: CvBuildResult } | null>(null);
+  const [confirm, setConfirm] = useState<ConfirmState | null>(null);
 
   async function readAd() {
     setLoading(true);
@@ -54,24 +64,70 @@ export default function Home() {
     }
   }
 
-  // Recomputed when the list changes, with no new AI call.
-  const list = useMemo(() => readSkillList(skillText, skills), [skillText]);
-  const report = useMemo(
-    () =>
-      result
-        ? skillsOnlyReport(result.job, list.cvLines, list.lines, skills, result.unlisted)
-        : null,
-    [result, list],
+  function onCvRead(lines: string[], r: CvBuildResult) {
+    setCvRead({ lines, result: r });
+    setConfirm(initialConfirm(r.skills)); // a new reading starts a new confirmation
+  }
+
+  // All recomputed in the browser when anything changes: no new AI call.
+  const built = useMemo(
+    () => (cvRead && confirm ? buildProfile(cvRead.lines, cvRead.result.skills, confirm, skills) : null),
+    [cvRead, confirm],
   );
+  const list = useMemo(() => readSkillList(skillText, skills), [skillText]);
+  const report = useMemo(() => {
+    if (!result) return null;
+    if (built) {
+      return {
+        kind: "cv" as const,
+        view: profileReport(result.job, built, skills, [...result.unlisted, ...cvRead!.result.unlisted]),
+      };
+    }
+    return {
+      kind: "list" as const,
+      view: { ...skillsOnlyReport(result.job, list.cvLines, list.lines, skills, result.unlisted), conflicts: [] as string[] },
+    };
+  }, [result, built, cvRead, list]);
 
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-4 px-6 py-12">
       <h1 className="text-2xl font-semibold tracking-tight">Career Co-pilot</h1>
       <p className="text-zinc-600 dark:text-zinc-400">
-        Paste a job ad and a list of your skills, and see where you stand on skills.
+        Add your CV, confirm your profile, paste a job ad, and see where you stand.
       </p>
 
-      <CvBox />
+      <CvBox onRead={onCvRead} />
+
+      {cvRead && confirm && built && (
+        <ConfirmBox
+          proposals={cvRead.result.skills}
+          confirm={confirm}
+          onChange={setConfirm}
+          built={built}
+        />
+      )}
+
+      <details className="text-sm">
+        <summary className="cursor-pointer font-medium">Or type a list of skills instead</summary>
+        <div className="mt-2 flex flex-col gap-2">
+          <label htmlFor="skills" className="font-medium">
+            Your skills, one per line (from your list, not a CV)
+          </label>
+          <textarea
+            id="skills"
+            value={skillText}
+            onChange={(e) => setSkillText(e.target.value)}
+            placeholder={"SQL\nExcel\nPython"}
+            rows={6}
+            className="w-full rounded border border-zinc-300 bg-transparent p-3 font-mono text-sm dark:border-zinc-700"
+          />
+          {built && (
+            <p className="text-zinc-600 dark:text-zinc-400">
+              You have a confirmed CV profile, so this list is ignored. Reload the page to use only a list.
+            </p>
+          )}
+        </div>
+      </details>
 
       <h2 className="text-lg font-semibold">The job ad</h2>
       <textarea
@@ -79,18 +135,6 @@ export default function Home() {
         onChange={(e) => setText(e.target.value)}
         placeholder="Paste the job ad here…"
         rows={16}
-        className="w-full rounded border border-zinc-300 bg-transparent p-3 font-mono text-sm dark:border-zinc-700"
-      />
-
-      <label htmlFor="skills" className="text-sm font-medium">
-        Your skills, one per line (from your list, not a CV)
-      </label>
-      <textarea
-        id="skills"
-        value={skillText}
-        onChange={(e) => setSkillText(e.target.value)}
-        placeholder={"SQL\nExcel\nPython"}
-        rows={6}
         className="w-full rounded border border-zinc-300 bg-transparent p-3 font-mono text-sm dark:border-zinc-700"
       />
 
@@ -111,131 +155,73 @@ export default function Home() {
       )}
 
       {result && report && (
-        <section className="flex flex-col gap-3">
-          <h2 className="text-lg font-semibold">
-            {result.job.title}
-            {result.job.company ? `, ${result.job.company}` : ""}
-          </h2>
-          <p className="font-semibold">Fit: {report.fitLabel}</p>
-          <p>{report.explanation}</p>
-          <p className="text-sm">
-            Must-haves met: {report.counts.mustsMet} of {report.counts.mustsTotal}. Nice-to-haves
-            met: {report.counts.nicesMet} of {report.counts.nicesTotal}.
-          </p>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Skills only: a skill counts because it is on your list (from your list, not a CV).
-            Language, location, work mode, years and start date are not judged.
-          </p>
+        <>
+          <ReportView
+            title={`${result.job.title}${result.job.company ? `, ${result.job.company}` : ""}`}
+            report={report.view}
+            note={
+              report.kind === "cv"
+                ? "Evidence for each skill is the CV line it came from. A kind you did not set is not judged."
+                : "Skills only: a skill counts because it is on your list (from your list, not a CV). Language, location, work mode, years and start date are not judged."
+            }
+            extra={
+              report.kind === "list" && list.lines.some((l) => !l.listed) ? (
+                <div className="text-sm">
+                  <p className="font-medium">On your list, not in our skill list yet:</p>
+                  <ul className="list-disc pl-5">
+                    {list.lines
+                      .filter((l) => !l.listed)
+                      .map((l) => (
+                        <li key={l.line}>
+                          {l.text}: not in our skill list yet, so it can&apos;t be matched with your CV (your list, line {l.line})
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+              ) : null
+            }
+          />
 
-          {report.unlistedRequirements > 0 && (
-            <p className="rounded border border-amber-500 p-3 text-sm">
-              {report.unlistedRequirements} of {report.rows.length}{" "}
-              {report.rows.length === 1 ? "requirement is" : "requirements are"} not in our skill
-              list yet, so they count as not met.
-            </p>
-          )}
+          <section className="flex flex-col gap-3">
+            <h2 className="mt-4 font-semibold">What the AI read</h2>
 
-          {(["must", "nice"] as const).map((kind) => {
-            const rows = report.rows.filter((r) => r.importance === kind);
-            if (rows.length === 0) return null;
-            return (
-              <div key={kind}>
-                <h3 className="font-semibold">{kind === "must" ? "Must-haves" : "Nice-to-haves"}</h3>
-                <ul className="mt-1 flex flex-col gap-3">
-                  {rows.map((r, i) => (
-                    <li key={i} className="border-l-2 border-zinc-300 pl-3 dark:border-zinc-700">
-                      <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                        &ldquo;{r.quote}&rdquo;
-                      </p>
-                      <p className="text-sm">
-                        <span className="font-medium">
-                          {r.status === "met" ? "Met" : r.status === "unlisted" ? "Not met" : "Missing"}
-                        </span>{" "}
-                        &mdash; {r.detail}
-                      </p>
+            {result.removed.length > 0 && (
+              <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                <p>
+                  {result.removed.length} {result.removed.length === 1 ? "item" : "items"} removed
+                  because a check failed:
+                </p>
+                <ul className="list-disc pl-5">
+                  {result.removed.map((r, i) => (
+                    <li key={i}>
+                      {r.what}: {REASONS[r.why]} (&ldquo;{r.text}&rdquo;)
                     </li>
                   ))}
                 </ul>
               </div>
-            );
-          })}
+            )}
 
-          {list.lines.some((l) => !l.listed) && (
-            <div className="text-sm">
-              <p className="font-medium">On your list, not in our skill list yet:</p>
-              <ul className="list-disc pl-5">
-                {list.lines
-                  .filter((l) => !l.listed)
-                  .map((l) => (
-                    <li key={l.line}>
-                      {l.text}: not in our skill list yet, so it can&apos;t be matched with your CV
-                      (your list, line {l.line})
-                    </li>
-                  ))}
-              </ul>
-            </div>
-          )}
-
-          {report.notJudged.length > 0 && (
-            <div className="text-sm">
-              <p className="font-medium">Not judged (skills only):</p>
-              <ul className="list-disc pl-5">
-                {report.notJudged.map((n, i) => (
-                  <li key={i}>{n}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {report.checkYourself.length > 0 && (
-            <div className="text-sm">
-              <p className="font-medium">Check this yourself:</p>
-              <ul className="list-disc pl-5">
-                {report.checkYourself.map((q, i) => (
-                  <li key={i}>&ldquo;{q}&rdquo;</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          <h2 className="mt-4 font-semibold">What the AI read</h2>
-
-          {result.removed.length > 0 && (
-            <div className="text-sm text-zinc-600 dark:text-zinc-400">
-              <p>
-                {result.removed.length} {result.removed.length === 1 ? "item" : "items"} removed
-                because a check failed:
+            {result.moved.length > 0 && (
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                {result.moved.length} {result.moved.length === 1 ? "line" : "lines"} moved to
+                &ldquo;check this yourself&rdquo; because it couldn&apos;t be checked.
               </p>
-              <ul className="list-disc pl-5">
-                {result.removed.map((r, i) => (
-                  <li key={i}>
-                    {r.what}: {REASONS[r.why]} (&ldquo;{r.text}&rdquo;)
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+            )}
 
-          {result.moved.length > 0 && (
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              {result.moved.length} {result.moved.length === 1 ? "line" : "lines"} moved to
-              &ldquo;check this yourself&rdquo; because it couldn&apos;t be checked.
-            </p>
-          )}
+            {result.unlisted.length > 0 && (
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                Not in our skill list yet: {result.unlisted.map((s) => s.name).join(", ")}.
+              </p>
+            )}
 
-          {result.unlisted.length > 0 && (
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              Not in our skill list yet: {result.unlisted.map((s) => s.name).join(", ")}.
-            </p>
-          )}
-
-          <details>
-            <summary className="cursor-pointer text-sm">The checked reading as JSON</summary>
-            <pre className="mt-2 whitespace-pre-wrap break-words rounded bg-zinc-100 p-3 text-sm dark:bg-zinc-900">
-              {JSON.stringify(result.job, null, 2)}
-            </pre>
-          </details>
-        </section>
+            <details>
+              <summary className="cursor-pointer text-sm">The checked reading as JSON</summary>
+              <pre className="mt-2 whitespace-pre-wrap break-words rounded bg-zinc-100 p-3 text-sm dark:bg-zinc-900">
+                {JSON.stringify(result.job, null, 2)}
+              </pre>
+            </details>
+          </section>
+        </>
       )}
     </main>
   );
