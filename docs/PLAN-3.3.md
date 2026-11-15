@@ -220,3 +220,55 @@ Counts only. The holdout (ad-09, ad-10) is in the totals and nothing else.
 - Sample checks (about 50 calls): about 200,000
 - Sum about 612,000; with `--show` calls and one or two reruns, **about 650,000, about 3 to 4 days** at the 200,000-a-day limit.
 - Used so far today: **about 170,000** tokens. The earlier figure of 122,000 left out the first full run (about 48,000).
+
+## 15. Keep rule and target lines for run 1 (PROPOSED, NOT YET APPROVED)
+
+Nothing in this section is decided. The owner approves, changes or rejects it before run 1 is judged.
+
+**Keys changed first (2026-11-15):** four quotes were added to acceptedExtras (ad-01#7, ad-04#12, ad-07#5, ad-07#7; reason in DECISIONS). All counts below are "under the current keys": an invented line that a current acceptedExtras quote covers is not counted. The saved reports predate the change, so their invented numbers are re-counted from their own invented lines (no new AI call).
+
+### The proposed keep rule
+
+A prompt version is kept when, **in both of its runs** of the tuning set:
+1. its **target count** beats every baseline reading taken with the same settings (lower is better; if the baseline's best is 0, the version must also be 0);
+2. the tuning-set **found total** is not below the baseline's lowest reading;
+3. **invented outside the target** is not above the baseline's highest reading.
+
+"Baseline reading k" means the k-th same-settings reading of each tuning ad, summed over the 8 ads, for k = 1 and 2 (the third noise repeat exists for four ads only and is used for per-ad target counts, not for totals). Only same-settings readings (temperature 0, fixed seed, medium effort) are baseline. Default-settings runs are context.
+
+### What is counted (run 1: R4, R3, R3b, R8)
+
+| Target | What is counted (lower is better) |
+|---|---|
+| **R4** (duty lines) | Invented items (not accepted by the key) whose quote lies in the ad's duty section. Each item counts, even with the same quote. Duty sections, as ad line numbers: ad-01 14-19, ad-02 15-23, ad-03 65-89, ad-04 14-23, ad-05 28-35, ad-06 33-44, ad-07 45-66, ad-08 9-15 (from the "You will", "Responsibilities", "What you'll do", "Your tasks" and "Key Responsibilities and Success Measures" sections the key notes name). |
+| **R3 plus R3b** (alternatives, and years with fields) | 13 key lines: the 10 alternative lines ad-01#5, ad-03#0, ad-04#0, ad-04#3, ad-04#4, ad-05#9, ad-05#14, ad-06#0, ad-06#9, ad-07#0, and the 3 years lines ad-01#0, ad-02#0, ad-05#13. A line is a defect when its key item is missed, or narrowed (the AI gave fewer alternatives), or an invented item overlaps its quote. The count is the number of defect lines, at most 13. |
+| **R8** (same city twice) | ad-02 location: 0 if the verdict is right, 1 otherwise. Guard: no other tuning ad may get a location verdict other than right or notStated (none did in any of the 15 saved readings). |
+| **Outside the target** | Invented items (current keys) that are in neither the R4 count nor an overlap with an R3/R3b line. |
+
+### Baseline readings, same settings (the 12 noise readings)
+
+Per ad: found / R4 / R3+R3b defect lines of its lines / R8 / invented / outside.
+
+| Ad | Reading 1 | Reading 2 | Reading 3 |
+|---|---|---|---|
+| ad-02 | 12 of 13 / 0 / 1 of 1 / 1 / 0 / 0 | 12 of 13 / 0 / 1 of 1 / 1 / 0 / 0 | 12 of 13 / 0 / 1 of 1 / 1 / 0 / 0 |
+| ad-04 | 11 of 13 / 0 / 2 of 3 / - / 1 / 0 | 12 of 13 / 0 / 3 of 3 / - / 4 / 1 | 7 of 13 / 0 / 0 of 3 / - / 0 / 0 |
+| ad-06 | 4 of 8 / 0 / 2 of 2 / - / 0 / 0 | 6 of 8 / 0 / 2 of 2 / - / 0 / 0 | 6 of 8 / 0 / 2 of 2 / - / 3 / 0 |
+| ad-08 | 5 of 5 / 5 / 0 of 0 / - / 5 / 0 | 3 of 5 / 5 / 0 of 0 / - / 5 / 0 | 5 of 5 / 6 / 0 of 0 / - / 6 / 0 |
+| **Sum of the four ads** | found 32, R4 5, R3+R3b 5, R8 1, invented 6, outside 0 | found 33, R4 5, R3+R3b 6, R8 1, invented 9, outside 1 | found 30, R4 6, R3+R3b 3, R8 1, invented 9, outside 0 |
+
+**Still missing:** the baseline for ad-01, ad-03, ad-05 and ad-07 (two readings each, about 36,000 tokens). Until it exists, the 8-ad baseline cannot be computed and the keep rule cannot be applied. The numbers above cover 6 of the 13 R3/R3b lines (ad-02#0, ad-04#0, #3, #4, ad-06#0, #9); the other 7 lines are in the four missing ads.
+
+### Context only: default settings (not baseline)
+
+| Run | Found (8 ads) | R4 | R3+R3b lines | R8 | Invented (current keys) | Outside |
+|---|---|---|---|---|---|---|
+| First full run (74 of 100 found) | 74 | 2 | 6 of 13 (no narrowed data in that report, so a lower bound) | 1 | 7 | 0 |
+| Run 0 (66 of 100 found) | 66 | 13 | 11 of 13 | 1 | 15 | 0 |
+
+(The same two runs on the four noise ads only: found 32 and 26, R4 2 and 13, R3+R3b 2 and 6, invented 5 and 15.)
+
+### Notes on the rule
+- With the baseline above, R4 must come in below 5 or whatever the full baseline's best turns out to be, and R8 must be 0 (the baseline's best is 1).
+- The baseline's own spread is large (R3+R3b 3 to 6, found 30 to 33 on four ads, invented 6 to 9), so criterion 1 asks for a version to beat the best baseline reading, not the average.
+- The rule looks at one version at a time. For the later versions (R1, R2, R6) their own target lines are proposed when they are due.
