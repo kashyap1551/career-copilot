@@ -523,3 +523,32 @@ The two ads with most are **X = ad-07** and **Y = ad-05**: 8 distinct items toge
 | **C3** (nothing made up) | invented (current keys): **ad-07 at most 0, ad-05 at most 1** (the highest baseline reading on each); **ad-03 invented 0 and found at least 13 of 14**. |
 
 Rules for the run: a guard that stops stops the run; a stopped call is never retried by hand (the runner retries a 5xx once by itself); no extra readings and no wording changes after seeing results. The prompt is put back to the run 1 files (request hash `0306366684`, INSTRUCTIONS 4,000) afterwards.
+
+### Results (one reading per ad, run behind both guards; status DONE, 0 failed, no "retried" line in any report)
+
+| Ad | Found | Invented | Widened | Narrowed | Removed by the check | Tokens | Baselines 1 and 2 (found / invented / widened / removed) |
+|---|---|---|---|---|---|---|---|
+| ad-07 (X) | 11 of 15 | 3 | 0 | 1 | 4 | 5,114 | 9, 8 / 0, 0 / 7, 5 / 0, 0 |
+| ad-05 (Y) | 10 of 23 | 1 | 0 | 1 | 0 | 5,958 | 13, 15 / 0, 1 / 0, 0 / 0, 0 |
+| ad-03 (guard) | 7 of 14 | 0 | 7 | 0 | 0 | 4,918 | 14, 14 / 3, 3 / 0, 0 / 0, 0 |
+
+Total tokens of the three calls: 15,990.
+
+| Line | Result | Detail |
+|---|---|---|
+| **C1** | **PASS** | 4 of 8 distinct items found (needs 4). **R6: 2 of 3** (ad-07 #3 and #10 found; #9 not). **R2: 3 of 6** (ad-07 #10 and #14, ad-05 #19 found; ad-05 #17, #18, #20 not). ad-07 #10 is in both lists. |
+| **C2** | **FAIL** | lost (found in both baselines, not found now): ad-07 1 (#1) pass; **ad-05 3 (#5, #15, #16) fail**; **ad-03 7 (#2, #5, #6, #7, #10, #14, #15) fail** |
+| **C3** | **FAIL** | **ad-07 invented 3 (needs 0) fail**; ad-05 invented 1 (needs 1 or less) pass; **ad-03 found 7 of 14 (needs 13) fail**, invented 0 pass (0 on ad line 103, 0 elsewhere) |
+
+**Screen: C1 PASS, C2 FAIL, C3 FAIL.**
+
+### What the numbers show (nothing changed after seeing them; no extra readings)
+
+- **ad-03:** all 7 lost items sit on lines 104 to 110 and are siblings of the 7 widened AI items (one AI item holding several skills of one line; widened was 0 in both baselines). Lost items by line: 104 (#2), 106 (#5, #6, #7), 108 (#10), 110 (#14, #15). The 3 invented items of the baselines on line 103 are gone. The only differences from the baseline prompt are R8, R6 and R2, so the cause among the three is not shown by one reading.
+- **ad-07:** the 3 invented items are all on ad line 69, key item #0 (a line the R3/R3b target holds): one list split into 4 items, 1 narrowed. The check removed 4 items (quote not in the ad) that belong to key items #1 and #2 (line 71); #1 is the one loss. Widened is 0 (baselines 7 and 5), and found is 11 (baselines 9 and 8).
+- **ad-05:** not found now: #0, #1, #2, #5, #6, #14, #15, #16, #17, #18, #20, #21, #22 (13). Of these, 11 are also not found in the 1b-A reading (#0, #1, #2, #5, #6, #14, #17, #18, #20, #21, #22). This candidate has no R4 and no R1, so neither explains the ad-05 loss; baseline reading 2 itself did not find #0, #1, #2 either. Found was 13 and 15 in the baselines, 10 now.
+- **Noise:** each ad was read once; the baselines on the same ads moved by 1 to 2 items between readings.
+
+**Decision: none taken here.** The result goes to the owner. R6 and R2 did what they were written for on the items both baselines missed (C1 at exactly the line), and the guard and loss lines fail on ad-03 (merged lists), ad-05 (found 10) and ad-07 (one split list on line 69).
+
+**Prompt after the screen:** restored to the run 1 files (request hash `0306366684`, INSTRUCTIONS 4,000, diff identical to `run1.patch`).
