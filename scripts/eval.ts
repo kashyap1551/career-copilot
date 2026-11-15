@@ -3,9 +3,9 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { skills } from "../fixtures/skills";
 import { INSTRUCTIONS, readJobAd } from "../lib/ai/readJob";
-import { GENERATION_SETTINGS } from "../lib/ai/settings";
+import { captureRequestBody } from "../lib/ai/requestBody";
 import { checkKey, type AnswerKey } from "../lib/engine/answerKey";
-import { evalFingerprint } from "../lib/engine/evalFingerprint";
+import { evalFingerprint, fingerprintLine } from "../lib/engine/evalFingerprint";
 import { formatReport, summarize } from "../lib/engine/evalReport";
 import { formatShow, showRefusal } from "../lib/engine/evalShow";
 import { runEval, twoInARow, type EvalAd, type RunState } from "../lib/engine/evalRun";
@@ -16,6 +16,8 @@ import { runEval, twoInARow, type EvalAd, type RunState } from "../lib/engine/ev
 //                                   (only once the owner says tuning is done)
 // npm run eval -- --show <ad id>    one tuning ad: the AI's reading next to the key.
 //                                   Refuses the holdout before any AI call.
+// npm run eval -- --fingerprint     prints the fingerprint of the current prompt, schema, settings, ads and
+//                                   keys, and stops. No AI call: the request is captured on a fake fetch.
 //
 // This script only reads files, calls the AI and prints. The matching, the
 // scoring and the wording of the report live in lib/engine and are unit-tested.
@@ -26,6 +28,7 @@ const root = process.cwd();
 const args = process.argv.slice(2);
 const only = args.includes("--only") ? (args[args.indexOf("--only") + 1] ?? "") : null;
 const reveal = args.includes("--reveal");
+const printFingerprint = args.includes("--fingerprint");
 const show = args.includes("--show") ? (args[args.indexOf("--show") + 1] ?? "") : null;
 
 // --show never works on the holdout, whatever else is on the command line.
@@ -104,6 +107,13 @@ async function loadAds(): Promise<{ ads: EvalAd[]; skipped: { id: string; reason
 async function main() {
   const loaded = await loadAds();
 
+  if (printFingerprint) {
+    const request = await captureRequestBody();
+    const fp = evalFingerprint({ request, ads: loaded.ads });
+    process.stdout.write(fingerprintLine(request, INSTRUCTIONS.length, fp));
+    return;
+  }
+
   if (show !== null) {
     const wanted = loaded.ads.find((a) => a.id === show.trim().toLowerCase());
     if (!wanted) {
@@ -155,22 +165,22 @@ async function main() {
     limits: run.limits,
   };
   let text = formatReport(input);
+  // What the model was sent, so a saved report says which prompt, schema and settings made it.
+  const request = await captureRequestBody();
 
-  // "Two runs in a row" only counts for full runs with the same prompt, model and keys.
+  // "Two runs in a row" only counts for full runs with the same request (prompt, schema, model, settings), ads and keys.
   if (only === null) {
     const { met, complete } = summarize(input);
-    const fingerprint = evalFingerprint({
-      instructions: INSTRUCTIONS,
-      model: process.env.GROQ_MODEL ?? "",
-      settings: GENERATION_SETTINGS,
-      ads,
-    });
+    const fingerprint = evalFingerprint({ request, ads });
+    text += fingerprintLine(request, INSTRUCTIONS.length, fingerprint);
     const current: RunState = { fingerprint, met, complete };
     const stateFile = path.join(root, "eval-runs/state.json");
     const previous: RunState | null = fs.existsSync(stateFile) ? JSON.parse(fs.readFileSync(stateFile, "utf8")) : null;
-    text += `TWO IN A ROW: ${twoInARow(previous, current) ? "yes" : "no"} (previous run ${previous === null ? "none" : previous.fingerprint === fingerprint ? (previous.met ? "met the target" : "did not meet it") : "used a different prompt, model, settings or keys"})\n`;
+    text += `TWO IN A ROW: ${twoInARow(previous, current) ? "yes" : "no"} (previous run ${previous === null ? "none" : previous.fingerprint === fingerprint ? (previous.met ? "met the target" : "did not meet it") : "used a different prompt, schema, model, settings, ads or keys"})\n`;
     fs.mkdirSync(path.dirname(stateFile), { recursive: true });
     fs.writeFileSync(stateFile, JSON.stringify(current));
+  } else {
+    text += fingerprintLine(request, INSTRUCTIONS.length);
   }
 
   // Keep a copy of the report (the folder is gitignored; the holdout is still hidden in it).
