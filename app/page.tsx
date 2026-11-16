@@ -3,20 +3,26 @@
 import { useMemo, useState } from "react";
 import { skills } from "@/fixtures/skills";
 import { buildProfile, initialConfirm, type ConfirmState } from "@/lib/cv/profile";
+import { builtFromSaved } from "@/lib/saved/profile";
+import type { SavedProfile } from "@/lib/saved/types";
 import type { BuildResult, RemovalReason } from "@/lib/engine/fromAd";
 import type { CvBuildResult } from "@/lib/engine/fromCv";
 import ConfirmBox from "./ConfirmBox";
 import CvBox from "./CvBox";
 import { profileReport } from "./fitReport";
 import ReportView from "./ReportView";
+import { SaveProfileButton, SavedDeleteAll, SavedOffer, SavedStatus } from "./SavedControls";
 import { closeMatchLines, reportNote } from "./reportText";
 import { readSkillList, skillsOnlyReport } from "./skillsOnly";
+import { useSaved } from "./useSaved";
 
 // One page, in this order: your CV, confirm your profile, the job ad, the
 // report (D6; nothing is stored). The AI reads the CV and the ad; plain code
 // builds the profile from what the person confirms and judges the ad against it,
 // only on the constraints the person set. A typed list of skills (step 3.4)
 // stays as a collapsed option and is used only when no CV has been read.
+// Step 6.1: a confirmed profile can be saved on this device, but only by a click (nothing is written otherwise), and a saved
+// profile is offered on load and used only after a click (app/SavedControls.tsx).
 
 const REASONS: Record<RemovalReason, string> = {
   "not-in-ad": "it wasn't in your ad",
@@ -39,6 +45,9 @@ export default function Home() {
   // The last successful reading of the CV, and what the person has confirmed.
   const [cvRead, setCvRead] = useState<{ lines: string[]; result: CvBuildResult } | null>(null);
   const [confirm, setConfirm] = useState<ConfirmState | null>(null);
+  // 6.1: the saved profile the person chose to use ("Use this profile"); read-only.
+  const saved = useSaved();
+  const [usingSaved, setUsingSaved] = useState<SavedProfile | null>(null);
 
   async function readAd() {
     setLoading(true);
@@ -67,6 +76,7 @@ export default function Home() {
 
   function onCvRead(lines: string[], r: CvBuildResult) {
     setCvRead({ lines, result: r });
+    setUsingSaved(null); // a CV read now replaces a saved profile in use
     setConfirm(initialConfirm(r.skills)); // a new reading starts a new confirmation
   }
 
@@ -75,20 +85,24 @@ export default function Home() {
     () => (cvRead && confirm ? buildProfile(cvRead.lines, cvRead.result.skills, confirm, skills) : null),
     [cvRead, confirm],
   );
+  const savedBuilt = useMemo(() => (usingSaved ? builtFromSaved(usingSaved) : null), [usingSaved]);
+  // The profile the report uses: the saved one if the person clicked "Use this profile" (a CV read afterwards clears it),
+  // otherwise the one just confirmed from a CV.
+  const profile = savedBuilt ?? built;
   const list = useMemo(() => readSkillList(skillText, skills), [skillText]);
   const report = useMemo(() => {
     if (!result) return null;
-    if (built) {
+    if (profile) {
       return {
         kind: "cv" as const,
-        view: profileReport(result.job, built, skills, [...result.unlisted, ...cvRead!.result.unlisted]),
+        view: profileReport(result.job, profile, skills, [...result.unlisted, ...(cvRead?.result.unlisted ?? [])]),
       };
     }
     return {
       kind: "list" as const,
       view: { ...skillsOnlyReport(result.job, list.cvLines, list.lines, skills, result.unlisted), conflicts: [] as string[] },
     };
-  }, [result, built, cvRead, list]);
+  }, [result, profile, cvRead, list]);
 
   // Names the reader matched by close spelling (stage 2): one short line each; exact matches show nothing.
   const closeLines = result ? closeMatchLines(result.job.requirements, (id) => skills.find((k) => k.id === id)?.name ?? id) : [];
@@ -100,9 +114,17 @@ export default function Home() {
         Add your CV, confirm your profile, paste a job ad, and see where you stand.
       </p>
 
+      <SavedOffer
+        saved={saved}
+        usingSaved={usingSaved}
+        onUse={setUsingSaved}
+        onReadCvAgain={() => setUsingSaved(null)}
+        onForget={() => setUsingSaved(null)}
+      />
+
       <CvBox onRead={onCvRead} />
 
-      {cvRead && confirm && built && (
+      {cvRead && confirm && built && !usingSaved && (
         <ConfirmBox
           proposals={cvRead.result.skills}
           confirm={confirm}
@@ -110,6 +132,11 @@ export default function Home() {
           built={built}
         />
       )}
+
+      {cvRead && confirm && built && !usingSaved && <SaveProfileButton saved={saved} built={built} />}
+
+      <SavedDeleteAll saved={saved} onForget={() => setUsingSaved(null)} />
+      <SavedStatus saved={saved} />
 
       <details className="text-sm">
         <summary className="cursor-pointer font-medium">Or type a list of skills instead</summary>
@@ -125,7 +152,7 @@ export default function Home() {
             rows={6}
             className="w-full rounded border border-zinc-300 bg-transparent p-3 font-mono text-sm dark:border-zinc-700"
           />
-          {built && (
+          {profile && (
             <p className="text-zinc-600 dark:text-zinc-400">
               You have a confirmed CV profile, so this list is ignored. Reload the page to use only a list.
             </p>

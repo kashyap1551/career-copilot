@@ -11,7 +11,7 @@ import type { CvBuildResult, CvRemovalReason } from "@/lib/engine/fromCv";
 // The file is read on this device. Before anything is sent, email addresses,
 // phone numbers and web links are removed here and the lines are numbered; the
 // numbered lines shown below are EXACTLY what the "Send for reading" button
-// sends (docs/PLAN-4.2.md). Nothing is stored.
+// sends (docs/PLAN-4.2.md). Nothing is stored here (a confirmed profile is saved only by a click, app/SavedControls.tsx).
 
 const REASONS: Record<CvRemovalReason, string> = {
   "no-name": "it had no usable name",

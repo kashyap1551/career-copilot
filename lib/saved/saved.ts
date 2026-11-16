@@ -131,6 +131,17 @@ export async function deleteJob(ctx: SavedContext, id: string): Promise<{ ok: tr
   }
 }
 
+// Delete ONLY the saved profile (the saved jobs stay). It deletes whatever sits there, also a record that cannot be read or
+// that a newer app wrote: the person chose to delete it.
+export async function deleteProfile(ctx: SavedContext): Promise<{ ok: true } | Failed> {
+  try {
+    await ctx.store.delete("profile", PROFILE_KEY);
+    return { ok: true };
+  } catch (e) {
+    return fail(problemOf(e));
+  }
+}
+
 // "Delete everything saved on this device": the profile and all saved jobs.
 export async function deleteAll(ctx: SavedContext): Promise<{ ok: true } | Failed> {
   try {
