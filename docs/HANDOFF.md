@@ -1,3 +1,5 @@
+Scope: the Career Co-pilot is for anyone, in any country. English and German are the two languages tested so far (German because the owner can check it, not because the product targets Germany).
+
 # Handoff
 
 Read this and docs/PLAN-3.1.md, then continue. Written at the end of the session of 2026-11-14.

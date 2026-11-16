@@ -1,3 +1,5 @@
+Scope: the Career Co-pilot is for anyone, in any country. English and German are the two languages tested so far (German because the owner can check it, not because the product targets Germany).
+
 STATUS: APPROVED by the owner on 2026-11-16 with the changes in the Answers section below. Careful lane for all of Day 5 (it decides what a skill is). Written 2026-11-16.
 
 # Plan for Day 5: one name per skill
