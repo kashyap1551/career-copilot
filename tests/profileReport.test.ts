@@ -160,3 +160,93 @@ describe("profileReport", () => {
     }
   });
 });
+
+describe("R13: an ad that names a city but no work mode (or a remote job)", () => {
+  const noMode: Job = { ...northwind, constraints: { ...northwind.constraints, remote: null } };
+  const remote: Job = { ...northwind, constraints: { ...northwind.constraints, remote: "remote" } };
+  const LOC_UNKNOWN_MODE = "Location: the ad says Manchester but not whether the job is on-site, hybrid or remote; not judged.";
+  const LOC_REMOTE = "Location: the ad says Manchester, but the job is remote, so no city is needed; not judged.";
+
+  it("R13a: cities Berlin set, the ad has no work mode: no city conflict, and the page says what the ad says", () => {
+    const r = report({ cities: "Berlin" }, noMode);
+    expect(r.conflicts).toEqual([]);
+    expect(r.judged).toEqual([]);
+    expect(r.fitLabel).toBe("Good (skills only)");
+    expect(r.notJudged).toEqual([
+      LOC_UNKNOWN_MODE,
+      `Language: the ad says English at C1; ${NOT_SET}`,
+      "Work mode: not judged (you did not set yours, and the ad does not say).",
+      `Years: the ad says 3 years; ${NOT_SET}`,
+      "Start date: not judged (you did not set yours, and the ad does not say).",
+    ]);
+    expect(r.explanation).toBe(`One must-have is missing: Communication. ${TAIL_ALL}`);
+  });
+
+  it("R13b: a remote job with a city set: no city is needed, and the page says so", () => {
+    const r = report({ cities: "Berlin" }, remote);
+    expect(r.conflicts).toEqual([]);
+    expect(r.judged).toEqual([]);
+    expect(r.notJudged).toContain(LOC_REMOTE);
+    expect(r.notJudged).toContain(`Work mode: the ad says remote; ${NOT_SET}`);
+  });
+
+  it("R13c: city and hybrid set, the ad has no work mode: neither is judged, and no 'does not say' for the city", () => {
+    const r = report({ cities: "Berlin", workModes: ["hybrid"] }, noMode);
+    expect(r.conflicts).toEqual([]);
+    expect(r.judged).toEqual([]);
+    expect(r.notJudged).toContain(LOC_UNKNOWN_MODE);
+    expect(r.notJudged).toContain("Work mode: not judged (the ad does not say).");
+  });
+});
+
+describe("R14: the grid invariant over every kind of ad and every setting", () => {
+  const modes = [null, "onsite", "hybrid", "remote"] as const;
+  const cities = [null, "Manchester"] as const;
+  const years = [null, 3] as const;
+  const starts = [null, "2027-01-15"] as const;
+  const langs = [[], [{ code: "en", level: "C1" as const }]] as const;
+  // values chosen to cause a conflict wherever the ad states the kind
+  const settings: Partial<ConfirmState>[] = Array.from({ length: 32 }, (_, bits) => ({
+    ...(bits & 1 ? { cities: "Berlin" } : {}),
+    ...(bits & 2 ? { languages: [{ code: "de", level: "B2" as const }] } : {}),
+    ...(bits & 4 ? { workModes: ["onsite" as const] } : {}),
+    ...(bits & 8 ? { years: "1" } : {}),
+    ...(bits & 16 ? { availableFrom: "2027-06-01" } : {}),
+  }));
+  const setKinds = (o: Partial<ConfirmState>) => [
+    ...(o.cities ? ["location"] : []),
+    ...(o.languages ? ["language"] : []),
+    ...(o.workModes ? ["workMode"] : []),
+    ...(o.years ? ["years"] : []),
+    ...(o.availableFrom ? ["startDate"] : []),
+  ];
+
+  it("G1: 64 ads x 32 settings: every conflict is of a judged kind, judged is a subset of what was set, and a named city is never 'not stated'", () => {
+    let checked = 0;
+    let withConflicts = 0;
+    for (const remote of modes)
+      for (const location of cities)
+        for (const minYears of years)
+          for (const startDate of starts)
+            for (const languages of langs) {
+              const job: Job = {
+                ...northwind,
+                constraints: { ...northwind.constraints, remote, location, minYears, startDate, languages: languages.map((l) => ({ ...l })) },
+              };
+              for (const over of settings) {
+                const r = report(over, job);
+                checked++;
+                if (r.conflicts.length > 0) withConflicts++;
+                expect(r.conflictKinds.every((k) => r.judged.includes(k))).toBe(true);
+                expect(r.judged.every((k) => setKinds(over).includes(k))).toBe(true);
+                expect(r.conflicts.length).toBe(r.conflictKinds.length);
+                if (location !== null) {
+                  const line = r.notJudged.find((l) => l.startsWith("Location"));
+                  if (line) expect(line).not.toMatch(/does not say/);
+                }
+              }
+            }
+    expect(checked).toBe(2048);
+    expect(withConflicts).toBeGreaterThan(100); // the grid really does produce conflicts
+  });
+});

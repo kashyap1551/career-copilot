@@ -19,6 +19,7 @@ export type ProfileReport = {
   judged: Kind[];
   notJudged: string[];
   conflicts: string[];
+  conflictKinds: Kind[]; // the kind of each conflict above, in the same order
   checkYourself: string[];
 };
 
@@ -77,15 +78,16 @@ function adSays(kind: Kind, job: Job): string | null {
 export function profileReport(job: Job, built: BuiltProfile, skills: Skill[], unlisted: Skill[]): ProfileReport {
   const { profile, set } = built;
 
-  // The engine only sees the kinds the person set. If only a location is set,
-  // every work mode is accepted, so the city check still runs.
+  // The engine only sees the kinds the person set: languages and the city are
+  // blanked when unset. The work mode is always passed on: an unset work mode
+  // means "all three accepted" (below), so it can cause no conflict, and the
+  // city check still runs when only a city is set.
   const engineJob: Job = {
     ...job,
     constraints: {
       ...job.constraints,
       languages: set.language ? job.constraints.languages : [],
       location: set.location ? job.constraints.location : null,
-      remote: set.workMode || set.location ? job.constraints.remote : null,
     },
   };
   const engineProfile = {
@@ -134,7 +136,11 @@ export function profileReport(job: Job, built: BuiltProfile, skills: Skill[], un
     return { ...base, status: "missing" as const, detail: `${label}: not on your profile` };
   });
 
-  const conflicts = result.conflicts.filter((c) => judged.includes(CONFLICT_KIND[c.kind])).map(conflictLine);
+  // No filter is needed: the engine only saw the kinds that are judged (the others
+  // were passed as "not stated"), so every conflict is of a judged kind. The grid
+  // test R14 in tests/profileReport.test.ts checks that fact over 2,048 inputs.
+  const conflicts = result.conflicts.map(conflictLine);
+  const conflictKinds = result.conflicts.map((c) => CONFLICT_KIND[c.kind]);
 
   const notJudged: string[] = [];
   for (const k of notJudgedKinds) {
@@ -144,6 +150,14 @@ export function profileReport(job: Job, built: BuiltProfile, skills: Skill[], un
         says !== null
           ? `${CAP[k]}: the ad says ${says}; not judged because you did not set yours.`
           : `${CAP[k]}: not judged (you did not set yours, and the ad does not say).`,
+      );
+    } else if (k === "location" && says !== null) {
+      // The ad does name a city, so never say it "does not say" (docs/PLAN-4.3.md, R13). The engine
+      // does not compare a city when the work mode is unknown, and a remote job needs none.
+      notJudged.push(
+        job.constraints.remote === "remote"
+          ? `Location: the ad says ${says}, but the job is remote, so no city is needed; not judged.`
+          : `Location: the ad says ${says} but not whether the job is on-site, hybrid or remote; not judged.`,
       );
     } else {
       notJudged.push(`${CAP[k]}: not judged (the ad does not say).`);
@@ -180,6 +194,7 @@ export function profileReport(job: Job, built: BuiltProfile, skills: Skill[], un
     judged,
     notJudged,
     conflicts,
+    conflictKinds,
     checkYourself: result.checkYourself,
   };
 }

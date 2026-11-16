@@ -31,3 +31,17 @@ One page `/`, in this order: CV, confirm, ad, report. Nothing is stored. The CV 
 | R8 | Communication added by hand | still missing, 2 of 3; the screen says it has no CV line so it does not count |
 | R9 | Communication in progress to 2026-12-20 | still missing; "in progress, expected 2026-12-20" |
 | R11 | Communication ticked, years 3, city Manchester, hybrid, English C1 | Strong (judged: skills, location, language, work mode, years); only start date not judged |
+
+## R13 (added 2026-11-16): an ad that names a city but no work mode
+**What the engine does** (lib/engine/match.ts, `checkPlace`): when the ad's work mode is null it records "work mode not judged" and returns at once. It never compares a city, so there is no city conflict. And a remote job needs no city. So the page must not judge the city in those two cases, **and must not say "the ad does not say" when the ad does name a city** (the page used to, because it showed one "the ad does not say" line for every kind that was set but not stated).
+
+New wording for a kind the person set that is not judged: a location with the ad naming one says what the ad says: `Location: the ad says Manchester but not whether the job is on-site, hybrid or remote; not judged.` (work mode unknown) or `Location: the ad says Manchester, but the job is remote, so no city is needed; not judged.` (remote job). Every other kind keeps `X: not judged (the ad does not say).`
+
+Hand-worked cases, Northwind with the changes named (CV lines and ticks as R1; musts 2 of 3):
+| # | Ad | Person sets | Expected |
+|---|---|---|---|
+| R13a | city Manchester, work mode null | cities Berlin | no conflict; judged none; "Good (skills only)"; the Location line above (work mode unknown); Work mode: "not judged (you did not set yours, and the ad does not say)" |
+| R13b | city Manchester, remote | cities Berlin | no conflict; judged none; the Location line (remote job); Work mode: "the ad says remote; not judged because you did not set yours" |
+| R13c | city Manchester, work mode null | cities Berlin and work mode hybrid | no conflict; judged none; the Location line (work mode unknown); Work mode: "not judged (the ad does not say)" |
+
+**Grid invariant (R14).** Over every combination of the ad (work mode null, on-site, hybrid, remote; city or none; years or none; start date or none; languages or none) and of what the person sets (each of the five kinds on or off, with values chosen to cause conflicts): every conflict shown is of a judged kind; a kind is judged only if the person set it; and when the ad names a city, no Location line says "the ad does not say". This replaces the redundant filter "show only conflicts of judged kinds": the engine only sees what is judged, so the filter could never change a result, and the grid now checks that fact instead of hiding it.
