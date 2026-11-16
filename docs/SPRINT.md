@@ -77,8 +77,9 @@ Goal: a person's profile from their CV, confirmed by them.
 - [x] **4.2** Code numbers the CV lines (after contact details are removed); the AI proposes skills and returns, for each, a line number and a quote from that line, which code checks.
   Check: on two full runs of five made-up CVs with the same fingerprint, every skill is tied to a line and nothing is invented (PLAN-4.1 section 3 defines invented).
   Note: check done: calibration run, then two counted runs with the same fingerprint (75c0a4668c): invented 0, every skill tied to a line, injected 0; found 25 and 23 of 42 (no target).
-- [ ] **4.3** Confirm screen: keep or remove each skill, add skills in progress with expected dates, set constraints.
+- [x] **4.3** Confirm screen: keep or remove each skill, add skills in progress with expected dates, set constraints.
   Check: a profile is confirmed in under 3 minutes.
+  Note: Live check on d3242d4 with the made-up CV and a made-up Northwind-style ad: upload, read, confirm and report took seconds. Not stopwatch-timed (owner's estimate: well under 3 minutes; the owner knows the page, so a timed run by a second person is still open). Report showed Long shot (judged: skills, location, work mode, years) with 2 conflicts, and language and start date under Not judged.
 
 ## Day 5: One name per skill
 

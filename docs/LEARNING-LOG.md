@@ -18,3 +18,7 @@ One line per step: what you learned, in your own words. This becomes the case st
 | 2026-11-15 | Day 3 | A rule can pass its own test and still hurt the product, so I now measure the side effects, not only the target. |
 | 2026-11-15 | Day 3 | The AI reads the ad once and plain code does the matching and counting. That is why deleting a skill updates the page instantly with no new AI call, and why the page can say "not judged" instead of guessing. |
 | 2026-11-15 | Day 3 | The page must not say anything the code can't know. The engine's sentence said "nothing else stands in the way" while location and language were not checked, so I had it rewritten from the counts and tested. |
+| 2026-11-16 | Day 4 | Let the AI point and let code check: the AI gives a line number and a quote, plain code checks the quote is really inside that line, and the page shows the CV line, never the AI's own words. |
+| 2026-11-16 | Day 4 | One text for everyone: I remove contact details first and number the lines after, so what the person sees, what the AI reads and what the evidence quotes are the same lines. |
+| 2026-11-16 | Day 4 | A test must be able to fail: I broke the code on purpose 18 times and the tests caught 16. A break that survives means a missing test or code that does nothing, and I have to show which. |
+| 2026-11-16 | Day 4 | Measure the number you can control: the reader is noisy even at temperature 0, so I counted invented skills (target 0), kept "found" as information only, and ran a calibration run that did not count. |
