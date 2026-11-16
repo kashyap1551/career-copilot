@@ -32,9 +32,11 @@ export function osaDistance(a: string, b: string, cap = Infinity): number {
   return prev[m] > cap ? cap + 1 : prev[m];
 }
 
-// The allowance comes from the SHORTER of the two folded strings: up to 4 letters 0, 5 to 8 letters 1, 9 or more 2.
+// The allowance comes from the SHORTER of the two folded strings: up to 5 letters 0, 6 to 8 letters 1, 9 or more 2.
+// (Changed 2026-11-16, before any measure: short names have the most ordinary-word and real-skill neighbours, "shift"
+// and Swift, Flash and Flask. A typo in a name of 5 letters or fewer goes to the review list.)
 export function allowanceFor(shorterLength: number): number {
-  if (shorterLength <= 4) return 0;
+  if (shorterLength <= 5) return 0;
   if (shorterLength <= 8) return 1;
   return 2;
 }

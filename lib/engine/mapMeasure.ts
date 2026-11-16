@@ -78,17 +78,20 @@ export function measureSet(
 }
 
 export type Judged = {
-  wrong: { pass: boolean; limit: number };
+  wrong: { pass: boolean; limit: number; size: number };
   recall: { pass: boolean; measurable: boolean };
   mustNotMerge: { pass: boolean };
   allPass: boolean;
 };
 
-// Wrong line: wrong <= floor(5 x |L| / 100). Recall line: 4 x right_M >= 3 x |M|, and |M| = 0 is "not measurable"
-// and counts as NOT passed. Must-not-merge: 0. The check passes only if all three pass.
+// Wrong line: wrong <= floor(5 x size / 100), where size = |L| minus the names labelled not-a-skill that were neither
+// flagged nor mapped (they are not decisions the mapper made, and counting them would loosen the line). Recall line:
+// 4 x right_M >= 3 x |M|, and |M| = 0 is "not measurable" and counts as NOT passed. Must-not-merge: 0. The check
+// passes only if all three pass.
 export function judge(r: SetResult): Judged {
-  const limit = Math.floor((5 * r.L) / 100);
-  const wrong = { pass: r.wrong <= limit, limit };
+  const size = r.L - r.traitNotFlagged;
+  const limit = Math.floor((5 * size) / 100);
+  const wrong = { pass: r.wrong <= limit, limit, size };
   const recall = r.M === 0 ? { pass: false, measurable: false } : { pass: 4 * r.rightM >= 3 * r.M, measurable: true };
   const mustNotMerge = { pass: r.mustNotMerge === 0 };
   return { wrong, recall, mustNotMerge, allPass: wrong.pass && recall.pass && mustNotMerge.pass };
@@ -101,7 +104,7 @@ export function formatSetLines(label: string, r: SetResult, j: Judged, judgedSet
   const lines = [
     judgedSet ? `SET ${label} (judged)` : `SET ${label} (not judged: printed next to the fresh set, not pooled; information only)`,
     `  |L| ${r.L} | |M| ${r.M} | right ${r.right} (of M: ${r.rightM}) | wrong ${r.wrong} (wrong merges ${r.wrongMerges}, wrongly flagged ${r.wronglyFlagged}) | not mapped ${r.notMappedTie + r.notMappedNone} (ties ${r.notMappedTie}, none ${r.notMappedNone}) | trait not flagged ${r.traitNotFlagged} | must-not-merge ${r.mustNotMerge}`,
-    `  wrong <= floor(5 x ${r.L} / 100) = ${j.wrong.limit}: wrong ${r.wrong}: ${word(j.wrong.pass)}`,
+    `  wrong <= floor(5 x ${j.wrong.size} / 100) = ${j.wrong.limit} (|L| ${r.L}, trait not flagged ${r.traitNotFlagged}, size used ${j.wrong.size}): wrong ${r.wrong}: ${word(j.wrong.pass)}`,
     j.recall.measurable
       ? `  recall 4 x ${r.rightM} >= 3 x ${r.M}: ${word(j.recall.pass)}`
       : "  recall: NOT MEASURABLE (|M| = 0; counts as not passed): FAIL",

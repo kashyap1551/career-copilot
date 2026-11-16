@@ -23,10 +23,12 @@ describe("vocabPairs", () => {
     expect(vocabPairs([{ id: "a", name: "Java" }, { id: "b", name: "Jave" }])).toEqual([]);
   });
 
-  it("P3b: the allowance comes from the SHORTER string: 'Rust' (4 letters) and 'Rusty' (5) are distance 1 but allowance 0: no pair", () => {
+  it("P3b: the allowance comes from the SHORTER string: 'Rust' (4 letters) and 'Rusty' (5) are distance 1 but allowance 0: no pair; the 5/6 boundary", () => {
     expect(vocabPairs([{ id: "a", name: "Rust" }, { id: "b", name: "Rusty" }])).toEqual([]);
-    // 5 and 6 letters: the shorter is 5, allowance 1: a pair
-    expect(vocabPairs([{ id: "a", name: "Trust" }, { id: "b", name: "Trusty" }]).map((p) => p.distance)).toEqual([1]);
+    // 5 and 6 letters: the shorter is 5, allowance 0 (since 2026-11-16): no pair
+    expect(vocabPairs([{ id: "a", name: "Trust" }, { id: "b", name: "Trusty" }])).toEqual([]);
+    // 6 and 6 letters: allowance 1: a pair
+    expect(vocabPairs([{ id: "a", name: "Trusty" }, { id: "b", name: "Trusts" }]).map((p) => p.distance)).toEqual([1]);
   });
 
   it("P4: exactOnly skills are never part of a pair", () => {

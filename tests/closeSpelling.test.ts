@@ -28,8 +28,8 @@ describe("distance, allowance and the spelling form", () => {
     expect(osaDistance("same", "same")).toBe(0);
   });
 
-  it("D2: the allowance by the length of the shorter string: 0 up to 4, 1 for 5 to 8, 2 for 9 and more", () => {
-    const table: [number, number][] = [[0, 0], [1, 0], [4, 0], [5, 1], [8, 1], [9, 2], [10, 2], [30, 2]];
+  it("D2: the allowance by the length of the shorter string: 0 up to 5, 1 for 6 to 8, 2 for 9 and more (changed 2026-11-16, before any measure)", () => {
+    const table: [number, number][] = [[0, 0], [1, 0], [4, 0], [5, 0], [6, 1], [8, 1], [9, 2], [10, 2], [30, 2]];
     for (const [len, want] of table) expect(allowanceFor(len)).toBe(want);
   });
 
@@ -49,18 +49,22 @@ describe("distance, allowance and the spelling form", () => {
 });
 
 describe("the rules, on made-up lists", () => {
-  it("C3: a 4-letter name with one typo is NOT mapped (allowance 0)", () => {
+  it("C3: a 4-letter name with one typo is NOT mapped (allowance 0); nor is a 5-letter one", () => {
     expect(mapName("Jave", list({ id: "java", name: "Java" }))).toEqual({ how: "none" });
     expect(mapName("Java", list({ id: "java", name: "Java" }))).toEqual({ how: "exact", id: "java", try: 1 });
+    expect(mapName("Swift", list({ id: "swift", name: "Swift" }))).toEqual({ how: "exact", id: "swift", try: 1 });
+    expect(mapName("Shift", list({ id: "swift", name: "Swift" }))).toEqual({ how: "none" });
   });
 
   it("C4: the allowance comes from the SHORTER string: skill 'Rust' (4) and name 'Trust' (5): not mapped", () => {
     expect(mapName("Trust", list({ id: "rust", name: "Rust" }))).toEqual({ how: "none" });
-    // and the other way round: a 5-letter skill and a 6-letter name: the shorter is 5, so one change maps
-    expect(mapName("Trusty", list({ id: "trust", name: "Trust" }))).toEqual({ how: "close", id: "trust", distance: 1, via: "Trust" });
+    // a 5-letter skill and a 6-letter name: the shorter is 5, allowance 0: not mapped (it was mapped before 2026-11-16)
+    expect(mapName("Trusty", list({ id: "trust", name: "Trust" }))).toEqual({ how: "none" });
+    // a 6-letter skill and a 7-letter name: the shorter is 6, allowance 1: one change maps
+    expect(mapName("Trustyy", list({ id: "trusty", name: "Trusty" }))).toEqual({ how: "close", id: "trusty", distance: 1, via: "Trusty" });
   });
 
-  it("C5: 5 to 8 letters: one change maps, two changes do not", () => {
+  it("C5: 6 to 8 letters: one change maps, two changes do not", () => {
     const l = list({ id: "tableau", name: "Tableau" }); // 7 letters
     expect(mapName("Tableu", l)).toEqual({ how: "close", id: "tableau", distance: 1, via: "Tableau" });
     expect(mapName("Tablaeu", l)).toEqual({ how: "close", id: "tableau", distance: 1, via: "Tableau" }); // a swap
@@ -74,9 +78,11 @@ describe("the rules, on made-up lists", () => {
     expect(mapName("Kubarnatas", l)).toEqual({ how: "none" }); // three changes
   });
 
-  it("C6b: the boundaries 4/5 and 8/9, one skill each", () => {
+  it("C6b: the boundaries 5/6 and 8/9, one skill each", () => {
     expect(mapName("Abxd", list({ id: "s4", name: "Abcd" }))).toEqual({ how: "none" }); // 4 letters: 0
-    expect(mapName("Abcxe", list({ id: "s5", name: "Abcde" }))).toMatchObject({ how: "close", id: "s5", distance: 1 }); // 5 letters: 1
+    expect(mapName("Abcxe", list({ id: "s5", name: "Abcde" }))).toEqual({ how: "none" }); // 5 letters: 0 (was 1)
+    expect(mapName("Abcdxf", list({ id: "s6", name: "Abcdef" }))).toMatchObject({ how: "close", id: "s6", distance: 1 }); // 6 letters: 1
+    expect(mapName("Abcxxf", list({ id: "s6", name: "Abcdef" }))).toEqual({ how: "none" }); // 6 letters: not 2
     expect(mapName("Abcdefgx", list({ id: "s8", name: "Abcdefgh" }))).toMatchObject({ how: "close", distance: 1 }); // 8: 1
     expect(mapName("Abcdefxx", list({ id: "s8", name: "Abcdefgh" }))).toEqual({ how: "none" }); // 8 letters: not 2
     expect(mapName("Abcdefgxx", list({ id: "s9", name: "Abcdefghi" }))).toMatchObject({ how: "close", distance: 2 }); // 9: 2
@@ -116,15 +122,17 @@ describe("the rules, on made-up lists", () => {
   });
 
   it("C10c: with fillers and a typo: the name is stripped first, then the spelling is compared", () => {
-    expect(mapName("Strong Excell skills", list({ id: "excel", name: "Excel" }))).toEqual({ how: "close", id: "excel", distance: 1, via: "Excel" });
+    expect(mapName("Strong Tablau skills", list({ id: "tableau", name: "Tableau" }))).toEqual({ how: "close", id: "tableau", distance: 1, via: "Tableau" });
+    // a 5-letter skill is not repaired, with or without filler words
+    expect(mapName("Strong Excell skills", list({ id: "excel", name: "Excel" }))).toEqual({ how: "none" });
   });
 
   it("C10d: the literal rule: a skill at the same smallest distance but beyond ITS OWN allowance still makes it a tie", () => {
-    // 'Rust' (4 letters, allowance 0) and 'Rusty' (5, allowance 1) are both distance 1 from 'Rusts'.
-    const l = list({ id: "a", name: "Rust" }, { id: "b", name: "Rusty" });
-    expect(mapName("Rusts", l)).toEqual({ how: "tie", ids: ["a", "b"] });
-    // a skill closer than another but beyond its own allowance is not mapped, and does not hand the name to the farther one
-    expect(mapName("Rusts", list({ id: "a", name: "Rust" }))).toEqual({ how: "none" });
+    // 'Rusts' (5 letters, allowance 0 for the name's side) and 'Brusty' (6, allowance 1) are both distance 1 from 'Brusts'.
+    const l = list({ id: "a", name: "Rusts" }, { id: "b", name: "Brusty" });
+    expect(mapName("Brusts", l)).toEqual({ how: "tie", ids: ["a", "b"] });
+    // a skill at distance 1 but beyond its own allowance is not mapped on its own
+    expect(mapName("Brusts", list({ id: "a", name: "Rusts" }))).toEqual({ how: "none" });
   });
 
   it("C14b: nothing near and nothing exact: none; an empty or filler-only name: none", () => {
@@ -135,8 +143,17 @@ describe("the rules, on made-up lists", () => {
 });
 
 describe("the real vocabulary", () => {
-  it("C1: 'Excell' maps to excel, close, distance 1", () => {
-    expect(mapName("Excell", skills)).toEqual({ how: "close", id: "excel", distance: 1, via: "Excel" });
+  it("C1: 'Excell' is no longer repaired (Excel has 5 letters, allowance 0): how none, goes to the review list", () => {
+    expect(mapName("Excell", skills)).toEqual({ how: "none" });
+    expect(mapName("Excel", skills)).toEqual({ how: "exact", id: "excel", try: 1 });
+  });
+
+  it("C1b: the 5/6-letter boundary on real skills: Docker and Kanban (6 letters) are repaired, Scrum (5) is not", () => {
+    expect(mapName("Dokcer", skills)).toEqual({ how: "close", id: "docker", distance: 1, via: "Docker" });
+    expect(mapName("Kanbab", skills)).toEqual({ how: "close", id: "kanban", distance: 1, via: "Kanban" });
+    expect(mapName("Dockr", skills)).toEqual({ how: "none" });
+    expect(mapName("Scrun", skills)).toEqual({ how: "none" });
+    expect(mapName("Scrum", skills)).toEqual({ how: "exact", id: "scrum", try: 1 });
   });
 
   it("C2: 'Pyhton' maps to python (a swap counts 1)", () => {
@@ -222,12 +239,9 @@ describe("must NOT merge (C13)", () => {
     }
   });
 
-  it("X4: KNOWN LIMIT (finding, 2026-11-16): the word 'Shift' maps to Swift by spelling (5 letters, one letter different)", () => {
-    // The owner's must-not-merge list says the word "shift" must not become Swift, and the measure counts such a merge
-    // (MUST_NOT_MERGE_NAMES). The stage 2 rules, as written, DO merge it: 'shift' and 'swift' differ by one letter and
-    // 5 letters allow one. This test pins today's behaviour so a fix has to change it on purpose; the open decision is
-    // in docs/PLAN-5.1.md and docs/HANDOFF.md (for example a never-map list for ordinary words).
-    expect(mapName("Shift", skills)).toEqual({ how: "close", id: "swift", distance: 1, via: "Swift" });
+  it("X4: the word 'Shift' is not Swift: how none (5 letters allow no change since 2026-11-16; it mapped before)", () => {
+    expect(mapName("Shift", skills)).toEqual({ how: "none" });
+    expect(mapName("Shifts", skills).how).not.toBe("exact");
     expect(mapName("Swift", skills)).toEqual({ how: "exact", id: "swift", try: 1 });
   });
 

@@ -6,11 +6,11 @@ import { describe, expect, it } from "vitest";
 
 // `npm run map-measure` end to end on a made-up labels file (no real name, no AI call). The expected counts are worked
 // out by hand with the real vocabulary:
-//   Excel (exact, label excel) right | Excell (close) right | Pyhton (close, label python) right
+//   Excel (exact, label excel) right | Tableu (close, 6 letters, label tableau) right | Pyhton (close, label python) right
 //   Team player (flagged, label not-a-skill) right | Origami (none, label none) right | Zymurgy (none) right
-//   Shift (close to Swift, label none): a wrong merge AND a must-not-merge hit (the word "shift" must not become Swift)
-// So |L| 7, |M| 3, right 6, wrong 1, must-not-merge 1. The wrong line allows floor(5 x 7 / 100) = 0: FAIL.
-// Recall 4 x 3 >= 3 x 3: PASS. Must-not-merge 0: FAIL. Verdict FAIL.
+//   MSSQL labelled mysql: stage 1 maps it to sql-server (an exact alias): a wrong merge AND a must-not-merge hit
+// So |L| 7, |M| 4, right 6 (of M: 3), wrong 1, must-not-merge 1. The wrong line allows floor(5 x 7 / 100) = 0: FAIL.
+// Recall 4 x 3 >= 3 x 4 (12 >= 12): PASS. Must-not-merge 0: FAIL. Verdict FAIL.
 
 const run = (dir: string, ...files: string[]) =>
   spawnSync("npx", ["tsx", "scripts/mapMeasure.ts", ...files], {
@@ -27,7 +27,7 @@ describe("scripts/mapMeasure.ts", () => {
     fresh,
     JSON.stringify({
       set: "fresh",
-      names: { Excel: "excel", Excell: "excel", Pyhton: "python", "Team player": "not-a-skill", Origami: "none", Zymurgy: "none", Shift: "none" },
+      names: { Excel: "excel", Tableu: "tableau", Pyhton: "python", "Team player": "not-a-skill", Origami: "none", Zymurgy: "none", MSSQL: "mysql" },
     }),
   );
   fs.writeFileSync(other, JSON.stringify({ set: "holdout", names: { Excel: "excel", Origami: "none" } }));
@@ -37,11 +37,11 @@ describe("scripts/mapMeasure.ts", () => {
     const r = run(dir, fresh, other);
     expect(r.status).toBe(0);
     const text = r.stdout;
-    for (const secret of ["Excel", "Excell", "Pyhton", "Team player", "Origami", "Zymurgy", "Shift"]) expect(text).not.toContain(secret);
-    expect(text).toContain("|L| 7 | |M| 3 | right 6 (of M: 3) | wrong 1 (wrong merges 1, wrongly flagged 0)");
+    for (const secret of ["Excel", "Tableu", "Pyhton", "Team player", "Origami", "Zymurgy", "MSSQL"]) expect(text).not.toContain(secret);
+    expect(text).toContain("|L| 7 | |M| 4 | right 6 (of M: 3) | wrong 1 (wrong merges 1, wrongly flagged 0)");
     expect(text).toContain("must-not-merge 1");
-    expect(text).toContain("wrong <= floor(5 x 7 / 100) = 0: wrong 1: FAIL");
-    expect(text).toContain("recall 4 x 3 >= 3 x 3: PASS");
+    expect(text).toContain("wrong <= floor(5 x 7 / 100) = 0 (|L| 7, trait not flagged 0, size used 7): wrong 1: FAIL");
+    expect(text).toContain("recall 4 x 3 >= 3 x 4: PASS");
     expect(text).toContain("must-not-merge 0: 1: FAIL");
     expect(text).toContain("VERDICT: FAIL");
     expect(text).toMatch(/SET holdout \(not judged/);
@@ -52,7 +52,7 @@ describe("scripts/mapMeasure.ts", () => {
 
   it("S2: the names of the wrong item went to the detail file and the run to the log", () => {
     const detail = JSON.parse(fs.readFileSync(path.join(dir, "map-measure-detail.json"), "utf8"));
-    expect(detail.rows.map((x: { name: string; kind: string }) => [x.name, x.kind])).toEqual([["Shift", "wrong"]]);
+    expect(detail.rows.map((x: { name: string; kind: string }) => [x.name, x.kind])).toEqual([["MSSQL", "wrong"]]);
     const log = fs.readFileSync(path.join(dir, "map-measure-log.txt"), "utf8").trim().split("\n");
     expect(log.map((l) => l.split(" | ")[0])).toEqual(["fresh", "holdout"]);
   });
@@ -69,6 +69,26 @@ describe("scripts/mapMeasure.ts", () => {
     expect(r.status).toBe(1);
     expect(r.stderr).toContain("1 label(s) are not a skill id");
     expect(r.stderr + r.stdout).not.toContain("SecretName");
+  });
+
+  it("S6: a trait name left neither flagged nor mapped is in |L| but not in the size used for the limit, and the line shows both", () => {
+    const names: Record<string, string> = {};
+    const ids: [string, string][] = [
+      ["SQL", "sql"], ["Excel", "excel"], ["Python", "python"], ["Tableau", "tableau"], ["Git", "git"], ["React", "react"],
+      ["Jest", "jest"], ["Vitest", "vitest"], ["Docker", "docker"], ["Kubernetes", "kubernetes"], ["Scrum", "scrum"],
+      ["Agile", "agile"], ["Kanban", "kanban"], ["Jira", "jira"], ["Figma", "figma"], ["Rust", "rust"], ["Java", "java"],
+      ["Linux", "linux"], ["Angular", "angular"],
+    ];
+    for (const [n, id] of ids) names[n] = id; // 19 exact names, all right
+    names["Curious soul"] = "not-a-skill"; // not on the list, maps to nothing: a trait that was not flagged
+    const f = path.join(tmp, "traits.json");
+    fs.writeFileSync(f, JSON.stringify({ set: "fresh", names }));
+    const r = run(path.join(tmp, "out3"), f);
+    expect(r.status).toBe(0);
+    expect(r.stdout).toContain("|L| 20 | |M| 19 | right 19 (of M: 19) | wrong 0 (wrong merges 0, wrongly flagged 0) | not mapped 0 (ties 0, none 0) | trait not flagged 1 | must-not-merge 0");
+    expect(r.stdout).toContain("wrong <= floor(5 x 19 / 100) = 0 (|L| 20, trait not flagged 1, size used 19): wrong 0: PASS");
+    expect(r.stdout).toContain("VERDICT: PASS");
+    expect(r.stdout).not.toContain("Curious soul");
   });
 
   it("S5: no labels file: usage, exit 1", () => {

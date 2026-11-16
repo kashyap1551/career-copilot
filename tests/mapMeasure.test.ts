@@ -57,22 +57,44 @@ describe("the wrong line: wrong <= floor(5 x |L| / 100)", () => {
   const wrongLine = (items: Item[]) => judge(measureSet(items, [], [])).wrong;
 
   it("W1: |L| = 19 allows 0 wrong; |L| = 20 allows 1", () => {
-    expect(wrongLine([...rights(18), ...wrongs(1)])).toEqual({ pass: false, limit: 0 }); // L 19, 1 wrong
-    expect(wrongLine(rights(19))).toEqual({ pass: true, limit: 0 });
-    expect(wrongLine([...rights(19), ...wrongs(1)])).toEqual({ pass: true, limit: 1 }); // L 20, 1 wrong
-    expect(wrongLine([...rights(18), ...wrongs(2)])).toEqual({ pass: false, limit: 1 }); // L 20, 2 wrong
+    expect(wrongLine([...rights(18), ...wrongs(1)])).toEqual({ pass: false, limit: 0, size: 19 }); // L 19, 1 wrong
+    expect(wrongLine(rights(19))).toEqual({ pass: true, limit: 0, size: 19 });
+    expect(wrongLine([...rights(19), ...wrongs(1)])).toEqual({ pass: true, limit: 1, size: 20 }); // L 20, 1 wrong
+    expect(wrongLine([...rights(18), ...wrongs(2)])).toEqual({ pass: false, limit: 1, size: 20 }); // L 20, 2 wrong
   });
 
   it("W2: floor, not round: |L| = 30 allows 1 (1.5 floors to 1); |L| = 39 allows 1; |L| = 40 allows 2", () => {
-    expect(wrongLine([...rights(29), ...wrongs(1)])).toEqual({ pass: true, limit: 1 });
-    expect(wrongLine([...rights(28), ...wrongs(2)])).toEqual({ pass: false, limit: 1 });
+    expect(wrongLine([...rights(29), ...wrongs(1)])).toEqual({ pass: true, limit: 1, size: 30 });
+    expect(wrongLine([...rights(28), ...wrongs(2)])).toEqual({ pass: false, limit: 1, size: 30 });
     expect(wrongLine([...rights(38), ...wrongs(1)]).limit).toBe(1); // 39
     expect(wrongLine([...rights(38), ...wrongs(2)]).limit).toBe(2); // 40
   });
 
   it("W3: wrongly flagged names count as wrong too", () => {
-    expect(wrongLine([...rights(19), it1("s", FLAG)])).toEqual({ pass: true, limit: 1 });
-    expect(wrongLine([...rights(18), it1("s", FLAG), it1("none", FLAG)])).toEqual({ pass: false, limit: 1 });
+    expect(wrongLine([...rights(19), it1("s", FLAG)])).toEqual({ pass: true, limit: 1, size: 20 });
+    expect(wrongLine([...rights(18), it1("s", FLAG), it1("none", FLAG)])).toEqual({ pass: false, limit: 1, size: 20 });
+  });
+
+  const trait = (i: number): Item => it1("not-a-skill", NONE, `t${i}`); // a trait that was neither flagged nor mapped
+
+  it("W5: |L| = 20 with 1 trait-not-flagged allows 0 wrong (size used 19); the same set without it allows 1", () => {
+    const withTrait = [...rights(19), trait(0)]; // L 20, traitNotFlagged 1
+    expect(measureSet(withTrait, [], []).L).toBe(20);
+    expect(measureSet(withTrait, [], []).traitNotFlagged).toBe(1);
+    expect(wrongLine(withTrait)).toEqual({ pass: true, limit: 0, size: 19 }); // 0 wrong: passes
+    expect(wrongLine([...rights(18), ...wrongs(1), trait(0)])).toEqual({ pass: false, limit: 0, size: 19 }); // 1 wrong: fails
+    expect(wrongLine([...rights(19), ...wrongs(1)])).toEqual({ pass: true, limit: 1, size: 20 }); // no trait: allows 1
+  });
+
+  it("W6: trait names left in |L| would loosen the line: 40 names with 20 of them traits allow 1, not 2", () => {
+    const items = [...rights(20), ...Array.from({ length: 20 }, (_, i) => trait(i))]; // L 40, size 20
+    expect(wrongLine(items)).toEqual({ pass: true, limit: 1, size: 20 });
+    expect(wrongLine([...rights(18), ...wrongs(2), ...Array.from({ length: 20 }, (_, i) => trait(i))])).toEqual({ pass: false, limit: 1, size: 20 });
+  });
+
+  it("W7: a flagged or mapped trait IS a decision and stays in the size", () => {
+    expect(wrongLine([...rights(19), it1("not-a-skill", FLAG)]).size).toBe(20);
+    expect(wrongLine([...rights(19), it1("not-a-skill", mapped("x"))]).size).toBe(20);
   });
 
   it("W4: a name not mapped is not wrong (a miss costs one line)", () => {
@@ -164,7 +186,8 @@ describe("outcomeFor: the live order, flagged first", () => {
   });
 
   it("O2: with the real vocabulary", () => {
-    expect(outcomeFor("Excell", skills, () => false)).toEqual({ kind: "mapped", id: "excel" });
+    expect(outcomeFor("Tableu", skills, () => false)).toEqual({ kind: "mapped", id: "tableau" }); // 6 letters: repaired
+    expect(outcomeFor("Excell", skills, () => false)).toEqual({ kind: "notmapped", how: "none" }); // Excel has 5: not repaired
     expect(outcomeFor("Origami", skills, () => false)).toEqual({ kind: "notmapped", how: "none" });
   });
 });
@@ -201,6 +224,8 @@ describe("what is printed and what is not", () => {
     expect(text).not.toContain("SECRETNAME");
     expect(text).toContain("|L| 5");
     expect(text).toContain("|M| 3");
+    // one trait name (SECRETNAME4) was neither flagged nor mapped: |L| 5, size used 4, limit floor(5 x 4 / 100) = 0
+    expect(text).toContain("wrong <= floor(5 x 4 / 100) = 0 (|L| 5, trait not flagged 1, size used 4)");
     expect(text).toMatch(/PASS|FAIL/);
     expect(text).not.toContain("%");
   });
