@@ -18,6 +18,7 @@ vi.mock("@/lib/ai/readJob", () => {
     readJobAd: vi.fn(async (text: string) => ({
       job: { id: "pasted-ad", title: `Read number ${++counter}`, company: null, source: null, constraints: {}, requirements: [{ quote: "SQL", importance: "must", skillIds: ["sql"] }] },
       removed: [], moved: [], unlisted: [], notCounted: [],
+      extraction: { title: `Extraction ${counter}` }, // 6.1: extraction added
       usage: { inputTokens: text.length, outputTokens: 1 },
     })),
   };
@@ -53,7 +54,7 @@ describe("the ad route with the cache", () => {
     const b = await second.json();
     expect(b).toEqual(a);
     expect(b.job.title).toBe("Read number 1"); // the second answer came from memory, not from a second read
-    expect(Object.keys(b).sort()).toEqual(["job", "moved", "notCounted", "removed", "unlisted"]);
+    expect(Object.keys(b).sort()).toEqual(["extraction", "job", "moved", "notCounted", "removed", "unlisted"]); // 6.1: extraction added
   });
 
   it("R2 (test 2): two different ads: two calls, both miss", async () => {

@@ -478,7 +478,12 @@ describe("S13: the logic runs in the browser: nothing under lib/saved, nor anyth
     [...fs.readFileSync(file, "utf8").matchAll(/(?:import|export)\s[^'"`]*?from\s*["']([^"']+)["']|import\s*["']([^"']+)["']|import\(\s*["']([^"']+)["']\s*\)/g)].map((m) => m[1] ?? m[2] ?? m[3]);
 
   it("N1: every module reachable from lib/saved is free of node-only imports", () => {
-    const start = fs.readdirSync(path.join(root, "lib/saved")).filter((f) => f.endsWith(".ts")).map((f) => path.join(root, "lib/saved", f));
+    const start = [
+      ...fs.readdirSync(path.join(root, "lib/saved")).filter((f) => f.endsWith(".ts")).map((f) => path.join(root, "lib/saved", f)),
+      // 6.1 part 2: the files the browser also imports (stamps and the web vocabulary hash)
+      path.join(root, "lib/ai/readingVersion.ts"), path.join(root, "lib/ai/adRequestHash.ts"),
+      path.join(root, "lib/vocab/webHash.ts"), path.join(root, "lib/vocab/canonical.ts"), path.join(root, "lib/engine/stableStringify.ts"),
+    ];
     expect(start.length).toBeGreaterThan(6);
     const seen = new Set<string>();
     const queue = [...start];

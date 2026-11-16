@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { stableStringify } from "./stableStringify";
 
 // "Two full runs in a row" only counts when nothing that could change the
 // answers changed: everything the model is sent (the instructions, the JSON
@@ -19,15 +20,9 @@ export const FINGERPRINT_FORMAT = 3;
 
 const sha = (s: string) => createHash("sha256").update(s).digest("hex");
 
-// JSON with the keys in sorted order, so the same content is the same text.
-export function stableStringify(value: unknown): string {
-  if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`;
-  if (value !== null && typeof value === "object") {
-    const o = value as Record<string, unknown>;
-    return `{${Object.keys(o).sort().map((k) => `${JSON.stringify(k)}:${stableStringify(o[k])}`).join(",")}}`;
-  }
-  return JSON.stringify(value) ?? "null";
-}
+// JSON with the keys in sorted order, so the same content is the same text (the pure function now lives in
+// stableStringify.ts, so the browser can use it; re-exported here for the callers that import it from this file).
+export { stableStringify };
 
 export type FingerprintInput = {
   request: unknown; // the request body sent to Groq

@@ -36,7 +36,9 @@ Reading: title "Data Analyst"; company "Acme GmbH"; location "Berlin"; workMode 
 // Kept here so the route and the tests keep importing it from this file.
 export { ReadAdError };
 
-export type ReadResult = ReadOutcome;
+// 6.1: the AI's raw reading (before buildJob's checks) travels with the result, so a saved job can be re-checked later
+// without another AI call.
+export type ReadResult = ReadOutcome & { extraction: ExtractedAd };
 
 // Until Day 5's vocabulary exists, the skill list is the one the fixtures use.
 export async function readJobAd(text: string): Promise<ReadResult> {
@@ -60,5 +62,5 @@ export async function readJobAd(text: string): Promise<ReadResult> {
   } catch (error) {
     throw toReadError(error, "ad");
   }
-  return { ...buildJob(output, text, skills, { id: "pasted-ad", source: null }), usage, limits };
+  return { ...buildJob(output, text, skills, { id: "pasted-ad", source: null }), usage, limits, extraction: output };
 }

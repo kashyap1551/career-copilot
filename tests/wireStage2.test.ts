@@ -145,7 +145,7 @@ describe("d: the reading cache returns the close-match fields on a hit exactly a
     let calls = 0;
     const read = async () => {
       calls++;
-      return ad([req("Erfahrung mit Experimenten ist wichtig.", "must", "Experimenten")]);
+      return { ...ad([req("Erfahrung mit Experimenten ist wichtig.", "must", "Experimenten")]), extraction: empty }; // 6.1: extraction added
     };
     const cache = new ReadCache(20);
     const miss = await readThroughCache("Same ad text", read, { cache });

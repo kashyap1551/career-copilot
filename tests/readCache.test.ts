@@ -13,6 +13,7 @@ let n = 0;
 const reading = (title = "Job"): CachedReading => ({
   job: { id: "pasted-ad", title, company: null, source: null, constraints: { languages: [], location: null, remote: null, minYears: null, startDate: null, otherConditions: [] }, requirements: [{ quote: "SQL needed", importance: "must", skillIds: ["sql"] }] },
   removed: [], moved: [], unlisted: [], notCounted: [{ quote: "team player", importance: "must" }],
+  extraction: { title, company: null, location: null, workMode: null, minYears: null, startDate: null, languages: [], otherConditions: [], requirements: [] }, // 6.1: extraction added
 });
 const stub = () => vi.fn(async (text: string) => ({ ...reading(`Read ${++n} of ${text.length}`), usage: { inputTokens: 5, outputTokens: 6 } }));
 
@@ -69,7 +70,7 @@ describe("hit and miss, failures, copies", () => {
   it("C2: what is stored is the reading only: no usage, no limits", async () => {
     const cache = new ReadCache(READ_CACHE_CAPACITY);
     const r = await readThroughCache("Ad one", stub(), { cache });
-    expect(Object.keys(r.reading).sort()).toEqual(["job", "moved", "notCounted", "removed", "unlisted"]);
+    expect(Object.keys(r.reading).sort()).toEqual(["extraction", "job", "moved", "notCounted", "removed", "unlisted"]); // 6.1: extraction added
     expect(JSON.stringify(cache.values())).not.toContain("usage");
   });
 
@@ -100,6 +101,16 @@ describe("hit and miss, failures, copies", () => {
     const third = await readThroughCache("Ad one", read, { cache });
     expect(third.reading).toEqual(snapshot);
     expect(third.reading).toEqual(first.reading);
+  });
+
+  it("C6 (6.1): a hit returns the same extraction as the miss, and as a copy", async () => {
+    const cache = new ReadCache(READ_CACHE_CAPACITY);
+    const read = stub();
+    const first = await readThroughCache("Ad one", read, { cache });
+    const second = await readThroughCache("Ad one", read, { cache });
+    expect(second.reading.extraction).toEqual(first.reading.extraction);
+    second.reading.extraction.title = "CHANGED";
+    expect((await readThroughCache("Ad one", read, { cache })).reading.extraction).toEqual(first.reading.extraction);
   });
 
   it("C5: what a MISS returns is not the stored object either: changing it does not change the entry", async () => {

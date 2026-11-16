@@ -16,6 +16,7 @@ vi.mock("@/lib/ai/readJob", () => {
       moved: [],
       unlisted: [],
       notCounted: [{ quote: "You are a team player.", importance: "must" }],
+      extraction: { title: null }, // 6.1: extraction added
       usage: { inputTokens: 12345, outputTokens: 6789 },
       limits: { "x-ratelimit-remaining-tokens": "74", "x-ratelimit-limit-requests": "1000" },
     })),
@@ -31,11 +32,11 @@ const post = (body: unknown) =>
 describe("POST /api/read", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("answers with job, removed, moved, unlisted and notCounted, and nothing else", async () => {
+  it("answers with job, removed, moved, unlisted, notCounted and extraction (6.1: extraction added), and nothing else", async () => {
     const res = await post({ text: "Some job ad text that is long enough to be read." });
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(Object.keys(body).sort()).toEqual(["job", "moved", "notCounted", "removed", "unlisted"]);
+    expect(Object.keys(body).sort()).toEqual(["extraction", "job", "moved", "notCounted", "removed", "unlisted"]); // 6.1: extraction added
     expect(body.notCounted).toEqual([{ quote: "You are a team player.", importance: "must" }]);
   });
 

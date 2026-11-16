@@ -18,7 +18,8 @@ import type { ReadResult } from "./readJob";
 
 export const READ_CACHE_CAPACITY = 20;
 
-export type CachedReading = Pick<ReadResult, "job" | "removed" | "moved" | "unlisted" | "notCounted">;
+// 6.1: `extraction` is the AI's raw reading, kept so a cache hit answers exactly like the miss.
+export type CachedReading = Pick<ReadResult, "job" | "removed" | "moved" | "unlisted" | "notCounted" | "extraction">;
 export type ReadSource = "hit" | "miss";
 
 const SEPARATOR = "\u0000";
@@ -97,6 +98,7 @@ export async function readThroughCache(
     moved: outcome.moved,
     unlisted: outcome.unlisted,
     notCounted: outcome.notCounted,
+    extraction: outcome.extraction,
   };
   cache.set(key, reading);
   return { reading, source: "miss" };

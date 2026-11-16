@@ -23,9 +23,15 @@ export function openJob(record: SavedJob, current: { stamps: CurrentStamps; skil
     return { kind: "as-stored", reading: record.reading };
   }
   if (record.extraction === null) return { kind: "cannot-recheck", reading: record.reading, offerReread: true };
-  const fresh = buildJob(record.extraction, record.adText, current.skills, { id: "pasted-ad", source: null });
-  return {
-    kind: "rechecked",
-    reading: { job: fresh.job, removed: fresh.removed, moved: fresh.moved, unlisted: fresh.unlisted, notCounted: fresh.notCounted },
-  };
+  // A saved record is read on every visit, so nothing here may throw: if the re-check fails for any reason, the outcome is
+  // the same as "no extraction": the old reading stays on screen and a re-read is offered.
+  try {
+    const fresh = buildJob(record.extraction, record.adText, current.skills, { id: "pasted-ad", source: null });
+    return {
+      kind: "rechecked",
+      reading: { job: fresh.job, removed: fresh.removed, moved: fresh.moved, unlisted: fresh.unlisted, notCounted: fresh.notCounted },
+    };
+  } catch {
+    return { kind: "cannot-recheck", reading: record.reading, offerReread: true };
+  }
 }
