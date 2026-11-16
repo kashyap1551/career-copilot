@@ -1,5 +1,5 @@
 import type { ScoredAd } from "./evalRun";
-import { injectionVerdict, sumScores, targetCount, targetMet, type AdScore, type Totals } from "./evalScore";
+import { injectionVerdict, recalls, sumScores, targetCount, targetMet, type AdScore, type Totals } from "./evalScore";
 
 // The text the eval prints (docs/PLAN-3.2.md, section 5). Counts only, never
 // percentages. While the holdout is hidden, its ads appear only as one block
@@ -16,8 +16,18 @@ export type ReportInput = {
   reveal: boolean; // true once the owner says tuning is done
 };
 
+// Scorer v2: the old segments first (unchanged wording), then hits / not counted / missed and both recalls. The key
+// requirements add up: hits + not counted + missed = key requirements.
+const keySegment = (x: { hits: number; notCounted: number; missed: number; total: number; wrongImportance: number; extras: number }) => {
+  const r = recalls(x);
+  return `key requirements ${x.total}: hits ${x.hits}, not counted ${x.notCounted}, missed ${x.missed} | recall strict ${r.strict.hits} of ${r.strict.of}, adjusted ${r.adjusted.hits} of ${r.adjusted.of} | not-counted importance differs ${x.wrongImportance}, extras ${x.extras} (extras are inside invented or accepted)`;
+};
+
 const countsLine = (t: Totals) =>
-  `must-haves found ${t.found} of ${t.mustTotal} | wrong importance ${t.wrongImportance} | missed ${t.missedMust} must, ${t.missedNice} nice | invented ${t.invented} | name differs ${t.nameDiffers} | widened ${t.widened} | narrowed ${t.narrowed} | removed ${t.removed}`;
+  `must-haves found ${t.found} of ${t.mustTotal} | wrong importance ${t.wrongImportance} | missed ${t.missedMust} must, ${t.missedNice} nice | invented ${t.invented} | name differs ${t.nameDiffers} | widened ${t.widened} | narrowed ${t.narrowed} | removed ${t.removed} | ${keySegment({
+    hits: t.hits, notCounted: t.notCounted, missed: t.missedMust + t.missedNice, total: t.mustTotal + t.niceTotal,
+    wrongImportance: t.notCountedWrongImportance, extras: t.notCountedExtras,
+  })}`;
 
 const constraintCounts = (t: Totals) =>
   `constraints: right ${t.fields.right}, not stated ${t.fields.notStated}, wrong ${t.fields.wrong}, missed ${t.fields.missed}, invented ${t.fields.invented} | languages: right ${t.languages.right}, wrong ${t.languages.wrong}, missed ${t.languages.missed}, invented ${t.languages.invented} | conditions: found ${t.conditions.found}, missed ${t.conditions.missed}, extra ${t.conditions.extra}`;
@@ -26,9 +36,15 @@ function adLines(id: string, s: AdScore): string[] {
   const r = s.requirements;
   const c = s.constraints;
   const lines = [
-    `${id}: must-haves found ${r.found} of ${r.mustTotal} | wrong importance ${r.mustReadAsNice + r.niceReadAsMust} | missed ${r.missedMust} must, ${r.missedNice} nice | invented ${r.invented} | name differs ${r.nameDiffers} | widened ${r.widened} | narrowed ${r.narrowed} | removed ${s.removed.length}`,
+    `${id}: must-haves found ${r.found} of ${r.mustTotal} | wrong importance ${r.mustReadAsNice + r.niceReadAsMust} | missed ${r.missedMust} must, ${r.missedNice} nice | invented ${r.invented} | name differs ${r.nameDiffers} | widened ${r.widened} | narrowed ${r.narrowed} | removed ${s.removed.length} | ${keySegment({
+      hits: r.hits, notCounted: r.notCounted, missed: r.missedMust + r.missedNice, total: r.mustTotal + r.niceTotal,
+      wrongImportance: r.notCountedWrongImportance, extras: r.notCountedExtras,
+    })}`,
   ];
   for (const m of r.details.missed) lines.push(`  missed (${m.importance}): "${m.quote}" [${m.skills.join(", ")}]`);
+  for (const n of r.details.notCounted) lines.push(`  not counted (${n.importance}): "${n.quote}" [${n.skills.join(", ")}]`);
+  for (const w of r.details.notCountedWrongImportance) lines.push(`  not counted, importance differs: "${w.quote}" (key ${w.key}, AI ${w.ai})`);
+  for (const x of r.details.notCountedExtras) lines.push(`  not counted, extra (no key item): "${x.quote}" (${x.importance})`);
   for (const w of r.details.wrongImportance) lines.push(`  wrong importance: "${w.quote}" (key ${w.key}, AI ${w.ai})`);
   for (const i of r.details.invented) lines.push(`  invented: "${i.quote}" [${i.skills.join(", ")}]`);
   for (const n of r.details.nameDiffers) lines.push(`  name differs: "${n.quote}": key [${n.key.join(", ")}], AI [${n.ai.join(", ")}]`);
@@ -60,6 +76,7 @@ export function formatReport(input: ReportInput): string {
 
   const out: string[] = ["EVAL REPORT"];
   out.push(`Ads scored: ${scored.length}, failed: ${failed.length}, skipped: ${skipped.length}`);
+  out.push("Scorer v2 (2026-11-16): requirements the reader set aside as not-a-skill are 'not counted', neither hit nor miss; lines from before this have no such segment and are not comparable by eye.");
   for (const r of input.retried ?? []) out.push(`${r.id}: retried once after status ${r.code} (${r.recovered ? "the retry worked" : "the retry failed too"})`);
   out.push("");
 

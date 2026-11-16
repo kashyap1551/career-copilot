@@ -11,7 +11,7 @@ Scope and roles: see the first line of this file and docs/REVIEWER-BRIEF.md. Sec
 **Status**
 - **Done and ticked:** Day 1 to Day 4, and **5.1** (vocabulary v0 in `lib/vocab/`, exact name matching, trait handling, eval fingerprint format 3).
 - **5.2 is NOT ticked.** Stage 1 (exact, three tries) is live. **Stage 2 (close spelling) is built OFFLINE and NOT wired:** `lib/engine/closeSpelling.ts`, `mapName.ts`; nothing in `fromAd`, `fromCv`, the routes or the page imports it (a test checks it). **5.3 not started.**
-- **Tests:** 1,121 pass in 59 files. `npx tsc --noEmit`, `npm run lint`, `npm run build` are green. Live site: https://career-copilot-theta-seven.vercel.app (deploys on push to `main`).
+- **Tests:** 1,144 pass in 60 files. `npx tsc --noEmit`, `npm run lint`, `npm run build` are green. Live site: https://career-copilot-theta-seven.vercel.app (deploys on push to `main`).
 
 **Stage 2 rules (all fixed BEFORE any measure; docs/PLAN-5.1.md "5.2 stage 2 rules" and "Changes before any measure", docs/DECISIONS.md)**
 - Allowance by the SHORTER folded string: up to 5 letters 0, 6 to 8 letters 1, 9 or more 2. A swap of two neighbouring letters counts 1.
@@ -31,7 +31,7 @@ Scope and roles: see the first line of this file and docs/REVIEWER-BRIEF.md. Sec
 3. The owner labels every name (`npm run skill-ids` lists the labels; `none` and `not-a-skill` are the two special ones) and saves the file as `fresh-labels.json` BEFORE any measure.
 4. `npm run map-measure -- fixtures/real-ads/fresh-labels.json`, once.
 5. If all three lines pass: wire `mapName` into `fromAd` and `fromCv` and show close matches on the page. Order stays: not-a-skill flag, then stage 1, then stage 2. Regression tests through `fromAd` and `fromCv`: "Personal development", "data analyst experience" and "product analyst experience" must end up not counted (ad) or removed as not-a-skill (CV), never mapped to a skill. If recall fails: decide with the reviewer on stage 3 (the AI pick among at most 5 code-chosen candidates), which needs a new fresh set to be measured fairly.
-6. Then teach the eval scorer about `notCounted` (before the next counted ad eval).
+6. DONE 2026-11-16: the eval scorer knows `notCounted` (scorer v2: hits, not counted, missed, strict and adjusted recall; DECISIONS 2026-11-16). `npm run eval -- --not-counted` lists the not-counted key items of ad-01 to ad-08 (real AI calls, one per ad: ask first). No counted ad eval has been run since.
 7. 5.3: the reading cache.
 
 **Rules for the next session:** no vocabulary edit after seeing fresh or holdout names; fresh names are not pasted into the chat; the holdout is counts only; do not run `map-measure` before labelling is complete.
@@ -144,7 +144,7 @@ Not in the sprint. Each one that changes a schema goes through the careful lane.
 - Confirm screen: reading the CV again resets everything on it, including cities, years, languages, work modes, available from and the in-progress entries. Consider keeping those and resetting only the skill ticks.
 - A stopwatch-timed run of the confirm step by a second person on the made-up CV (the 4.3 check is "under 3 minutes"; so far only the owner's estimate). Also useful as portfolio evidence.
 - Composite names (two skills in one name, such as "Systems thinking and prioritization" or "Analytical and quantitative skills") map to their first skill in vocabulary v0; split them at reading time later (the reader or `fromAd` should return one requirement per skill).
-- Eval scorer and traits: `fromAd` now returns requirements that are not skills in `BuildResult.notCounted`, but the eval scorer (lib/engine/evalScore, evalMatch) does not know it: key items that are traits (25 of the 108 key requirements of ad-01 to ad-08) will count as missed. Teach the scorer to pair a key item that is a trait with a `notCounted` quote before the next counted ad eval.
+- Eval scorer and traits: done 2026-11-16 (scorer v2, see Next steps 6). The 3.3 target line is still strict (found of must-haves); decide with the reviewer whether it should use the adjusted count before the next counted ad eval.
 - Stage 2 findings (2026-11-16), resolved by the rule changes of the same day: "shift" no longer maps to Swift (allowance 0 up to 5 letters); MySQL ~ MSSQL accepted. Open: whether to add a never-map list after reading the neighbour audit (201 pairs).
 
 ## (g) Eval run log

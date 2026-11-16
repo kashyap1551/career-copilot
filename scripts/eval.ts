@@ -8,6 +8,7 @@ import { checkKey, type AnswerKey } from "../lib/engine/answerKey";
 import { evalFingerprint, fingerprintLine } from "../lib/engine/evalFingerprint";
 import { vocabHash } from "../lib/engine/vocabHash";
 import { formatReport, summarize } from "../lib/engine/evalReport";
+import { formatNotCountedList, selectNotCountedAds } from "../lib/engine/evalNotCounted";
 import { formatShow, showRefusal } from "../lib/engine/evalShow";
 import { runEval, twoInARow, type EvalAd, type RunState } from "../lib/engine/evalRun";
 
@@ -17,6 +18,8 @@ import { runEval, twoInARow, type EvalAd, type RunState } from "../lib/engine/ev
 //                                   (only once the owner says tuning is done)
 // npm run eval -- --show <ad id>    one tuning ad: the AI's reading next to the key.
 //                                   Refuses the holdout before any AI call.
+// npm run eval -- --not-counted    the tuning ads only (never ad-09, ad-10, never the known cases; chosen before any AI
+//                                   call): the key requirements that landed in "not counted". One AI call per ad.
 // npm run eval -- --fingerprint     prints the fingerprint of the current prompt, schema, settings, ads and
 //                                   keys, and stops. No AI call: the request is captured on a fake fetch.
 //
@@ -32,6 +35,7 @@ const args = process.argv.slice(2);
 const only = args.includes("--only") ? (args[args.indexOf("--only") + 1] ?? "") : null;
 const reveal = args.includes("--reveal");
 const printFingerprint = args.includes("--fingerprint");
+const notCountedList = args.includes("--not-counted");
 const show = args.includes("--show") ? (args[args.indexOf("--show") + 1] ?? "") : null;
 
 // --show never works on the holdout, whatever else is on the command line.
@@ -129,6 +133,23 @@ async function main() {
     if (result.limits && Object.keys(result.limits).length > 0) {
       console.log(`RATE LIMITS (Groq's answer): ${Object.entries(result.limits).map(([k, v]) => `${k}=${v}`).join(", ")}`);
     }
+    return;
+  }
+
+  if (notCountedList) {
+    const tuning = selectNotCountedAds(loaded.ads);
+    const run = await runEval(
+      tuning,
+      {
+        read: (text) => readJobAd(text),
+        sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+        delayMs: Number(process.env.EVAL_DELAY_MS ?? 3000),
+        backoffsMs: [5000, 15000, 45000],
+      },
+      skills,
+    );
+    process.stdout.write(formatNotCountedList(run.scored));
+    for (const f of run.failed) console.log(`FAILED: ${f.id} (${f.reason})`);
     return;
   }
 
