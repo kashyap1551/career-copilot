@@ -131,3 +131,45 @@ For each part: "passed", or the number of the step that did not match and what y
 ## The 15 ads (how this check covers it)
 
 The plan asks that 15 saved ads survive a reload. The check by hand uses **3 ads** (steps 11, 12, 14 and the reload in step 15): that proves the real browser database keeps several records across a reload. The count of 15 itself is covered by two logic tests that run on every build: **S1b** (15 jobs are saved in the in-memory store and 15 are listed by a fresh context, the "reload") and **R4** (15 saved ads give 15 rows, newest first). The one thing the 3-ad check does not prove is that a real IndexedDB holds 15 records as well as 3; nothing in the code treats 3 and 15 differently (one record per ad, no limit).
+
+## Manual check log
+
+- Tester: owner. Live site, Chrome, normal window, browser extensions on.
+- App code under test: commit 93f79b4 (Vercel: Production, Ready, 2026-11-16 22:00). Later commits are docs-only and do not change these results.
+- Run on 2026-11-16, 22:25 to 23:54 Berlin time.
+
+| Step | Result | What was seen |
+|---|---|---|
+| 1 | PASSED | Database career-copilot version 1 with 2 object stores (jobs, profile); the page showed no saved-profile box and no "Saved ads" list, only the Delete button. |
+| 2 | PASSED | CV sent (8 lines, 357 characters), 3 skills found (SQL line 3, Tableau line 4, Excel line 5). The cv response had "Cache-Control: no-store" (the old deployment had "public, max-age=0, must-revalidate"). Both boxes still empty. |
+| 3 | PASSED | Berlin and 3 typed. The Save button showed with the notice (new wording, shared-computer sentence included, ends with the private-window sentence). Boxes still empty. |
+| 4 | PASSED | Save pressed: "Saved on this device." appeared. profile has 1 entry, key "current": constraints locations ['Berlin'], years 3; set location and years true, the rest false; 3 skills of kind "have"; stamps readingVersion "3" and vocabularyHash starting e96370fe4c. jobs 0. |
+| 5 | PASSED | Unticked a skill, the line disappeared; ticked again, it came back. |
+| 6 | PASSED | After reload: box "A profile is saved on this device (2026-11-16)", counts "3 skills, 0 in progress; constraints set: location, years", three buttons; no confirm screen, no report. Console clean after the reload. |
+| 7 | PASSED | "Use this profile": read-only box with SQL (line 3), Tableau (line 4), Excel (line 5) and "Constraints set: location (Berlin); years (3)"; only the buttons Delete this profile and Read a CV again. |
+| 8 | PASSED | Ad 1 read against the saved profile. The read response had "Cache-Control: no-store" and X-Reading-Cache miss; the request body was 252 bytes (the ad text only, the profile did not travel). Report: "Fit: Long shot (judged: skills, location, years)"; must-haves 2 of 2 met (SQL line 3, Tableau line 4); nice-to-have Excel met (line 5); conflict "The job is in Exampleville; the cities on your profile are: Berlin." marked "(can't be closed soon)"; not judged: language (ad says English at C1), work mode (hybrid), start date. Save this ad button with the notice was shown. |
+| 9 | PASSED | "Delete this profile": "The saved profile was deleted."; the top box disappeared; profile 0 entries. The report already on screen did not change. |
+| 10 | NOT RUN YET | |
+| 11 | NOT RUN YET | |
+| 12 | NOT RUN YET | |
+| 13 | NOT RUN YET | |
+| 14 | NOT RUN YET | |
+| 15 | NOT RUN YET | |
+| 16 | NOT RUN YET | |
+| 17 | NOT RUN YET | |
+| 18 | NOT RUN YET | |
+| 19 | NOT RUN YET | |
+| 20 | NOT RUN YET | |
+| 21 | NOT RUN YET | |
+| 22 | NOT RUN YET | |
+| 23 | NOT RUN YET | |
+| 24 | NOT RUN YET | |
+| 25 | NOT RUN YET | |
+
+Console: the only red error seen was "Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received" (3 repeats, no file of ours named), together with Grammarly warnings: browser-extension noise. The clean Console test is steps 22 and 25 in a private window.
+
+### Observations (not failures; decisions for the reviewer)
+
+- O-1: a constraint that is judged and satisfied (years: the ad asks 2+, the profile says 3) gets no line of its own; only the "judged:" header names it.
+- O-2: after "Delete this profile" the report already on screen stays, and still says "on your profile", until the page is reloaded.
+- O-3: the level is "Long shot" although every must-have and nice-to-have is met, because of one location conflict marked "can't be closed soon".
