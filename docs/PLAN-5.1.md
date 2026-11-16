@@ -71,3 +71,37 @@ Review-list names count as not mapped (they lower `right_M`) and are not wrong. 
 **Level words (decision 10).** When "advanced", "basic" and the like are dropped by normalising, the report note on the page says: "Skill levels (such as advanced) are not compared." (a text change in the page, fast lane; the engine and `fromAd` already ignore levels).
 
 **Capture run (decision 2): done 2026-11-16.** 16 calls (ten ads, the barista case, five CVs), none failed, 58,745 tokens, with the guards (ad `85357f8fac` with INSTRUCTIONS 3,347 and CV `193e02ee3f` with 1,496; the script refused without them). Raw AI names only, in the gitignored `eval-runs/capture-names.json`. Counts: ads 01 to 08 returned 136 names (125 distinct), of which 4 distinct map to the 17 skills; ads 09 and 10 together 30 names (28 distinct), 1 maps; the five CVs 23 names (22 distinct), 10 map. The vocabulary draft uses ad-01 to ad-08, the CV keys and these captures, and general knowledge only; the keys and capture of ad-09 and ad-10 were not opened for it.
+
+## 5.2 stage 2 rules and outcome definitions (fixed before any measure)
+Written 2026-11-16, before any 5.2 code and before any 5.2 measure. They refine the stage 2 and pass-line paragraphs above; where they differ (the shorter string sets the allowance; a swap counts 1; a name flagged as not-a-skill by mistake is wrong), these win.
+
+**Which names count.** The 5.2 pass lines use the **fresh set only** for L. The holdout (ad-09, ad-10) is printed next to it, **not pooled**, because its counts were seen on 2026-11-16. The fresh set is measured once. Stage 2 is **not wired** into the live path (`fromAd`, `fromCv`, the routes, the page) until the fresh-set measure passes.
+
+**Close spelling (stage 2), run only when stage 1 finds nothing.**
+- **Strings compared.** The name and every target string are folded like stage 1 (lowercase; accents and umlauts folded, ß as ss; level and filler words and a trailing version removed), then spaces, hyphens and dots are dropped. Targets are every name, German name and alias of every skill.
+- **Never a target:** an undecided alias, any `exactOnly` entry (R, C, Go), and the not-a-skill phrases. (A wrong drop hides a real skill; a miss costs one line.)
+- **Distance** counts insert, delete, replace, and swapping two neighbouring letters, each as 1.
+- **Allowance** comes from the **shorter** of the two folded strings: up to 4 letters 0, 5 to 8 letters 1, 9 or more letters 2.
+- **Choosing.** Take the smallest distance per skill id. The name maps only if exactly one skill id has the overall smallest distance and that distance is within the allowance. Two or more ids tied at the smallest distance, with at least one within the allowance: no mapping ("tie", goes to the review list). One skill reached through several of its own strings at the same distance is not a tie.
+- **Stage 1 (exact, three tries) always runs first and wins.**
+- **Result of the mapper (`mapName`):** `{how:"exact", id, try}` or `{how:"close", id, distance, via:<the alias or name that matched>}` or `{how:"tie", ids}` or `{how:"none"}`.
+- **Live order is kept in the measure:** a name on the not-a-skill list is flagged before anything is mapped (as `fromAd` does); only then `mapName`.
+
+**Outcome definitions for the measure.** Each labelled name has a label: a skill id, "none" (should stay unlisted), or "not-a-skill".
+- **RIGHT:** mapped to the labelled id; or unlisted when the label is "none"; or flagged not-a-skill when the label is "not-a-skill".
+- **WRONG:** mapped to a skill id that is not the label (this includes any label "none" or "not-a-skill" that got a skill id: "wrong merges"); or flagged not-a-skill when the label is a skill id or "none" ("wrongly flagged").
+- **NOT MAPPED:** a tie or none when the label is a skill id.
+- A name labelled "not-a-skill" that is neither flagged nor mapped is counted apart ("trait not flagged"); it is in |L| and in no line.
+- **M** = the names whose label is a skill id; **right_M** = those mapped to the right id.
+- **Recall line:** `4 x right_M >= 3 x |M|`; with |M| = 0 the line is "not measurable" and counts as NOT passed.
+- **Wrong line:** `wrong <= floor(5 x |L| / 100)` (|L| = 19 allows 0, |L| = 20 allows 1).
+- **Must-not-merge line:** any name mapped to the other member of a must-not-merge group (the groups of docs/VOCAB-REVIEW.md, kept as data in `lib/vocab/mustNotMerge.ts`, plus the word "shift" which must not become Swift) counts; the line is 0.
+- **The check passes only if all three lines pass.**
+
+**Tools (offline, no AI call).** `npm run vocab-pairs` lists the pairs of different skills whose strings are within the allowance of each other (vocabulary only). `npm run map-measure -- <labels.json> ...` maps the labelled names and prints counts only; names of wrong and not-mapped items go to the gitignored `eval-runs/map-measure-detail.json`; each run is logged (set, date, vocabulary hash) in `eval-runs/map-measure-log.txt`, and a second measure of a set with a different vocabulary hash prints "REPEAT: second look, not the one-shot measure".
+
+**What building stage 2 showed (2026-11-16; nothing here changes a rule).**
+- **A reading of the folding rule.** The rule says the name is folded "like stage 1". I applied the filler-word and version stripping to the NAME only; the targets are folded and squashed but not stripped. Reason: if "analytical skills" were stripped to "analytical", close spelling would reach the alias the owner left undecided ("analytical"), which the rules forbid.
+- **Known limit, open decision: the word "shift" maps to Swift by spelling.** The two differ by one letter and 5 letters allow one, so `mapName("Shift")` is `close swift`. The owner's must-not-merge list says the word "shift" must not become Swift, and the measure counts such a merge (the line is 0). The vocabulary pair check cannot see it (it compares vocabulary strings, and "shift" is an ordinary word). A test pins today's behaviour. Options, for the owner: a short never-map list of ordinary words (Shift, ...); an allowance of 0 for names of 5 letters or fewer; or leave it and let the measure show whether it occurs. Not decided here.
+- **`npm run vocab-pairs`: 5 pairs of different skills, 1 "check", 4 "tie-protected".** check: MySQL ~ MSSQL (distance 1; a typo of MySQL is an exact alias of SQL Server, which stage 1 maps, so a misspelt "MySQL" can become SQL Server). tie-protected: route planning ~ rota planning (Delivery planning, Scheduling); KPI tracking ~ ROI tracking; Product management ~ Project management; SEO-Kenntnisse ~ SQL-Kenntnisse. The vocabulary was not edited.
+

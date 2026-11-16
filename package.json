@@ -12,7 +12,9 @@
     "eval": "tsx scripts/eval.ts",
     "eval-cv": "tsx scripts/evalCv.ts",
     "capture-names": "tsx scripts/captureNames.ts",
-    "vocab-check": "tsx scripts/vocabCheck.ts"
+    "vocab-check": "tsx scripts/vocabCheck.ts",
+    "vocab-pairs": "tsx scripts/vocabPairs.ts",
+    "map-measure": "tsx scripts/mapMeasure.ts"
   },
   "dependencies": {
     "@ai-sdk/groq": "^4.0.83",

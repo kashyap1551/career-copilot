@@ -87,6 +87,24 @@ function indexOf(skills: Skill[]): Map<string, Entry> {
   return index;
 }
 
+// Stage 1 of the mapping: the exact lookup, in three tries. Returns the skill id and which try found it, or null.
+// 1. exactly as written; 2. without level and filler words; 3. also without a trailing version. A single letter or a
+// very common word ("R", "C", "Go") is found only in try 1, so "Advanced R" is not R.
+export function lookupExact(name: string, skills: Skill[]): { id: string; try: 1 | 2 | 3 } | null {
+  const index = indexOf(skills);
+  const { exact, stripped, plain } = nameKeys(name);
+  if (exact === "") return null;
+  const hit = index.get(exact);
+  if (hit) return { id: hit.id, try: 1 };
+  const tries: [string, 2 | 3][] = [[stripped, 2], [plain, 3]];
+  for (const [key, n] of tries) {
+    if (key === "" || key === exact || key.length === 1) continue;
+    const found = index.get(key);
+    if (found && !found.exactOnly) return { id: found.id, try: n };
+  }
+  return null;
+}
+
 // null when the name has nothing to make an id from ("???").
 export function skillIdFor(
   name: string,
@@ -94,18 +112,6 @@ export function skillIdFor(
 ): { id: string; listed: boolean } | null {
   const slug = slugOf(name);
   if (slug === "") return null;
-  const index = indexOf(skills);
-  const { exact, stripped, plain } = nameKeys(name);
-
-  // 1. Exactly as written. 2. Without level and filler words. 3. Also without a
-  // trailing version. A single letter or a very common word ("R", "C", "Go")
-  // is found only in step 1, so "Advanced R" is not R.
-  const hit = index.get(exact);
-  if (hit) return { id: hit.id, listed: true };
-  for (const key of [stripped, plain]) {
-    if (key === "" || key === exact || key.length === 1) continue;
-    const found = index.get(key);
-    if (found && !found.exactOnly) return { id: found.id, listed: true };
-  }
-  return { id: `new:${slug}`, listed: false };
+  const hit = lookupExact(name, skills);
+  return hit ? { id: hit.id, listed: true } : { id: `new:${slug}`, listed: false };
 }

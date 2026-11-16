@@ -2,6 +2,17 @@
 
 Read this and docs/PLAN-3.1.md, then continue. Written at the end of the session of 2026-11-14.
 
+## Where we are now (updated 2026-11-16, Day 5)
+
+- **Done and ticked:** Day 1 to Day 4, and **5.1** (vocabulary v0 in `lib/vocab/`, exact name matching, `vocab-check`, trait handling, eval fingerprint format 3).
+- **5.2 stage 2 (close spelling) is built OFFLINE and NOT wired:** `lib/engine/closeSpelling.ts` and `mapName.ts` (stage 1, then stage 2), `npm run vocab-pairs`, `npm run map-measure -- <labels.json>`. Nothing in `fromAd`, `fromCv`, the routes or the page imports it. **5.2 is NOT ticked.** The rules and outcome definitions are in docs/PLAN-5.1.md ("5.2 stage 2 rules ... fixed before any measure").
+- **The fresh set is not collected.** The owner adds 3 new ads (at least 2 in German); they are labelled (`{"set":"fresh","names":{...}}` in `fixtures/real-ads/`, gitignored) and measured ONCE with `npm run map-measure`. The holdout (ad-09, ad-10) is printed next to it, not pooled. The vocabulary is never edited after seeing either.
+- **Open decision (finding):** the word "shift" maps to Swift by spelling (see PLAN-5.1); a test pins it. Also `vocab-pairs` flags MySQL ~ MSSQL as "check".
+- **Still to do:** teach the eval scorer about `notCounted` (before the next counted ad eval); Day 5 then 5.3 (the reading cache); the older numbers below are marked as measured on the 17-skill list.
+- **Commands that work now:** `npm test`, `npm run -s vocab-check`, `npm run -s vocab-pairs`, `npm run -s map-measure -- <file>`, `npm run eval -- --fingerprint` and `npm run eval-cv -- --fingerprint` (call-free), `npm run build`. The request hashes are pinned: ad `85357f8fac`, CV `193e02ee3f`.
+
+(The sections (a) to (g) below were written earlier and are partly out of date; this block is the current state.)
+
 ## (a) Where we are
 
 - **Done:** Day 1 (skeleton, live), Day 2 (rules engine, no AI) and **step 3.1** (the full job schema and extraction). Steps 1.1 to 1.5 and 2.1 to 2.4 are ticked. **3.1 and the build part of 3.2 are done and committed but not ticked**: per CLAUDE.md, ticks and log lines are written at the end of the day, so tick 3.1 to 3.4 and add the Day 3 log lines when Day 3 ends.
@@ -106,6 +117,7 @@ Not in the sprint. Each one that changes a schema goes through the careful lane.
 - A stopwatch-timed run of the confirm step by a second person on the made-up CV (the 4.3 check is "under 3 minutes"; so far only the owner's estimate). Also useful as portfolio evidence.
 - Composite names (two skills in one name, such as "Systems thinking and prioritization" or "Analytical and quantitative skills") map to their first skill in vocabulary v0; split them at reading time later (the reader or `fromAd` should return one requirement per skill).
 - Eval scorer and traits: `fromAd` now returns requirements that are not skills in `BuildResult.notCounted`, but the eval scorer (lib/engine/evalScore, evalMatch) does not know it: key items that are traits (25 of the 108 key requirements of ad-01 to ad-08) will count as missed. Teach the scorer to pair a key item that is a trait with a `notCounted` quote before the next counted ad eval.
+- Stage 2 findings (2026-11-16): the word "shift" maps to Swift by spelling (decide: a never-map list of ordinary words, or allowance 0 for 5-letter names, or leave and measure); MySQL ~ MSSQL is a "check" pair in `vocab-pairs`. See docs/PLAN-5.1.md.
 
 ## (g) Eval run log
 
