@@ -84,25 +84,18 @@ describe("the German and English stress ad", () => {
   it("requirements: 'and' split, 'or' kept together, listed skills get listed ids", () => {
     expect(r.job.requirements.map((q) => [q.skillIds, q.importance])).toEqual([
       [["sql"], "must"],
-      [["python", "new:r"], "nice"],
-      [["new:a-b-testing"], "must"],
+      [["python", "r-language"], "nice"],
+      [["ab-testing"], "must"],
       [["new:product-metrics"], "must"],
-      [["new:mixpanel", "new:amplitude"], "must"],
+      [["mixpanel", "amplitude"], "must"],
       [["communication"], "must"],
-      [["tableau", "new:looker"], "nice"],
-      [["new:dbt"], "nice"],
+      [["tableau", "looker"], "nice"],
+      [["dbt"], "nice"],
     ]);
   });
 
   it("the unlisted skills, in the order they first appear", () => {
-    expect(r.unlisted).toEqual([
-      { id: "new:r", name: "R" },
-      { id: "new:a-b-testing", name: "A/B testing" },
-      { id: "new:product-metrics", name: "Product metrics" },
-      { id: "new:mixpanel", name: "Mixpanel" },
-      { id: "new:amplitude", name: "Amplitude" },
-      { id: "new:looker", name: "Looker" },
-      { id: "new:dbt", name: "dbt" },
-    ]);
+    // Since Day 5 only "Product metrics" is not in the vocabulary (R, A/B testing, Mixpanel, Amplitude, Looker and dbt are).
+    expect(r.unlisted).toEqual([{ id: "new:product-metrics", name: "Product metrics" }]);
   });
 });

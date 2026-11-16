@@ -64,10 +64,11 @@ describe("scoreCv", () => {
     expect(s.injected).toBe(0);
   });
 
+  // "Instagram marketing" was the second example until Day 5, when it became an alias of Instagram (a listed skill).
   it("M4: an unlisted name on a line that supports other skills is unmatched, not invented", () => {
-    const s = score3([...clean, it3("Newsletter design", 4, "weekly newsletter"), it3("Instagram marketing", 7, "short videos")]);
+    const s = score3([...clean, it3("Newsletter design", 4, "weekly newsletter"), it3("Short video planning", 7, "short videos")]);
     expect(s.invented).toEqual([]);
-    expect(s.unmatched.map((x) => [x.skill.name, x.skill.line])).toEqual([["Newsletter design", 4], ["Instagram marketing", 7]]);
+    expect(s.unmatched.map((x) => [x.skill.name, x.skill.line])).toEqual([["Newsletter design", 4], ["Short video planning", 7]]);
     expect(passLines([s]).met).toBe(true);
   });
 

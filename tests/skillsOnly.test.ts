@@ -4,6 +4,7 @@ import { jobs } from "@/fixtures/jobs";
 import { skills } from "@/fixtures/skills";
 import type { Job } from "@/lib/engine/types";
 
+// Docker was the unlisted example until Day 5, when it entered the vocabulary; Welding is not in it.
 // Worked out by hand from the Northwind fixture job (docs/PLAN-3.1.md, A1):
 //   musts: SQL, Excel, communication; nices: Power BI or Tableau, Python.
 //   constraints: English C1, Manchester, hybrid, 3 years; no start date.
@@ -20,12 +21,12 @@ function report(listText: string, job: Job = northwind, unlisted: { id: string; 
 
 describe("readSkillList", () => {
   it("S1: one skill per line, empty lines skipped and not numbered", () => {
-    const { cvLines, lines } = readSkillList("SQL\n\n   \r\n Excel \nDocker", skills);
-    expect(cvLines).toEqual(["SQL", "Excel", "Docker"]);
+    const { cvLines, lines } = readSkillList("SQL\n\n   \r\n Excel \nWelding", skills);
+    expect(cvLines).toEqual(["SQL", "Excel", "Welding"]);
     expect(lines.map((l) => [l.line, l.skillId, l.listed])).toEqual([
       [1, "sql", true],
       [2, "excel", true],
-      [3, "new:docker", false],
+      [3, "new:welding", false],
     ]);
   });
 
@@ -36,7 +37,7 @@ describe("readSkillList", () => {
 });
 
 describe("skillsOnlyReport", () => {
-  const six = "SQL\nExcel\nPython\nTableau\nDocker\nGit";
+  const six = "SQL\nExcel\nPython\nTableau\nWelding\nGit";
 
   it("S3: six lines on Northwind: 2 of 3 musts, 2 of 2 nices, Good, skills only", () => {
     const r = report(six);
@@ -95,20 +96,20 @@ describe("skillsOnlyReport", () => {
   it("S8: a requirement whose skills are all unlisted is not met, even if the same unlisted skill is on the list", () => {
     const docker: Job = {
       ...northwind,
-      requirements: [{ skillIds: ["new:docker"], importance: "must", quote: "Docker experience." }],
+      requirements: [{ skillIds: ["new:welding"], importance: "must", quote: "Welding experience." }],
     };
-    const r = report("Docker", docker, [{ id: "new:docker", name: "Docker" }]);
+    const r = report("Welding", docker, [{ id: "new:welding", name: "Welding" }]);
     expect(r.rows).toEqual([
       {
-        quote: "Docker experience.",
+        quote: "Welding experience.",
         importance: "must",
-        label: "Docker",
+        label: "Welding",
         status: "unlisted",
-        detail: "Docker: not in our skill list yet, so it can't be matched with your CV",
+        detail: "Welding: not in our skill list yet, so it can't be matched with your CV",
       },
     ]);
     expect(r.unlistedRequirements).toBe(1);
-    expect(r.explanation).toBe("One must-have is missing: Docker." + NOT_JUDGED);
+    expect(r.explanation).toBe("One must-have is missing: Welding." + NOT_JUDGED);
     expect(r.counts.mustsMet).toBe(0);
     expect(r.fitLabel).toBe("Good (skills only)");
   });

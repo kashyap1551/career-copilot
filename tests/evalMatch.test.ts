@@ -27,7 +27,7 @@ describe("(a) one AI quote covers several key items", () => {
   const key = [K("Sehr gute SQL-Kenntnisse", "must", "SQL"), K("Python or R is a plus.", "nice", "Python", "R")];
 
   it("a1 the shared skill id pairs each key item with its own AI item", () => {
-    const r = run(key, [E(L, "must", "sql"), E(L, "nice", "python", "new:r")]);
+    const r = run(key, [E(L, "must", "sql"), E(L, "nice", "python", "r-language")]);
     expect(pairs(r)).toEqual([[0, 0], [1, 1]]);
     expect(r.missedKeys).toEqual([]);
     expect(r.extras).toEqual([]);
@@ -36,7 +36,7 @@ describe("(a) one AI quote covers several key items", () => {
   it("a2 different names: the one shared id (new:r) still settles it", () => {
     const r = run(key, [
       E(L, "must", "new:structured-query-language"),
-      E(L, "nice", "new:python-3", "new:r"),
+      E(L, "nice", "new:python-3", "r-language"),
     ]);
     expect(pairs(r)).toEqual([[0, 0], [1, 1]]);
   });
@@ -49,7 +49,7 @@ describe("(a) one AI quote covers several key items", () => {
   });
 
   it("a4 the AI lists them in the other order: the ids still pair them correctly", () => {
-    const r = run(key, [E(L, "nice", "python", "new:r"), E(L, "must", "sql")]);
+    const r = run(key, [E(L, "nice", "python", "r-language"), E(L, "must", "sql")]);
     expect(pairs(r)).toEqual([[0, 1], [1, 0]]);
   });
 });
@@ -58,12 +58,12 @@ describe("(b) several key items share one quote", () => {
   const key = [K(Q, "must", "A/B testing"), K(Q, "must", "Product metrics")];
 
   it("b1 split correctly: paired by shared id", () => {
-    const r = run(key, [E(Q, "must", "new:a-b-testing"), E(Q, "must", "new:product-metrics")]);
+    const r = run(key, [E(Q, "must", "ab-testing"), E(Q, "must", "new:product-metrics")]);
     expect(pairs(r)).toEqual([[0, 0], [1, 1]]);
   });
 
   it("b2 merged into one item: one pair, the other key item is missed", () => {
-    const r = run(key, [E(Q, "must", "new:a-b-testing", "new:product-metrics")]);
+    const r = run(key, [E(Q, "must", "ab-testing", "new:product-metrics")]);
     expect(pairs(r)).toEqual([[0, 0]]);
     expect(r.missedKeys).toEqual([1]);
   });
@@ -75,7 +75,7 @@ describe("(b) several key items share one quote", () => {
 
   it("b4 a third item for the same quote is an extra", () => {
     const r = run(key, [
-      E(Q, "must", "new:a-b-testing"),
+      E(Q, "must", "ab-testing"),
       E(Q, "must", "new:product-metrics"),
       E(Q, "nice", "new:retention"),
     ]);
@@ -84,15 +84,15 @@ describe("(b) several key items share one quote", () => {
   });
 
   it("b5 the AI lists them in the other order: ids pair them correctly", () => {
-    const r = run(key, [E(Q, "must", "new:product-metrics"), E(Q, "must", "new:a-b-testing")]);
+    const r = run(key, [E(Q, "must", "new:product-metrics"), E(Q, "must", "ab-testing")]);
     expect(pairs(r)).toEqual([[0, 1], [1, 0]]);
   });
 });
 
 describe("other rules of the pairing", () => {
   it("c3 either quote may contain the other", () => {
-    expect(pairs(run([K("A/B testing", "must", "A/B testing")], [E(Q, "must", "new:a-b-testing")]))).toEqual([[0, 0]]);
-    expect(pairs(run([K(Q, "must", "A/B testing")], [E("A/B testing", "must", "new:a-b-testing")]))).toEqual([[0, 0]]);
+    expect(pairs(run([K("A/B testing", "must", "A/B testing")], [E(Q, "must", "ab-testing")]))).toEqual([[0, 0]]);
+    expect(pairs(run([K(Q, "must", "A/B testing")], [E("A/B testing", "must", "ab-testing")]))).toEqual([[0, 0]]);
   });
 
   it("c3b case, spacing and curly quotes do not matter", () => {
@@ -141,7 +141,7 @@ describe("other rules of the pairing", () => {
   });
 
   it("c7 each item is used at most once", () => {
-    const r = run([K(Q, "must", "A/B testing"), K(Q, "must", "Product metrics")], [E(Q, "must", "new:a-b-testing")]);
+    const r = run([K(Q, "must", "A/B testing"), K(Q, "must", "Product metrics")], [E(Q, "must", "ab-testing")]);
     expect(r.pairs).toHaveLength(1);
   });
 });

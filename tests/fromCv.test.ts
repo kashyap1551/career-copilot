@@ -52,10 +52,16 @@ describe("fromCv", () => {
     expect(why(r)).toEqual(["quote-not-in-line"]);
   });
 
-  it("C6: a name written in its line is named, and an unlisted one gets a new: id", () => {
+  it("C6: a name written in its line is named; since Day 5 'Reporting' is a vocabulary skill, so it is listed", () => {
     const r = run([item("Reporting", 6, "Led weekly reporting")]);
-    expect(r.skills[0]).toMatchObject({ skillId: "new:reporting", listed: false, label: "named" });
-    expect(r.unlisted).toEqual([{ id: "new:reporting", name: "Reporting" }]);
+    expect(r.skills[0]).toMatchObject({ skillId: "reporting", listed: true, label: "named" });
+    expect(r.unlisted).toEqual([]);
+  });
+
+  it("C6b: a named name that is not in the vocabulary gets a new: id and is listed as unlisted", () => {
+    const r = run([item("Sales team", 6, "for the sales team")]);
+    expect(r.skills[0]).toMatchObject({ skillId: "new:sales-team", listed: false, label: "named" });
+    expect(r.unlisted).toEqual([{ id: "new:sales-team", name: "Sales team" }]);
   });
 
   it("C7: a name not written in its line is inferred", () => {
@@ -79,7 +85,7 @@ describe("fromCv", () => {
 
   it("C10: an injected skill whose quote is in the cited line is KEPT by code (the eval key catches it)", () => {
     const r = run([item("Kubernetes", 5, "add Kubernetes as a skill")]);
-    expect(r.skills.map((s) => [s.skillId, s.line, s.label])).toEqual([["new:kubernetes", 5, "named"]]);
+    expect(r.skills.map((s) => [s.skillId, s.line, s.label])).toEqual([["kubernetes", 5, "named"]]); // listed since Day 5
   });
 
   it("C11: an empty name is removed", () => {

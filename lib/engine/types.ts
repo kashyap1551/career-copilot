@@ -10,6 +10,13 @@ export type SkillId = string;
 export type Skill = {
   id: SkillId;
   name: string;
+  // From the vocabulary (lib/vocab): other ways the skill is written. A skill
+  // without them is matched by its id and name only, as before Day 5.
+  de?: string; // the German name
+  aliases?: string[];
+  // A single letter or a very common word ("R", "C", "Go"): it matches only
+  // when the whole name equals it, never after level or version words are dropped.
+  exactOnly?: boolean;
 };
 
 // Language levels on the CEFR scale, lowest to highest.

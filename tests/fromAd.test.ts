@@ -264,20 +264,21 @@ describe("F. requirements", () => {
   });
 
   it("F10 a skill not in the list gets a provisional id and is listed as unlisted", () => {
-    const ad = "Docker experience.";
-    const r = build(reading({ requirements: [req(ad, "must", "Docker")] }), ad);
-    expect(r.job.requirements[0].skillIds).toEqual(["new:docker"]);
-    expect(r.unlisted).toEqual([{ id: "new:docker", name: "Docker" }]);
+    // Docker was the example until Day 5, when it entered the vocabulary; Welding is not in it.
+    const ad = "Welding experience.";
+    const r = build(reading({ requirements: [req(ad, "must", "Welding")] }), ad);
+    expect(r.job.requirements[0].skillIds).toEqual(["new:welding"]);
+    expect(r.unlisted).toEqual([{ id: "new:welding", name: "Welding" }]);
   });
 
   it("E15 the same unlisted skill in two requirements is listed once, under its first name", () => {
-    const ad = "Docker experience. Some docker knowledge.";
+    const ad = "Welding experience. Some welding knowledge.";
     const r = build(
-      reading({ requirements: [req("Docker experience.", "must", "Docker"), req("Some docker knowledge.", "nice", "docker")] }),
+      reading({ requirements: [req("Welding experience.", "must", "Welding"), req("Some welding knowledge.", "nice", "welding")] }),
       ad,
     );
-    expect(r.job.requirements.map((q) => q.skillIds)).toEqual([["new:docker"], ["new:docker"]]);
-    expect(r.unlisted).toEqual([{ id: "new:docker", name: "Docker" }]);
+    expect(r.job.requirements.map((q) => q.skillIds)).toEqual([["new:welding"], ["new:welding"]]);
+    expect(r.unlisted).toEqual([{ id: "new:welding", name: "Welding" }]);
   });
 
   it("F11 order and importance are kept", () => {

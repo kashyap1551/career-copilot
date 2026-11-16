@@ -11,7 +11,8 @@
     "report": "tsx scripts/report.ts",
     "eval": "tsx scripts/eval.ts",
     "eval-cv": "tsx scripts/evalCv.ts",
-    "capture-names": "tsx scripts/captureNames.ts"
+    "capture-names": "tsx scripts/captureNames.ts",
+    "vocab-check": "tsx scripts/vocabCheck.ts"
   },
   "dependencies": {
     "@ai-sdk/groq": "^4.0.83",

@@ -81,7 +81,7 @@ describe("requirement scoring", () => {
     const L = "Sehr gute SQL-Kenntnisse; Python or R is a plus.";
     const s = scoreAd(
       keyOf({ requirements: [K("Sehr gute SQL-Kenntnisse", "must", "SQL"), K("Python or R is a plus.", "nice", "Python", "R")] }),
-      result({ requirements: [E(L, "must", "sql"), E(L, "nice", "python", "new:r")] }),
+      result({ requirements: [E(L, "must", "sql"), E(L, "nice", "python", "r-language")] }),
       skills,
     ).requirements;
     expect(s).toMatchObject({ mustTotal: 1, niceTotal: 1, found: 1, missedMust: 0, missedNice: 0, invented: 0, nameDiffers: 0 });
@@ -91,7 +91,7 @@ describe("requirement scoring", () => {
     const L = "Sehr gute SQL-Kenntnisse; Python or R is a plus.";
     const s = scoreAd(
       keyOf({ requirements: [K("Sehr gute SQL-Kenntnisse", "must", "SQL"), K("Python or R is a plus.", "nice", "Python", "R")] }),
-      result({ requirements: [E(L, "must", "new:structured-query-language"), E(L, "nice", "new:python-3", "new:r")] }),
+      result({ requirements: [E(L, "must", "new:structured-query-language"), E(L, "nice", "new:python-3", "r-language")] }),
       skills,
     ).requirements;
     expect(s).toMatchObject({ found: 1, nameDiffers: 2, missedMust: 0, invented: 0 });
@@ -109,7 +109,7 @@ describe("requirement scoring", () => {
   it("b1 split correctly: found 2 of 2", () => {
     const s = scoreAd(
       keyOf({ requirements: [K(Q, "must", "A/B testing"), K(Q, "must", "Product metrics")] }),
-      result({ requirements: [E(Q, "must", "new:a-b-testing"), E(Q, "must", "new:product-metrics")] }),
+      result({ requirements: [E(Q, "must", "ab-testing"), E(Q, "must", "new:product-metrics")] }),
       skills,
     ).requirements;
     expect(s).toMatchObject({ mustTotal: 2, found: 2, missedMust: 0, nameDiffers: 0, mergeHints: 0 });
@@ -118,7 +118,7 @@ describe("requirement scoring", () => {
   it("b2 merged: found 1 of 2, one missed, a merge hint, name differs 1", () => {
     const s = scoreAd(
       keyOf({ requirements: [K(Q, "must", "A/B testing"), K(Q, "must", "Product metrics")] }),
-      result({ requirements: [E(Q, "must", "new:a-b-testing", "new:product-metrics")] }),
+      result({ requirements: [E(Q, "must", "ab-testing", "new:product-metrics")] }),
       skills,
     ).requirements;
     expect(s).toMatchObject({ mustTotal: 2, found: 1, missedMust: 1, mergeHints: 1, nameDiffers: 1 });
@@ -134,7 +134,7 @@ describe("requirement scoring", () => {
   });
 
   it("b4 a third item is invented, or accepted when the key lists it", () => {
-    const ex = [E(Q, "must", "new:a-b-testing"), E(Q, "must", "new:product-metrics"), E(Q, "nice", "new:retention")];
+    const ex = [E(Q, "must", "ab-testing"), E(Q, "must", "new:product-metrics"), E(Q, "nice", "new:retention")];
     const base = [K(Q, "must", "A/B testing"), K(Q, "must", "Product metrics")];
     const without = scoreAd(keyOf({ requirements: base }), result({ requirements: ex }), skills).requirements;
     expect(without).toMatchObject({ invented: 1, accepted: 0 });

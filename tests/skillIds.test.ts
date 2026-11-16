@@ -14,19 +14,22 @@ const E: [string, string, string | null, boolean][] = [
   ["E5", "Financial planning and analysis", "financial-planning", true],
   ["E6", "Financial planning", "financial-planning", true],
   ["E7", "Vitest", "vitest", true],
-  ["E8", "MS Excel", "new:ms-excel", false],
+  ["E8", "MS Excel", "excel", true], // since Day 5 "MS Excel" is an alias of Excel
   ["E9", "Docker Compose!", "new:docker-compose", false],
-  ["E10", "C++", "new:c-plus-plus", false],
-  ["E11", "C#", "new:c-sharp", false],
-  ["E12", "Node.js", "new:node-js", false],
+  ["E10", "C++", "c-plus-plus", true], // since Day 5 C++ is in the vocabulary
+  ["E11", "C#", "c-sharp", true], // since Day 5 C# is in the vocabulary
+  ["E12", "Node.js", "nodejs", true], // since Day 5 Node.js is in the vocabulary (id nodejs)
   ["E13", "Führerschein", "new:fuhrerschein", false],
   ["E14a", "???", null, false],
   ["E14b", "   ", null, false],
 ];
 
 describe("skillIdFor", () => {
-  it("the list has the 17 skills the table assumes", () => {
-    expect(skills).toHaveLength(17);
+  it("the list starts with the 17 skills the table assumes (the vocabulary of Day 5 follows them)", () => {
+    expect(skills.slice(0, 17).map((s) => s.id)).toEqual([
+      "sql", "excel", "python", "seo", "social-media", "canva", "typescript", "react", "git", "communication",
+      "power-bi", "tableau", "financial-planning", "financial-modelling", "vitest", "jest", "accessibility",
+    ]);
   });
 
   it.each(E)("%s: %j gives %s", (_id, name, id, listed) => {

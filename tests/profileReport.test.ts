@@ -128,10 +128,10 @@ describe("profileReport", () => {
   });
 
   it("R10: a requirement whose skills are all unlisted is 'not in our skill list yet' and counted", () => {
-    const docker: Job = { ...northwind, requirements: [{ skillIds: ["new:docker"], importance: "must", quote: "Docker experience." }] };
-    const r = profileReport(docker, buildProfile(LINES, P, confirm(), skills), skills, [{ id: "new:docker", name: "Docker" }]);
+    const docker: Job = { ...northwind, requirements: [{ skillIds: ["new:welding"], importance: "must", quote: "Welding experience." }] };
+    const r = profileReport(docker, buildProfile(LINES, P, confirm(), skills), skills, [{ id: "new:welding", name: "Welding" }]);
     expect(r.rows[0].status).toBe("unlisted");
-    expect(r.rows[0].detail).toBe("Docker: not in our skill list yet, so it can't be matched with your CV");
+    expect(r.rows[0].detail).toBe("Welding: not in our skill list yet, so it can't be matched with your CV");
     expect(r.unlistedRequirements).toBe(1);
   });
 

@@ -75,14 +75,15 @@ describe("buildProfile: skills", () => {
   });
 
   it("B5: a listed skill added by hand has no CV line; an unlisted one is left out and reported", () => {
-    const b = build({ added: ["SQL", "Docker"] });
+    // Docker was the unlisted example until Day 5; Welding is not in the vocabulary.
+    const b = build({ added: ["SQL", "Welding"] });
     expect(b.profile.skills).toContainEqual({ kind: "have", skillId: "sql", evidence: null });
-    expect(b.profile.skills.some((s) => s.skillId === "new:docker")).toBe(false);
+    expect(b.profile.skills.some((s) => s.skillId === "new:welding")).toBe(false);
     expect(b.handAdded).toEqual([
       { name: "SQL", skillId: "sql", listed: true },
-      { name: "Docker", skillId: "new:docker", listed: false },
+      { name: "Welding", skillId: "new:welding", listed: false },
     ]);
-    expect(b.unmatchable).toEqual([{ name: "Docker", where: "hand" }]);
+    expect(b.unmatchable).toEqual([{ name: "Welding", where: "hand" }]);
   });
 
   it("B6: adding by hand what the CV already gave is ignored, with a note", () => {
@@ -99,10 +100,10 @@ describe("buildProfile: skills", () => {
   });
 
   it("B8: in progress with a valid date; an unlisted one is left out and reported", () => {
-    const b = build({ inProgress: [{ name: "Python", date: "2026-12-20" }, { name: "Rust", date: "2027-01-31" }] });
+    const b = build({ inProgress: [{ name: "Python", date: "2026-12-20" }, { name: "Welding", date: "2027-01-31" }] });
     expect(b.profile.skills).toContainEqual({ kind: "inProgress", skillId: "python", expectedDate: "2026-12-20" });
-    expect(b.profile.skills.some((s) => s.skillId === "new:rust")).toBe(false);
-    expect(b.unmatchable).toEqual([{ name: "Rust", where: "progress" }]);
+    expect(b.profile.skills.some((s) => s.skillId === "new:welding")).toBe(false);
+    expect(b.unmatchable).toEqual([{ name: "Welding", where: "progress" }]);
   });
 
   it("B9: in progress without a valid date is a problem and is left out", () => {

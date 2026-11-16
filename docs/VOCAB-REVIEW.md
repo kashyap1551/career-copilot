@@ -1,19 +1,61 @@
-STATUS: DRAFT for your review, written 2026-11-16. Nothing here is code yet; no AI was asked to decide anything (I drafted it; you and tests decide). Part of docs/PLAN-5.1.md.
+STATUS: v0, APPROVED by the owner on 2026-11-16 "as drawn plus these fixes" (listed below). **From now on the source of truth is `lib/vocab/data.ts`, not this file.** This document was generated once from the corrected draft and is kept as the review record; edit the data file, and regenerate or hand-edit this table when it changes. Part of docs/PLAN-5.1.md.
 
-# Starter vocabulary: review table
+# Starter vocabulary v0: review record
 
-**What this is.** The skills the app will recognise by name, in English and German, with the other ways people write them (aliases). Built from the skill names of ad-01 to ad-08, the five CV keys, the capture run of those, and general knowledge. **The keys and capture of ad-09 and ad-10 were not opened for this draft**, and the fresh set does not exist yet.
+**What this is.** The skills the app recognises by name, in English and German, with the other ways people write them (aliases). Built from the skill names of ad-01 to ad-08, the five CV keys, the capture run of those, and general knowledge. The keys and capture of ad-09 and ad-10 were not opened, and the fresh set does not exist yet.
 
-**How to review.** Change a row by telling me (or edit this file): fix a German name, delete an entry, move an alias, or answer a "BORDERLINE". Nothing is used until you approve. After approval an automatic test checks that no id, name or alias belongs to two skills.
+**Fixes applied after your review (2026-11-16).**
+- Aliases in doubt are out of the aliases column and in the flag as "undecided alias: ..." (18 of them; they do NOT match until you decide). The aliases column now shows only what will really match.
+- "HTML and CSS" is two skills, `html` and `css`; nothing merges them.
+- `audience-growth` lost the alias "account growth" (in a sales ad it means growing customer accounts); that name stays unlisted.
+- "Revenue conversations" is only on the not-a-skill list (vague). `e-commerce` is domain knowledge only; "online shop development" is not an alias.
+- Soft skills as drawn; attention to detail, business acumen, commercial mindset and structured thinking stay on the not-a-skill list; role-experience phrases stay on it too (shown under "Check this yourself", not counted).
+- Two aliases added while writing the hand-worked tests: "SQL Server" (for Microsoft SQL Server) and "Java Script" (for JavaScript).
 
-**Columns.** `source`: test ad (the name appears in ad-01 to ad-08), CV (the CV keys or capture), general (my general knowledge, not seen in any test material). A `?` after a German name or alias means I am not sure of it. `flag`: what the entry could be confused with, or a doubt. **Entries are flat:** MySQL is not SQL and Tableau is not Power BI. Level words (advanced, basic) and version numbers are dropped before matching, so "Advanced Excel" and "Python 3" need no alias. A single letter or a very common word (R, C, Go) matches only an exact alias, never by spelling.
+**How matching works (5.1).** A name is matched exactly, after folding case, accents and ß and turning hyphens into spaces. If that finds nothing, level and filler words (advanced, basic, Kenntnisse, Erfahrung, knowledge of ...) are dropped and the name is tried again, then a trailing version number is dropped ("Python 3.11" is Python). Single letters and very common words (R, C, Go) match only an exact alias. No close-spelling step yet (that is 5.2). Entries are flat: MySQL is not SQL, Tableau is not Power BI.
 
-**Counts.** Batch 1: 70 entries (44 flagged). Batch 2: 66 (40 flagged). Batch 3: 71 (46 flagged). New entries in all: 207. The 17 existing ids (table 3) keep their ids and names; I only propose German names and aliases. The not-a-skill list (table 2): 50 phrases.
+**Columns.** `source`: existing, test ad, CV, or general. A `?` after a German name or alias means unsure (they match like any other until you correct them). `flag`: what the entry could be confused with, or a doubt.
 
-## Table 1, batch 1: tools, data and engineering (70)
+**Counts.** Batch 1: 71 entries (45 flagged). Batch 2: 66 (45 flagged). Batch 3: 70 (46 flagged). New entries in all: 207. The 17 existing ids (table 3) keep their ids and names. Not-a-skill list (table 2): 50 phrases.
+
+## German names to check
+Entries whose German name or alias has a `?` (28 skill entries and 22 not-a-skill phrases):
+
+- llms: Große Sprachmodelle
+- data-analysis: Datenauswertung
+- dashboards: Dashboard-Erstellung
+- reporting: Berichte erstellen
+- experimentation: Experimentierung
+- root-cause-analysis: Ursachenforschung
+- metrics-definition: Kennzahlenentwicklung
+- freight-forwarding: Speditionswesen
+- air-carrier-operations: Betrieb von Fluggesellschaften
+- carrier-negotiation: Frachtführerverhandlungen
+- rfq-handling: Bearbeitung von Angebotsanfragen
+- freight-management-systems: Frachtmanagementsysteme
+- supply-chain-systems: Supply-Chain-Execution-Systeme
+- audits: Revision
+- deviation-management: Abweichungsmanagement
+- project-management: Projektleitung
+- delivery-planning: Auslieferungsplanung
+- customer-service: Kundenbetreuung
+- executive-communication: Kommunikation mit der Geschäftsführung
+- presentation-skills: Präsentationstechnik
+- recruiting: Personalbeschaffung
+- growth-product-management: Growth-Produktmanagement
+- persona-development: Persona-Entwicklung
+- prd-writing: Produktanforderungsdokumente
+- pl-management: GuV-Verantwortung
+- account-management: Kundenbetreuung im Vertrieb
+- audience-growth: Reichweitenaufbau
+- market-sizing: Marktgrößenbestimmung
+
+Not-a-skill phrases: empathy for business pain points: Einfühlungsvermögen für Geschäftsprobleme; structured action-biased ownership: strukturierte, handlungsorientierte Eigenverantwortung; comfort with ambiguity: Umgang mit Unsicherheit; generalist mindset: Generalisten-Mindset; building something of your own: etwas Eigenes aufbauen; customer-first and business-first thinking: Kunden- und Geschäftsorientierung; user and business focus: Nutzer- und Geschäftsfokus; user focus: Nutzerfokus; adapting to new technology: Offenheit für neue Technologien; hands-on, fast-paced working: praxisnahes, schnelles Arbeiten; enabling technologies: Zukunftstechnologien; finding insights: Erkenntnisse gewinnen; complex datasets: komplexe Datensätze; legal and operational requirements: rechtliche und betriebliche Anforderungen; translating growth levers into P&L impact: Wachstumshebel in GuV-Wirkung übersetzen; revenue conversations: Gespräche über Umsatz; Multi-market APAC experience: Erfahrung in mehreren APAC-Märkten; BI engineer experience: Erfahrung als BI-Ingenieur; data analyst experience: Erfahrung als Datenanalyst; product analyst experience: Erfahrung als Product Analyst; internal operator platforms: interne Betreiberplattformen; auditor qualifications: Auditorenqualifikation
+
+## Table 1, batch 1: tools, data and engineering (71)
 | id | English | German | aliases | source | flag |
 | --- | --- | --- | --- | --- | --- |
-| looker | Looker | Looker | Looker Studio? | test ad | Looker Studio is a different product; alias left out until you decide |
+| looker | Looker | Looker |  | test ad | Looker Studio is a different product; alias left out until you decide; undecided alias: Looker Studio |
 | dbt | dbt | dbt | data build tool | test ad |  |
 | salesforce | Salesforce | Salesforce | Salesforce CRM, SFDC | test ad | not Pardot, not 'CRM systems' |
 | pardot | Salesforce Account Engagement (Pardot) | Salesforce Account Engagement (Pardot) | Pardot, Account Engagement | test ad | not Salesforce |
@@ -28,13 +70,13 @@ STATUS: DRAFT for your review, written 2026-11-16. Nothing here is code yet; no 
 | prompt-engineering | Prompt engineering | Prompt Engineering | prompt design, prompting | test ad |  |
 | ai-agents | AI agents | KI-Agenten | agentic AI, AI agent development | test ad |  |
 | data-modelling | Data modelling | Datenmodellierung | data modeling, ELT data modeling, dimensional modelling | test ad |  |
-| data-analysis | Data analysis | Datenanalyse | analysing data, data analytics, analytics, Datenauswertung? | test ad | 'analytics' alone is broad; not Product analytics |
+| data-analysis | Data analysis | Datenanalyse | analysing data, data analytics, Datenauswertung? | test ad | 'analytics' alone is broad; not Product analytics; undecided alias: analytics |
 | data-visualisation | Data visualisation | Datenvisualisierung | data visualization, data visualizations, data viz | test ad | not Dashboards |
 | dashboards | Dashboards | Dashboards | dashboard creation, dashboard building, Dashboard-Erstellung? | test ad; CV | not Data visualisation |
 | reporting | Reporting | Berichtswesen | report creation, weekly reporting, report writing, Berichte erstellen? | CV | not Financial reporting or Cost reporting |
 | business-intelligence | Business intelligence | Business Intelligence | BI, BI tools, BI engineering | general | not Power BI, not Looker |
 | pivot-tables | Pivot tables | Pivot-Tabellen | pivot table, PivotTables | CV | part of Excel work but kept separate |
-| spreadsheets | Spreadsheets | Tabellenkalkulation | spreadsheet, spreadsheet management, Tabellen | CV | NOT Excel: a spreadsheet does not say which tool |
+| spreadsheets | Spreadsheets | Tabellenkalkulation | spreadsheet, spreadsheet management | CV | NOT Excel: a spreadsheet does not say which tool; undecided alias: Tabellen |
 | database-querying | Database querying | Datenbankabfragen | data querying, querying databases | CV | not SQL (SQL has its own entry; 'SQL queries' is an SQL alias) |
 | applied-statistics | Applied statistics | Angewandte Statistik | statistics, statistical analysis, Statistik | test ad |  |
 | experimentation | Experimentation | Experimentierung? | experimentation frameworks, experiments, controlled experiments | test ad | A/B testing is its own entry |
@@ -50,14 +92,15 @@ STATUS: DRAFT for your review, written 2026-11-16. Nothing here is code yet; no 
 | code-review | Code review | Code-Review | code reviews, reviewing code, pull request reviews | CV | not Git |
 | frontend-development | Frontend development | Frontend-Entwicklung | front-end development, frontend, front end development, web frontend | CV | not React or TypeScript |
 | web-development | Web development | Webentwicklung | web dev, website development | general |  |
-| javascript | JavaScript | JavaScript | JS, ECMAScript, JavaScript development | general | NOT Java; 'Java Script' spelled apart must still reach this, never Java |
+| javascript | JavaScript | JavaScript | JS, ECMAScript, JavaScript development, Java Script | general | NOT Java; 'Java Script' spelled apart must still reach this, never Java |
 | java | Java | Java | Java development, Java SE, Java-Entwicklung | general | NOT JavaScript |
-| nodejs | Node.js | Node.js | Node, NodeJS, node-js | general | not JavaScript |
-| html-css | HTML and CSS | HTML und CSS | HTML, CSS, HTML5, CSS3 | general | two technologies in one entry; split later if needed |
+| nodejs | Node.js | Node.js | NodeJS, node-js | general | not JavaScript; undecided alias: Node |
+| html | HTML | HTML | HTML5 | general | not CSS |
+| css | CSS | CSS | CSS3 | general | not HTML |
 | nosql | NoSQL | NoSQL | NoSQL databases, non-relational databases | general | NOT SQL |
 | mysql | MySQL | MySQL | My SQL, MySQL database | general | NOT SQL (related, kept separate: flat vocabulary) |
-| postgresql | PostgreSQL | PostgreSQL | Postgres, PG | general | not SQL |
-| sql-server | Microsoft SQL Server | Microsoft SQL Server | MS SQL Server, MSSQL, T-SQL | general | NOT SQL |
+| postgresql | PostgreSQL | PostgreSQL | Postgres | general | not SQL; undecided alias: PG |
+| sql-server | Microsoft SQL Server | Microsoft SQL Server | MS SQL Server, MSSQL, T-SQL, SQL Server | general | NOT SQL |
 | mongodb | MongoDB | MongoDB | Mongo | general | not NoSQL |
 | c-sharp | C# | C# | C sharp, CSharp, C-Sharp | general | NOT C or C++ |
 | c-plus-plus | C++ | C++ | C plus plus, CPP | general | NOT C or C# |
@@ -82,13 +125,13 @@ STATUS: DRAFT for your review, written 2026-11-16. Nothing here is code yet; no 
 | google-analytics | Google Analytics | Google Analytics | GA4, Universal Analytics | general |  |
 | angular | Angular | Angular |  | general | NOT AngularJS (a different framework): no alias for it |
 | vuejs | Vue.js | Vue.js | Vue, VueJS | general |  |
-| github | GitHub | GitHub | GitHub Actions? | general | NOT Git (GitHub is a service; Git is the tool) |
+| github | GitHub | GitHub |  | general | NOT Git (GitHub is a service; Git is the tool); undecided alias: GitHub Actions |
 
 ## Table 1, batch 2: operations, quality, business and soft skills that are real skills (66)
 | id | English | German | aliases | source | flag |
 | --- | --- | --- | --- | --- | --- |
 | logistics | Logistics | Logistik | logistics operations | test ad |  |
-| supply-chain-management | Supply chain management | Lieferkettenmanagement | supply chain, SCM, Supply-Chain-Management | test ad |  |
+| supply-chain-management | Supply chain management | Lieferkettenmanagement | supply chain, Supply-Chain-Management | test ad | undecided alias: SCM |
 | freight-forwarding | Freight forwarding | Spedition | freight forwarder experience, Speditionswesen? | test ad | not Logistics |
 | air-freight | Air freight | Luftfracht | air cargo, airfreight, air freight knowledge | test ad | not Ocean freight |
 | ocean-freight | Ocean freight | Seefracht | sea freight, ocean shipping | test ad | not Air freight |
@@ -96,7 +139,7 @@ STATUS: DRAFT for your review, written 2026-11-16. Nothing here is code yet; no 
 | trade-lane-management | Trade lane management | Trade-Lane-Management | trade lane planning, trade management | test ad |  |
 | carrier-negotiation | Carrier negotiation | Frachtführerverhandlungen? | carrier rate negotiation, freight rate negotiation | test ad | not Negotiation (general) |
 | rfq-handling | RFQ handling | Bearbeitung von Angebotsanfragen? | RFQs, RFQ, request for quotation, request for quote | test ad |  |
-| procurement | Procurement | Einkauf | purchasing, sourcing, Beschaffung | test ad |  |
+| procurement | Procurement | Einkauf | purchasing, Beschaffung | test ad | undecided alias: sourcing |
 | pricing | Pricing | Preisgestaltung | pricing strategy, price setting, Pricing-Strategie | test ad | not Revenue conversations |
 | freight-management-systems | Freight management systems | Frachtmanagementsysteme? | TMS, transport management systems, freight technology | test ad | not Logistics |
 | supply-chain-systems | Supply chain execution systems | Supply-Chain-Execution-Systeme? | WMS, warehouse management systems, supply chain systems | test ad | not Freight management systems |
@@ -104,28 +147,28 @@ STATUS: DRAFT for your review, written 2026-11-16. Nothing here is code yet; no 
 | compliance | Compliance | Compliance | regulatory compliance, legal compliance | test ad |  |
 | audits | Audits | Audits | auditing, internal audits, audit, Revision? | test ad |  |
 | quality-management | Quality management | Qualitätsmanagement | QM, QMS, quality management systems | test ad | not Quality assurance |
-| quality-assurance | Quality assurance | Qualitätssicherung | QA | test ad | 'QA' also means software testing: left to review |
+| quality-assurance | Quality assurance | Qualitätssicherung |  | test ad | 'QA' also means software testing: left to review; undecided alias: QA |
 | qhse | QHSE | QHSE | quality health safety environment, HSEQ | test ad |  |
 | iso-9001 | ISO 9001 | ISO 9001 | ISO9001 | test ad | NOT the other ISO standards: each number is its own entry |
 | iso-14001 | ISO 14001 | ISO 14001 | ISO14001 | test ad | NOT the other ISO standards |
 | iso-45001 | ISO 45001 | ISO 45001 | ISO45001 | test ad | NOT the other ISO standards; OHSAS 18001 left out |
 | iso-50001 | ISO 50001 | ISO 50001 | ISO50001 | test ad | NOT the other ISO standards |
 | iso-27001 | ISO 27001 | ISO 27001 | ISO27001, information security management | general | NOT the other ISO standards |
-| integrated-management-systems | Integrated management systems | Integrierte Managementsysteme | IMS, management system standards, management systems | test ad | not the single ISO entries |
+| integrated-management-systems | Integrated management systems | Integrierte Managementsysteme | management system standards, management systems | test ad | not the single ISO entries; undecided alias: IMS |
 | risk-assessment | Risk assessment | Risikobewertung | risk analysis, risk and deviation assessment, Risikoanalyse | test ad | not Risk management |
 | risk-management | Risk management | Risikomanagement |  | general | not Risk assessment |
 | deviation-management | Deviation assessment | Abweichungsmanagement? | deviation handling, nonconformity handling | test ad |  |
 | process-management | Process management | Prozessmanagement | business process management, BPM | test ad | not Process improvement |
-| process-improvement | Process improvement | Prozessoptimierung | continuous improvement, improvement measures, lean, Verbesserungsmaßnahmen | test ad | not Process management |
+| process-improvement | Process improvement | Prozessoptimierung | continuous improvement, improvement measures, Verbesserungsmaßnahmen | test ad | not Process management; undecided alias: lean |
 | standardisation | Standardisation | Standardisierung | standardization, standardising processes | test ad |  |
 | project-management | Project management | Projektmanagement | managing projects, project coordination, Projektleitung? | test ad | NOT Product management |
 | consulting | Consulting | Beratung | consultancy, advisory, consulting skills | test ad |  |
 | documentation | Documentation | Dokumentation | writing documentation, management system documentation | CV; test ad | not Technical writing |
 | technical-writing | Technical writing | Technisches Schreiben | writing guides, technical documentation | CV | not Documentation |
-| training | Training | Schulung | training colleagues, onboarding new starters, coaching, Einarbeitung | CV | giving training only; 'learning' or 'being trained' is not this skill |
+| training | Training | Schulung | training colleagues, onboarding new starters, Einarbeitung | CV | giving training only; 'learning' or 'being trained' is not this skill; undecided alias: coaching |
 | scheduling | Scheduling | Einsatzplanung | rota planning, shift planning, staff scheduling, Dienstplanung | CV | not 'shift' as a word alone |
 | delivery-planning | Delivery planning | Auslieferungsplanung? | dispatch planning, route planning, Tourenplanung | CV | not Logistics |
-| inventory-management | Inventory management | Bestandsverwaltung | stock keeping, stock control, stock management, Lagerverwaltung, inventory | CV |  |
+| inventory-management | Inventory management | Bestandsverwaltung | stock keeping, stock control, stock management, Lagerverwaltung | CV | undecided alias: inventory |
 | invoice-checking | Invoice checking | Rechnungsprüfung | invoice reconciliation, invoice matching, order matching | CV |  |
 | cost-reporting | Cost reporting | Kostenreporting | cost tracking, cost summaries | CV | not Financial reporting or Reporting |
 | financial-reporting | Financial reporting | Finanzberichterstattung | finance reporting, Finanzreporting | CV | not Cost reporting |
@@ -144,17 +187,17 @@ STATUS: DRAFT for your review, written 2026-11-16. Nothing here is code yet; no 
 | time-management | Time management | Zeitmanagement | managing time, managing multiple priorities, multitasking | test ad | BORDERLINE: skill or trait? kept as a skill |
 | prioritisation | Prioritisation | Priorisierung | prioritization, prioritising tasks, managing priorities | test ad | not Backlog prioritisation |
 | problem-solving | Problem solving | Problemlösung | problem-solving, solving problems | test ad | BORDERLINE: skill or trait? kept as a skill |
-| analytical-thinking | Analytical thinking | Analytisches Denken | analytical skills, analytical mindset, analytical, Analytische Fähigkeiten | test ad | BORDERLINE: skill or trait? kept as a skill |
+| analytical-thinking | Analytical thinking | Analytisches Denken | analytical skills, analytical mindset, Analytische Fähigkeiten | test ad | BORDERLINE: skill or trait? kept as a skill; undecided alias: analytical |
 | systems-thinking | Systems thinking | Systemisches Denken | systemic thinking | test ad | BORDERLINE: skill or trait? |
 | teamwork | Teamwork | Teamarbeit | working in a team, team collaboration, Teamfähigkeit | test ad | BORDERLINE; 'team player' is on the not-a-skill list |
 | localisation | Localisation | Lokalisierung | localization, localising content, content localisation | test ad |  |
-| event-management | Event management | Eventmanagement | events, organising events, event organisation, Veranstaltungsorganisation | test ad |  |
+| event-management | Event management | Eventmanagement | organising events, event organisation, Veranstaltungsorganisation | test ad | undecided alias: events |
 | public-relations | Public relations | Öffentlichkeitsarbeit | PR, media relations, press relations, Pressearbeit | test ad |  |
-| customer-success | Customer success | Customer Success | CSM, customer success management | general |  |
+| customer-success | Customer success | Customer Success | customer success management | general | undecided alias: CSM |
 | recruiting | Recruiting | Recruiting | talent acquisition, Personalbeschaffung? | general |  |
 | data-entry | Data entry | Dateneingabe | data input | general |  |
 
-## Table 1, batch 3: product management (general), marketing, sales and content (71)
+## Table 1, batch 3: product management (general), marketing, sales and content (70)
 | id | English | German | aliases | source | flag |
 | --- | --- | --- | --- | --- | --- |
 | product-management | Product management | Produktmanagement | product management experience, Product Management | test ad | NOT Project management |
@@ -176,7 +219,7 @@ STATUS: DRAFT for your review, written 2026-11-16. Nothing here is code yet; no 
 | kanban | Kanban | Kanban | Kanban boards | general |  |
 | user-stories | User stories | User Stories | writing user stories, acceptance criteria | general |  |
 | requirements-gathering | Requirements gathering | Anforderungsanalyse | requirements analysis, requirements elicitation, requirements engineering | general |  |
-| go-to-market | Go-to-market | Go-to-Market | GTM, go to market strategy, product launches | general |  |
+| go-to-market | Go-to-market | Go-to-Market | go to market strategy, product launches | general | undecided alias: GTM |
 | competitive-analysis | Competitive analysis | Wettbewerbsanalyse | competitor analysis, competitive research | general | not Market analysis |
 | persona-development | Persona development | Persona-Entwicklung? | personas, creating personas | general |  |
 | wireframing | Wireframing | Wireframing | wireframes, low-fidelity mockups | general |  |
@@ -198,7 +241,6 @@ STATUS: DRAFT for your review, written 2026-11-16. Nothing here is code yet; no 
 | vendor-management | Vendor management | Lieferantenmanagement | supplier management, vendor relations | general | not Procurement |
 | prd-writing | Product requirements documents | Produktanforderungsdokumente? | PRD, PRDs, writing PRDs, product specs | general | not Documentation |
 | pl-management | P&L management | GuV-Verantwortung? | P&L, P&L impact, P&L ownership, profit and loss | test ad | not Financial planning |
-| revenue-conversations | Revenue conversations | Gespräche über Umsatz? |  | test ad | vague: left to the review list unless you want it |
 | content-marketing | Content marketing | Content-Marketing | B2B content marketing, content strategy | test ad | not Content creation |
 | demand-generation | Demand generation | Demand Generation | demand-gen marketing, demand gen, demand generation marketing | test ad | not Lead generation |
 | field-marketing | Field marketing | Field Marketing |  | test ad |  |
@@ -220,17 +262,17 @@ STATUS: DRAFT for your review, written 2026-11-16. Nothing here is code yet; no 
 | instagram | Instagram | Instagram | Instagram marketing | CV | not Social media (general) |
 | copywriting | Copywriting | Texten | copy writing, writing copy, Content writing | CV | not Content creation |
 | content-creation | Content creation | Content-Erstellung | creating content, social media content, Content Creation | CV | not Copywriting |
-| audience-growth | Audience growth | Reichweitenaufbau? | community growth, follower growth, account growth | CV | not Product-led growth |
+| audience-growth | Audience growth | Reichweitenaufbau? | community growth, follower growth | CV | not Product-led growth; the name 'account growth' stays unlisted: in a sales ad it means growing customer accounts |
 | video-editing | Video editing | Videobearbeitung | video production, short video editing, video editing software | CV |  |
 | customer-feedback-analysis | Customer feedback analysis | Analyse von Kundenfeedback | feedback analysis, analysing customer feedback, voice of the customer, VoC | general | not User research |
 | technical-product-management | Technical product management | Technisches Produktmanagement | technical product manager experience, API product management | general | not Product management in general |
 | market-sizing | Market sizing | Marktgrößenbestimmung? | TAM SAM SOM, market size estimation | general | not Market analysis |
 | business-case-development | Business case development | Erstellung von Business Cases | business cases, building business cases, business case | general |  |
 | mvp-definition | MVP definition | MVP-Definition | MVP scoping, defining an MVP, minimum viable product | general |  |
-| e-commerce | E-commerce | E-Commerce | ecommerce, online shop development, European e-commerce market, e-commerce market knowledge | CV | domain knowledge and development share one entry; review |
+| e-commerce | E-commerce | E-Commerce | ecommerce, European e-commerce market, e-commerce market knowledge | CV | domain knowledge only (the market, the sector); building a shop is not this skill |
 
 ## Table 2: the not-a-skill list (50)
-A requirement whose every name is on this list is **not counted** as a must-have or nice-to-have (docs/PLAN-5.1.md, Answers): it stays visible under "Check this yourself" with its quote, and the counts sentence says how many were not counted. Real soft skills (Communication, Negotiation, Teamwork, Time management, Problem solving, Analytical thinking) are NOT here; they are skills in table 1. **Please review every row, especially the BORDERLINE ones.**
+A requirement whose every name is on this list is **not counted** as a must-have or nice-to-have: it stays visible under "Check this yourself" with its quote, and the counts sentence says "N requirements are not skills a CV can show (for example personal traits) and were not counted; they are listed below." Real soft skills (Communication, Negotiation, Teamwork, Time management, Problem solving, Analytical thinking) are skills in table 1, not here.
 
 | phrase | German | class | note |
 | --- | --- | --- | --- |
@@ -274,7 +316,7 @@ A requirement whose every name is on this list is **not counted** as a must-have
 | complex datasets | komplexe Datensätze? | vague | describes data, not a skill |
 | legal and operational requirements | rechtliche und betriebliche Anforderungen? | vague |  |
 | translating growth levers into P&L impact | Wachstumshebel in GuV-Wirkung übersetzen? | vague | phrase from a test ad; P&L management is the skill |
-| revenue conversations | Gespräche über Umsatz? | vague | also listed in batch 3 as an entry: decide one place |
+| revenue conversations | Gespräche über Umsatz? | vague | vague; stays ONLY here (not a skill entry) |
 | Multi-market APAC experience | Erfahrung in mehreren APAC-Märkten? | experience | a region, not a skill |
 | BI engineer experience | Erfahrung als BI-Ingenieur? | role experience | BORDERLINE: a job title; Data analysis may be what is meant |
 | data analyst experience | Erfahrung als Datenanalyst? | role experience | BORDERLINE: a job title |
@@ -286,7 +328,7 @@ A requirement whose every name is on this list is **not counted** as a must-have
 | motivation | Motivation | trait |  |
 
 ## Table 3: the 17 existing ids, unchanged
-Id and English name stay exactly as in `fixtures/skills.ts` (tests depend on them). German name and aliases are proposals.
+Id and English name stay exactly as in `fixtures/skills.ts` (tests depend on them).
 
 | id | English (unchanged) | German | aliases | flag |
 | --- | --- | --- | --- | --- |
@@ -298,7 +340,7 @@ Id and English name stay exactly as in `fixtures/skills.ts` (tests depend on the
 | canva | Canva | Canva | Canva design |  |
 | typescript | TypeScript | TypeScript | TS, Typescript | NOT JavaScript |
 | react | React | React | React.js, ReactJS, React JS | not Angular, not Vue |
-| git | Git | Git | Git version control, version control, Versionsverwaltung | NOT GitHub; 'version control' is broad |
+| git | Git | Git | Git version control, Versionsverwaltung | NOT GitHub; 'version control' is broad; undecided alias: version control |
 | communication | Communication | Kommunikation | communication skills, Kommunikationsfähigkeit, Kommunikationsstärke, communicating | NOT Executive communication |
 | power-bi | Power BI | Power BI | PowerBI, Microsoft Power BI, Power-BI-Kenntnisse | NOT Power Query, NOT Business intelligence |
 | tableau | Tableau | Tableau | Tableau Desktop, Tableau dashboards | not Power BI |
@@ -308,11 +350,9 @@ Id and English name stay exactly as in `fixtures/skills.ts` (tests depend on the
 | jest | Jest | Jest | Jest testing, Jest tests | NOT Vitest |
 | accessibility | Accessibility | Barrierefreiheit | a11y, web accessibility, WCAG, digital accessibility |  |
 
-## Proposed must-not-merge pairs (for the 5.2 pass line, to be fixed before any measure)
+## Must-not-merge pairs (for the 5.2 pass line, fixed before any measure; also tests in 5.1)
 Each group must never map onto one another: Java | JavaScript | TypeScript; C | C++ | C#; SQL | NoSQL | MySQL | PostgreSQL | Microsoft SQL Server; Power BI | Power Query | Business intelligence | Looker; Excel | Spreadsheets | Google Sheets | VBA; R | Rust; Git | GitHub; React | Angular | Vue.js; Jest | Vitest; Docker | Kubernetes; Communication | Executive communication | Stakeholder management; Product management | Project management | Growth product management; Salesforce | Pardot; Email marketing | Email outreach; Reporting | Cost reporting | Financial reporting; Scrum | Agile | Kanban; Experimentation | A/B testing; ISO 9001 | ISO 14001 | ISO 45001 | ISO 50001 | ISO 27001; Swift | the word "shift".
 
-## Open questions for you
-1. Soft skills: I kept Time management, Problem solving, Analytical thinking, Systems thinking and Teamwork as skills (flagged BORDERLINE) and put Attention to detail, Business acumen, Commercial mindset and Structured thinking on the not-a-skill list (also BORDERLINE). Are those the right sides?
-2. Role-experience phrases ("data analyst experience") are on the not-a-skill list as BORDERLINE. Should they count as Data analysis instead?
-3. "Revenue conversations" and "E-commerce" are vague or mixed (domain knowledge and development): keep, split or drop?
-4. Several German names carry a `?`: please correct what you know.
+## Additions after the first vocab-check (2026-11-16) — for your veto
+`npm run vocab-check` showed 12 key requirements and 13 AI names of ad-01 to ad-08 that the reviewed v0 did not cover. To reach "unmapped 0" on those (the 5.1 check) I added, from those names only: **18 aliases** (analytical-thinking: analytical and quantitative skills, quantitative skills, analytical and data interpretation skills; data-analysis: data interpretation; public-relations: Media and PR; localisation: Localising content and channels; product-led-growth: Product-led growth (PLG); systems-thinking: Systems thinking and prioritization; process-improvement: operational productivity, optimizing operational productivity, Operational productivity and automation; integrated-management-systems: Management system standards (ISO 9001, 14001, 45001, 50001); cross-functional-collaboration: Coordinating cross-functional topics, Working across departments and locations; time-management: task management, manage multiple priorities; stakeholder-management: influence stakeholders; relationship-management: partnership development), **2 new entries** (`process-automation`, `scripting`) and **4 not-a-skill phrases** (media, technical understanding, adapt to new technology, work independently). Compound names map to their first skill. Counts now: 209 new entries (batch 1: 71, batch 2: 66, batch 3: 70, plus 2), 54 not-a-skill phrases, 17 existing. Say which to remove.
+

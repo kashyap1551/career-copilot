@@ -1,23 +1,4 @@
-import type { Skill } from "@/lib/engine/types";
-
-// The skills the fixtures use. Grows as ads are added; Day 5 replaces this
-// with the real vocabulary (English and German names, aliases).
-export const skills: Skill[] = [
-  { id: "sql", name: "SQL" },
-  { id: "excel", name: "Excel" },
-  { id: "python", name: "Python" },
-  { id: "seo", name: "SEO" },
-  { id: "social-media", name: "Social media" },
-  { id: "canva", name: "Canva" },
-  { id: "typescript", name: "TypeScript" },
-  { id: "react", name: "React" },
-  { id: "git", name: "Git" },
-  { id: "communication", name: "Communication" },
-  { id: "power-bi", name: "Power BI" },
-  { id: "tableau", name: "Tableau" },
-  { id: "financial-planning", name: "Financial planning and analysis" },
-  { id: "financial-modelling", name: "Financial modelling" },
-  { id: "vitest", name: "Vitest" },
-  { id: "jest", name: "Jest" },
-  { id: "accessibility", name: "Accessibility" },
-];
+// The skills the fixtures and tests use: the vocabulary of Day 5 (lib/vocab).
+// The 17 original skills come first with their ids and names unchanged; the
+// readers (lib/ai) and the page import this path, so they use the vocabulary too.
+export { skills } from "@/lib/vocab";
