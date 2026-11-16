@@ -10,8 +10,8 @@ Scope and roles: see the first line of this file and docs/REVIEWER-BRIEF.md. Sec
 
 **Status**
 - **Done and ticked:** Day 1 to Day 4, **5.1** (vocabulary v0 in `lib/vocab/`, exact name matching, trait handling, eval fingerprint format 3) and **5.3** (the reading cache: `lib/ai/readCache.ts`, `readingVersion.ts`; ad route only, memory only, 20 entries, header `x-reading-cache`; DECISIONS 2026-11-16).
-- **5.2 is NOT ticked.** Stage 1 (exact, three tries) is live. **Stage 2 (close spelling) is built OFFLINE and NOT wired:** `lib/engine/closeSpelling.ts`, `mapName.ts`; nothing in `fromAd`, `fromCv`, the routes or the page imports it (a test checks it). **5.3 is done (see above).**
-- **Tests:** 1,169 pass in 63 files. `npx tsc --noEmit`, `npm run lint`, `npm run build` are green. Live site: https://career-copilot-theta-seven.vercel.app (deploys on push to `main`).
+- **5.2 is NOT ticked yet (the reviewer ticks after reading the report).** Stage 1 (exact, three tries) and **stage 2 (close spelling) are LIVE** (wired 2026-11-16 through `lib/engine/readName.ts` into `fromAd` and `fromCv`; order: not-a-skill flag, stage 1, stage 2; READING_VERSION is "2"). **5.3 is done (see above).**
+- **Tests:** 1,184 pass in 65 files. `npx tsc --noEmit`, `npm run lint`, `npm run build` are green. Live site: https://career-copilot-theta-seven.vercel.app (deploys on push to `main`).
 
 **Stage 2 rules (all fixed BEFORE any measure; docs/PLAN-5.1.md "5.2 stage 2 rules" and "Changes before any measure", docs/DECISIONS.md)**
 - Allowance by the SHORTER folded string: up to 5 letters 0, 6 to 8 letters 1, 9 or more 2. A swap of two neighbouring letters counts 1.
@@ -30,7 +30,7 @@ Scope and roles: see the first line of this file and docs/REVIEWER-BRIEF.md. Sec
 2. DONE 2026-11-16: `capture-fresh` ran once: 5 calls, 23,412 tokens, 62 distinct names (19, 14, 13, 9, 12 per ad), written to `fresh-labels-TODO.json`.
 3. DONE 2026-11-16: the fresh set is labelled and checked (62 entries, 26 skill ids on 25 distinct ids, 26 none, 10 not-a-skill, 0 invalid, 0 TODO; `fresh-labels.json` sha256 starts bd1086d9ad; vocabulary hash e96370fe4c; DECISIONS 2026-11-16). No measure has been run.
 4. DONE 2026-11-16: the one-shot map-measure on the fresh set passed all three lines (|L| 62, |M| 26, right_M 25, wrong 2 at the limit of 2, traitNotFlagged 9, must-not-merge 0; stage 1 gave 24 of the 25 right, stage 2 one; both wrong merges were stage 1 aliases). DECISIONS 2026-11-16. The fresh set is spent.
-5. NEXT: wire `mapName` into `fromAd` and `fromCv`; order: not-a-skill flag, stage 1, stage 2; the regression tests (through `fromAd` and `fromCv`, "Personal development", "data analyst experience" and "product analyst experience" must end up not counted (ad) or removed as not-a-skill (CV), never mapped to a skill); show close matches on the page; the reviewer reads the analysis first. Then tick 5.2 in SPRINT.md (not yet ticked).
+5. DONE 2026-11-16: stage 2 wired into `fromAd` and `fromCv` (DECISIONS "5.2 wired: stage 2 live"): one shared path, close-match fields carried and shown on the page, READING_VERSION 2, tests and breaks all caught. NEXT: the reviewer reads the report, ticks 5.2 in SPRINT.md, then Day 6 (saved jobs).
 6. DONE 2026-11-16: the eval scorer knows `notCounted` (scorer v2: hits, not counted, missed, strict and adjusted recall; DECISIONS 2026-11-16). `npm run eval -- --not-counted` lists the not-counted key items of ad-01 to ad-08 (real AI calls, one per ad: ask first). No counted ad eval has been run since.
 7. DONE 2026-11-16: 5.3, the reading cache. Next after the fresh-set sequence (steps 1 to 5): Day 6 (saved jobs). Open items below.
 
@@ -45,6 +45,7 @@ Scope and roles: see the first line of this file and docs/REVIEWER-BRIEF.md. Sec
   5. Composite names split at reading time: the ad-05 example (the reader returned only the first half of "...or you're a seasoned Growth PM...").
   6. Run-to-run spread is not something we set: the ad request carries temperature 0, seed 20261115 and reasoning_effort medium (no max output tokens), all inside the pinned request hash (set in `lib/ai/settings.ts`). Groq documents the seed as best effort, and the 2026-11-15 noise test with these exact settings still varied (ad-04 found 11, 12, 7), so the spread is not from our settings; the cause is not verified.
   7. Trait flagging does not generalise: 1 of 10 not-a-skill labels flagged on the fresh set; the NOT_A_SKILL list was built from tuning ads; expand it only from a NEW fresh set.
+  8. Two wrong merges are stage 1 aliases: 'acceptance criteria' -> User stories and 'financial analysis' -> Financial planning and analysis. Decide in the vocabulary review together with the Teamwork borderline (item 4). Any vocabulary change changes the vocabulary hash and needs a new fresh set to be verified.
 - Before the repo goes public: close the access code, rate-limit rule and Groq terms items, then read docs/ for personal and security notes.
 
 **Still true:** macOS gotchas (`sed -i` fails silently, use python; no `timeout` command; zsh does not split an unquoted variable of file names, use arrays; tsx top-level await needs `.mts`). Scratch tools: `eval-runs/tuning-tools/` (gitignored). The readJob 429 / RetryError bug is fixed (`lib/ai/errors.ts`). `docs/REVIEWER-BRIEF.md` is the brief for a new reviewer chat.
