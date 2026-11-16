@@ -32,7 +32,7 @@ Consequence to approve: a stored profile is for JUDGING. Changing it means readi
 ## 2. Saving is explicit; deleting ships with 6.1
 
 - A "Save on this device" button next to the confirmed profile (and next to a read ad, for a job). Nothing is written to the browser without a click. Reading, building and opening never write. A test counts writes (S4).
-- A one-line notice next to the button, proposed wording: "Saved on this device, in this browser only. It is not sent anywhere. You can delete it at any time. In a private window it is deleted when you close the window." (Wording to be agreed with the reviewer.)
+- A one-line notice next to the button, wording (the reviewer's privacy decision of 2026-11-16 added the shared-computer sentence): "Saved on this device, in this browser only. It is not sent anywhere, and anyone who can use this browser can see it. You can delete it at any time. In a private window it is deleted when you close the window."
 - A "Delete everything saved on this device" button, with a confirm step, deletes the profile and all saved jobs (S9). It ships with 6.1. The privacy page and consent stay in 9.3.
 - 6.1 puts only these small controls on the existing page `/`: Save profile, Save this ad, one status line ("1 profile and N jobs saved on this device"), Delete everything. The saved-jobs LIST screen is 6.2 (Q5).
 

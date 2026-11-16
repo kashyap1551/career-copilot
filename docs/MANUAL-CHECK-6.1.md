@@ -51,12 +51,13 @@ German B1 is a plus.
 ## Part 1: nothing is stored before a click
 
 1. **Do:** Open the live site in a normal Chrome window. Open the developer tools as described above (Application, IndexedDB, career-copilot).
-   **Expect:** the database `career-copilot` exists with the boxes `profile` and `jobs`, and **both are empty** (no entries). The page shows no "saved" text and no "Saved ads" list. (The database is created empty when the page opens; nothing is written.)
+   **Expect:** the database `career-copilot` exists with the boxes `profile` and `jobs`, and **both are empty** (no entries). The page shows no saved-profile box and no "Saved ads" list. (The database is created empty when the page opens; nothing is written. A button "Delete everything saved on this device" is already there: that is normal.)
 
 ## Part 2: the profile
 
 2. **Do:** Paste the invented CV into the CV box. Press **Send for reading**.
    **Expect:** after a few seconds a list of skills the AI found (for example SQL, Tableau, Excel). Nothing new in IndexedDB (both boxes still empty).
+   **Also expect (the Network tab):** the Network tab of the developer tools is the list of every request the page sends to the server. To open it: Cmd+Option+I, click the tab **Network**, and type the word `cv` in the filter box. Do this BEFORE you press **Send for reading**, then press it. A row named `cv` appears: click it, open **Headers**, find **Response Headers**, and look for `Cache-Control: no-store`. (This checks live that the site keeps our no-store header on the CV answer.)
 3. **Do:** On the confirm screen leave the ticked skills as they are. Type **Berlin** in "Cities you can work in" and **3** in "Years of experience".
    **Expect:** below the confirm screen a button **Save on this device** with one line next to it that ends "In a private window it is deleted when you close the window." The IndexedDB boxes are still empty.
 4. **Do:** Press **Save on this device**.
@@ -69,6 +70,7 @@ German B1 is a plus.
    **Expect:** a read-only box "Your saved profile (read-only)" listing each skill with its CV line, and the constraints. No tick boxes, no typing fields. Buttons **Delete this profile** and **Read a CV again**.
 8. **Do:** Scroll to "The job ad". Paste invented ad 1 and press **Read this ad**.
    **Expect:** after a few seconds a report with a fit level, judged against the saved profile. (The AI read costs one call; that is expected here.)
+   **Also expect (the Network tab):** do the same as in step 2 with the word `read` in the filter box (open the Network tab and type it BEFORE you press **Read this ad**). The row named `read` has, under Response Headers, `Cache-Control: no-store`.
 9. **Do:** Press **Delete this profile**.
    **Expect:** the line **The saved profile was deleted.** After you refresh IndexedDB: `profile` is empty.
 

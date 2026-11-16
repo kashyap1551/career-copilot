@@ -27,7 +27,10 @@ describe("savedMessage: the five reasons, exact strings", () => {
   });
 
   it("U2: the notice next to the Save button is the one-line wording from PLAN-6.1", () => {
-    expect(SAVE_NOTICE).toBe("Saved on this device, in this browser only. It is not sent anywhere. You can delete it at any time. In a private window it is deleted when you close the window.");
+    // 6.1 part 3c fix: the reviewer's privacy decision adds the shared-computer sentence ("and anyone who can use this browser can see it").
+    expect(SAVE_NOTICE).toBe("Saved on this device, in this browser only. It is not sent anywhere, and anyone who can use this browser can see it. You can delete it at any time. In a private window it is deleted when you close the window.");
+    expect(SAVE_NOTICE).not.toBe("Saved on this device, in this browser only. It is not sent anywhere. You can delete it at any time. In a private window it is deleted when you close the window."); // the old wording must fail
+    expect(SAVE_NOTICE.endsWith("In a private window it is deleted when you close the window.")).toBe(true);
     expect(SAVE_NOTICE).not.toContain("\n");
   });
 });
@@ -165,5 +168,48 @@ describe("one vocabulary", () => {
     const onlyLive = saved.skills.concat([{ kind: "have", skillId: "experimentation", evidence: null }]);
     const summary = summarizeProfile({ ...saved, skills: onlyLive });
     expect(summary.have.find((h) => h.skillId === "experimentation")).toMatchObject({ name: "Experimentation", known: true });
+  });
+});
+
+// ---- 6.1 part 3c fix: the key does not depend on the ORDER of skills ------------------------------------------------
+// By hand: buildProfile lists the kept CV skills in the order of the AI's proposals (never in the order they were ticked), so
+// ticking order cannot matter for them. But the skills the person ADDED by hand, and the ones IN PROGRESS, are listed in the
+// order they were typed: removing one and adding it again puts it last. The saved content is the same set, so the key must be
+// the same, and the "Saved on this device." line must come back.
+describe("profileKey does not depend on the order of skills", () => {
+  const build = (over: Partial<ConfirmState> = {}) =>
+    buildProfile(LINES, [p("SQL", "sql", 2, "Wrote SQL queries"), p("Tableau", "tableau", 3, "dashboards in Tableau")], { ...CONFIRM, ...over }, skills);
+
+  it("O1a (guard, passes at once): the same kept CV skills ticked in a different order give equal keys", () => {
+    expect(profileKey(build({ keptIds: ["tableau", "sql"] }))).toBe(profileKey(build({ keptIds: ["sql", "tableau"] })));
+  });
+
+  it("O1b: skills added by hand in a different order give equal keys (Python then Docker, or Docker then Python)", () => {
+    expect(profileKey(build({ added: ["Python", "Docker"] }))).toBe(profileKey(build({ added: ["Docker", "Python"] })));
+  });
+
+  it("O1c: skills in progress in a different order give equal keys", () => {
+    const a = { name: "React", date: "2027-06-01" };
+    const b = { name: "Docker", date: "2027-09-01" };
+    expect(profileKey(build({ inProgress: [a, b] }))).toBe(profileKey(build({ inProgress: [b, a] })));
+  });
+
+  it("O2a (guard, passes at once): unticking a kept CV skill and ticking it again gives the key it had before", () => {
+    const before = profileKey(build());
+    expect(profileKey(build({ keptIds: ["sql"] }))).not.toBe(before); // unticked
+    expect(profileKey(build({ keptIds: ["tableau", "sql"] }))).toBe(before); // ticked again (it is now last in keptIds)
+  });
+
+  it("O2b: removing a hand-added skill and adding it again (it is now last) gives the key it had before", () => {
+    const before = profileKey(build({ added: ["Python", "Docker"] }));
+    expect(profileKey(build({ added: ["Python"] }))).not.toBe(before); // removed
+    expect(profileKey(build({ added: ["Python", "Docker"] }))).toBe(before);
+    expect(profileKey(build({ added: ["Docker", "Python"] }))).toBe(before); // added again, order changed
+  });
+
+  it("O3 (guard, passes at once): a different cited line for the same skill gives a different key", () => {
+    const first = buildProfile(LINES, [p("SQL", "sql", 2, "Wrote SQL queries")], { ...CONFIRM, keptIds: ["sql"] }, skills);
+    const moved = buildProfile(LINES, [p("SQL", "sql", 3, "dashboards in Tableau")], { ...CONFIRM, keptIds: ["sql"] }, skills);
+    expect(profileKey(moved)).not.toBe(profileKey(first));
   });
 });

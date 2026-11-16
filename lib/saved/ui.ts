@@ -48,8 +48,14 @@ export function savingAvailable(stamps: { ok: boolean }, offer: ProfileOfferStat
 // The key of the profile on the page: what saving it would store (the skills with their cited lines, the constraints, the
 // kinds the person set), as text with sorted keys. The same content gives the same key; no time is in it, and what is not
 // saved (notes, problems, names not in our skill list) is not in it. The status line is tied to a key.
+// The skills are sorted (kind, then skillId, then cited line) first: the key is about WHAT is on the profile, never the order
+// it was typed in (a hand-added skill removed and added again is listed last, but the saved content is the same set).
 export function profileKey(built: BuiltProfile): string {
-  return stableStringify({ skills: built.profile.skills, constraints: built.profile.constraints, set: built.set });
+  const line = (s: BuiltProfile["profile"]["skills"][number]) => (s.kind === "have" ? (s.evidence?.line ?? 0) : 0);
+  const skills = [...built.profile.skills].sort(
+    (a, b) => a.kind.localeCompare(b.kind) || a.skillId.localeCompare(b.skillId) || line(a) - line(b),
+  );
+  return stableStringify({ skills, constraints: built.profile.constraints, set: built.set });
 }
 
 // A message about saving, tied to the key of the profile it spoke about (null for a message that is about no profile in
