@@ -17,6 +17,23 @@ describe("vocabPairs", () => {
     expect(vocabPairs(l)).toEqual([{ a: "p", b: "q", aText: "Abcdefghij", bText: "Abcdefghxy", distance: 2, label: "tie-protected" }]);
   });
 
+  it("P2b: a pair that exists only through a change at the start or in the middle is gone; through changes at the end it stays", () => {
+    // 'Abcdefghij' and 'Abcxxfghij': distance 2 in the middle, prefix 3 < 7
+    expect(vocabPairs([{ id: "p", name: "Abcdefghij" }, { id: "q", name: "Abcxxfghij" }])).toEqual([]);
+    // 'Abcdefghij' and 'Abcdefgxyj': distance 2, prefix 7 = 10 - 3: a pair
+    expect(vocabPairs([{ id: "p", name: "Abcdefghij" }, { id: "q", name: "Abcdefgxyj" }]).map((p) => p.distance)).toEqual([2]);
+    // the 9-letter boundary: prefix 6 passes, prefix 5 does not
+    expect(vocabPairs([{ id: "p", name: "Abcdefghi" }, { id: "q", name: "Abcdefxhx" }]).map((p) => p.distance)).toEqual([2]);
+    expect(vocabPairs([{ id: "p", name: "Abcdefghi" }, { id: "q", name: "Abcdexgxi" }])).toEqual([]);
+    // distance 1 is a pair anywhere (6 letters or more)
+    expect(vocabPairs([{ id: "p", name: "Abcdef" }, { id: "q", name: "Xbcdef" }]).map((p) => p.distance)).toEqual([1]);
+  });
+
+  it("P2c: on the real vocabulary the four earlier pairs are gone (each needed a second change at the start or in the middle): 0 pairs", () => {
+    // route planning ~ rota planning, KPI tracking ~ ROI tracking, Product ~ Project management, SEO-Kenntnisse ~ SQL-Kenntnisse
+    expect(vocabPairs(skills)).toEqual([]);
+  });
+
   it("P3: strings too far apart for their allowance make no pair", () => {
     expect(vocabPairs([{ id: "a", name: "Alpha" }, { id: "b", name: "Omega" }])).toEqual([]);
     // 4 letters: allowance 0, so distance 1 is no pair

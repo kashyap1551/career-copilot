@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { allowanceFor, closeTargets, osaDistance, spellingForm } from "@/lib/engine/closeSpelling";
+import { acceptsDistance, allowanceFor, closeTargets, commonPrefixLength, osaDistance, spellingForm } from "@/lib/engine/closeSpelling";
 import { mapName } from "@/lib/engine/mapName";
 import { lookupExact, skillIdFor } from "@/lib/engine/skillIds";
 import type { Skill } from "@/lib/engine/types";
@@ -31,6 +31,33 @@ describe("distance, allowance and the spelling form", () => {
   it("D2: the allowance by the length of the shorter string: 0 up to 5, 1 for 6 to 8, 2 for 9 and more (changed 2026-11-16, before any measure)", () => {
     const table: [number, number][] = [[0, 0], [1, 0], [4, 0], [5, 0], [6, 1], [8, 1], [9, 2], [10, 2], [30, 2]];
     for (const [len, want] of table) expect(allowanceFor(len)).toBe(want);
+  });
+
+  it("D4: commonPrefixLength", () => {
+    expect(commonPrefixLength("abc", "abd")).toBe(2);
+    expect(commonPrefixLength("", "a")).toBe(0);
+    expect(commonPrefixLength("same", "same")).toBe(4);
+    expect(commonPrefixLength("abcdef", "abc")).toBe(3);
+  });
+
+  it("D5: acceptsDistance: distance 1 anywhere (allowance permitting); distance 2 only with a common prefix of at least (shorter - 3)", () => {
+    const table: [string, string, number, boolean][] = [
+      ["excel", "excel", 0, true],
+      ["excel", "excell", 1, false], // shorter 5: allowance 0
+      ["tableu", "tableau", 1, true], // shorter 6: allowance 1
+      ["xableau", "tableau", 1, true], // a change at the very start is fine at distance 1
+      ["abcdefgh", "abcdefxx", 2, false], // shorter 8: allowance 1
+      ["abcdefghi", "abcdefgxx", 2, true], // shorter 9, prefix 7 >= 6
+      ["abcdefghi", "abcdefxhx", 2, true], // prefix 6 = shorter - 3: passes
+      ["abcdefghi", "abcdexgxi", 2, false], // prefix 5 = shorter - 4: fails
+      ["abcdefghi", "abxdefgxi", 2, false], // prefix 2
+      ["abcdefghi", "abcdefgxhij", 2, true], // unequal lengths: shorter 9, prefix 7 >= 6 (against the LONGER it would fail)
+      ["abcdefghij", "abcdefghxy", 2, true], // shorter 10, prefix 8 >= 7
+      ["abcdefghij", "abcdefgxyj", 2, true], // prefix 7 = 10 - 3: passes
+      ["abcdefghij", "abcdefxyij", 2, false], // prefix 6 < 7
+      ["abcdefghi", "abcdexxxi", 3, false], // never distance 3
+    ];
+    for (const [x, t, d, want] of table) expect(`${x}~${t}@${d}: ${acceptsDistance(x, t, d)}`).toBe(`${x}~${t}@${d}: ${want}`);
   });
 
   it("D3: the spelling form: folded, level and filler words and a version dropped from the NAME, then spaces, hyphens and dots dropped", () => {
@@ -71,11 +98,43 @@ describe("the rules, on made-up lists", () => {
     expect(mapName("Tebleu", l)).toEqual({ how: "none" }); // two changes
   });
 
-  it("C6: 9 or more letters: two changes map, three do not", () => {
-    const l = list({ id: "kubernetes", name: "Kubernetes" }); // 10 letters
-    expect(mapName("Kubarnetes", l)).toEqual({ how: "close", id: "kubernetes", distance: 1, via: "Kubernetes" });
-    expect(mapName("Kubarnates", l)).toEqual({ how: "close", id: "kubernetes", distance: 2, via: "Kubernetes" });
+  it("C6: 9 or more letters: one change anywhere maps; two changes only at the very end; three never (changed 2026-11-16)", () => {
+    const l = list({ id: "kubernetes", name: "Kubernetes" }); // 10 letters: a second change needs a common prefix of 7
+    expect(mapName("Kubarnetes", l)).toEqual({ how: "close", id: "kubernetes", distance: 1, via: "Kubernetes" }); // one change in the middle
+    expect(mapName("Kubarnates", l)).toEqual({ how: "none" }); // two changes in the middle (prefix 3): it mapped before
+    expect(mapName("Kubernexez", l)).toEqual({ how: "close", id: "kubernetes", distance: 2, via: "Kubernetes" }); // prefix 7 = 10 - 3
+    expect(mapName("Kubernxtez", l)).toEqual({ how: "none" }); // prefix 6 = 10 - 4
     expect(mapName("Kubarnatas", l)).toEqual({ how: "none" }); // three changes
+  });
+
+  it("C6c: a 9-letter skill: two changes inside the last 3 letters map, the boundary is exactly shorter - 3", () => {
+    const l = list({ id: "s9", name: "Abcdefghi" });
+    expect(mapName("Abcdefgxx", l)).toMatchObject({ how: "close", distance: 2 }); // prefix 7
+    expect(mapName("Abcdefxhx", l)).toMatchObject({ how: "close", distance: 2 }); // prefix 6 = 9 - 3: passes
+    expect(mapName("Abcdexgxi", l)).toEqual({ how: "none" }); // prefix 5 = 9 - 4: fails
+    expect(mapName("Abxdefgxi", l)).toEqual({ how: "none" }); // prefix 2
+  });
+
+  it("C6d: the prefix is measured against the SHORTER string: skill 'Abcdefgxhij' (11), name 'Abcdefghi' (9), prefix 7 >= 6", () => {
+    expect(mapName("Abcdefghi", list({ id: "s11", name: "Abcdefgxhij" }))).toMatchObject({ how: "close", id: "s11", distance: 2 });
+  });
+
+  it("C6e: suffixes and prefixes (made-up Compliance and Confluence): a suffix maps, a negating prefix and a changed middle do not", () => {
+    const comp = list({ id: "compliance", name: "Compliance" });
+    expect(mapName("Compliant", comp)).toEqual({ how: "close", id: "compliance", distance: 2, via: "Compliance" });
+    expect(mapName("Compliancy", comp)).toEqual({ how: "close", id: "compliance", distance: 1, via: "Compliance" });
+    expect(mapName("Uncompliance", comp)).toEqual({ how: "none" });
+    const conf = list({ id: "confluence", name: "Confluence" });
+    expect(mapName("Confidence", conf)).toEqual({ how: "none" });
+    expect(mapName("Conference", conf)).toEqual({ how: "none" });
+    expect(mapName("Confluence", conf)).toEqual({ how: "exact", id: "confluence", try: 1 });
+  });
+
+  it("C6f: the recorded cost: a long German word with two umlauts typed as 'ue' is no longer repaired; with one it still is", () => {
+    const l = list({ id: "check", name: "Überprüfungsmaßnahmen" });
+    expect(mapName("Uberprufungsmassnahmen", l)).toEqual({ how: "exact", id: "check", try: 1 }); // folded: umlauts as plain letters
+    expect(mapName("Ueberprufungsmassnahmen", l)).toMatchObject({ how: "close", distance: 1 }); // one 'ue': a change at the start, distance 1
+    expect(mapName("Ueberpruefungsmassnahmen", l)).toEqual({ how: "none" }); // two 'ue': distance 2, in the first part
   });
 
   it("C6b: the boundaries 5/6 and 8/9, one skill each", () => {
@@ -185,9 +244,18 @@ describe("the real vocabulary", () => {
     expect(mapName("Teamfaehigkeit", skills)).toEqual({ how: "close", id: "teamwork", distance: 1, via: "Teamfähigkeit" });
   });
 
-  it("C12: a plural or inflected form of a real entry maps to it (English and German)", () => {
+  it("C12: a plural or inflected form of a real entry maps to it (English and German), also at distance 2 at the very end", () => {
     expect(mapName("Dashboard", skills)).toEqual({ how: "close", id: "dashboards", distance: 1, via: "Dashboards" });
     expect(mapName("Prozessoptimierungen", skills)).toEqual({ how: "close", id: "process-improvement", distance: 2, via: "Prozessoptimierung" });
+    expect(mapName("Statistical", skills)).toEqual({ how: "close", id: "applied-statistics", distance: 2, via: "statistics" }); // prefix 9 >= 7
+    expect(mapName("Accountant", skills)).toEqual({ how: "close", id: "accounting", distance: 2, via: "Accounting" }); // prefix 7 = 10 - 3: the boundary
+  });
+
+  it("C12b: the words the neighbour audit found reaching long skills by changes at the start or in the middle do not map", () => {
+    for (const w of ["Confidence", "Conference", "Influence", "Engineering", "Inaccessibility", "Uncommunicating"]) {
+      expect(mapName(w, skills)).toEqual({ how: "none" });
+    }
+    expect(mapName("Compliant", skills)).toEqual({ how: "close", id: "compliance", distance: 2, via: "Compliance" });
   });
 
   it("C14: 'Team playr' (a misspelt not-a-skill phrase) is neither flagged nor mapped", () => {

@@ -42,6 +42,26 @@ export function allowanceFor(shorterLength: number): number {
 }
 const MAX_ALLOWANCE = 2;
 
+export function commonPrefixLength(a: string, b: string): number {
+  let i = 0;
+  while (i < a.length && i < b.length && a[i] === b[i]) i++;
+  return i;
+}
+
+// Is a distance `d` between the name's form `x` and a target's form `t` accepted? ONE function, used by closeMatch and
+// by vocabPairs (the neighbour audit goes through mapName), so they cannot disagree. A distance of 1 is accepted
+// anywhere, when the allowance is at least 1. A distance of 2 (only possible when the shorter string has 9 letters or
+// more) is accepted only when the two strings share a common prefix of at least (shorter length - 3) letters: a second
+// change only at the very end of a long word (a plural, -en, -ing, -ant), never at the start or in the middle.
+// (Changed 2026-11-16, before any measure, from the neighbour audit: conference, confidence and influence reached
+// Confluence; engineering reached BI engineering; negating prefixes such as "inaccessibility" reached Accessibility.)
+export function acceptsDistance(x: string, t: string, d: number): boolean {
+  const shorter = Math.min(x.length, t.length);
+  if (d > allowanceFor(shorter)) return false;
+  if (d <= 1) return true;
+  return commonPrefixLength(x, t) >= shorter - 3;
+}
+
 // The NAME as compared: folded like stage 1 (case, accents, umlauts, ß), level and filler words and a trailing version
 // dropped, then spaces, hyphens and dots dropped.
 export function spellingForm(name: string): string {
@@ -93,7 +113,7 @@ export function closeMatch(name: string, skills: Skill[]): CloseResult {
   for (const t of closeTargets(skills)) {
     const d = osaDistance(x, t.form, MAX_ALLOWANCE);
     if (d > MAX_ALLOWANCE) continue;
-    const ok = d <= allowanceFor(Math.min(x.length, t.form.length));
+    const ok = acceptsDistance(x, t.form, d);
     const cur = best.get(t.id);
     if (!cur || d < cur.distance || (d === cur.distance && ok && !cur.ok)) {
       best.set(t.id, { id: t.id, distance: d, ok, via: t.text });

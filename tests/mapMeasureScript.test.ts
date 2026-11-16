@@ -91,6 +91,17 @@ describe("scripts/mapMeasure.ts", () => {
     expect(r.stdout).not.toContain("Curious soul");
   });
 
+  it("S7: a labels file that still contains TODO is refused, and no name is printed", () => {
+    const todo = path.join(tmp, "todo.json");
+    fs.writeFileSync(todo, JSON.stringify({ set: "fresh", names: { SecretName: "TODO", Excel: "excel", Another: "TODO" } }));
+    const r = run(path.join(tmp, "out4"), todo);
+    expect(r.status).toBe(1);
+    expect(r.stderr).toContain("2 name(s) are still labelled TODO");
+    expect(r.stderr + r.stdout).not.toContain("SecretName");
+    expect(r.stderr + r.stdout).not.toContain("Another");
+    expect(fs.existsSync(path.join(tmp, "out4"))).toBe(false); // nothing measured, nothing logged
+  });
+
   it("S5: no labels file: usage, exit 1", () => {
     expect(run(dir).status).toBe(1);
   });

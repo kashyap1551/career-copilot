@@ -39,6 +39,11 @@ for (const file of files) {
     process.exit(1);
   }
   const names = Object.entries(parsed.names as Record<string, unknown>);
+  const todo = names.filter(([, l]) => l === "TODO").length;
+  if (todo > 0) {
+    console.error(`${path.basename(file)}: ${todo} name(s) are still labelled TODO. Label every name first (npm run skill-ids lists the labels). Nothing was run.`);
+    process.exit(1);
+  }
   const badLabels = names.filter(([, l]) => typeof l !== "string" || (l !== "none" && l !== "not-a-skill" && !ids.has(l))).length;
   if (badLabels > 0) {
     console.error(`${path.basename(file)}: ${badLabels} label(s) are not a skill id, "none" or "not-a-skill". Nothing was run.`);

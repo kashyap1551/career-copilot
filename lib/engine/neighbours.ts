@@ -6,6 +6,26 @@ import type { Skill } from "./types";
 
 export type Neighbour = { id: string; word: string; via: string; distance: number };
 
+// One line per skill: "skill: word(d), word(d)", in the order given (neighbourPairs sorts by skill id, then word).
+export function compactLines(pairs: Neighbour[]): string[] {
+  const lines: string[] = [];
+  let current: string | null = null;
+  let words: string[] = [];
+  const flush = () => {
+    if (current !== null) lines.push(`${current}: ${words.join(", ")}`);
+  };
+  for (const p of pairs) {
+    if (p.id !== current) {
+      flush();
+      current = p.id;
+      words = [];
+    }
+    words.push(`${p.word}(${p.distance})`);
+  }
+  flush();
+  return lines;
+}
+
 // A dictionary file as a word list: lowercase letters only (no capitalised words, apostrophes, accents or digits),
 // each once, sorted.
 export function loadWords(text: string): string[] {

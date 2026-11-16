@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { loadWords, neighbourPairs } from "@/lib/engine/neighbours";
+import { compactLines, loadWords, neighbourPairs } from "@/lib/engine/neighbours";
 import type { Skill } from "@/lib/engine/types";
 
 // The neighbour audit (npm run neighbours): which ordinary words close spelling would map to a skill. Hand-worked on
@@ -41,6 +41,33 @@ describe("neighbourPairs", () => {
 
   it("N6: an exactOnly skill has no neighbours", () => {
     expect(neighbourPairs([{ id: "g", name: "Golang", exactOnly: true }], ["golangs", "golang"], no)).toEqual([]);
+  });
+
+  it("N8: the distance-2 rule: a suffix is a neighbour, a negating prefix and a changed middle are not", () => {
+    const l: Skill[] = [{ id: "compliance", name: "Compliance" }, { id: "confluence", name: "Confluence" }];
+    const words = ["uncompliance", "compliant", "compliancy", "confidence", "conference", "influence"];
+    expect(neighbourPairs(l, words, no).map((p) => [p.id, p.word, p.distance])).toEqual([
+      ["compliance", "compliancy", 1],
+      ["compliance", "compliant", 2],
+    ]);
+  });
+
+  it("N9: the audit goes through mapName, so it cannot disagree with the mapper: every pair is a 'close' result and nothing else is", () => {
+    const l: Skill[] = [{ id: "compliance", name: "Compliance" }, { id: "docker", name: "Docker" }];
+    const ws = ["compliant", "uncompliance", "dockers", "docket", "dockerize", "compliance"];
+    const pairs = neighbourPairs(l, ws, no);
+    expect(pairs.map((p) => p.word).sort()).toEqual(["compliant", "docket", "dockers"].sort());
+  });
+
+  it("N10: the compact list: one line per skill, 'skill: word(d), word(d)', in skill order", () => {
+    const lines = compactLines([
+      { id: "docker", word: "dockers", via: "Docker", distance: 1 },
+      { id: "docker", word: "docket", via: "Docker", distance: 1 },
+      { id: "tableau", word: "tableaus", via: "Tableau", distance: 1 },
+      { id: "tableau", word: "tableauxx", via: "Tableau", distance: 2 },
+    ]);
+    expect(lines).toEqual(["docker: dockers(1), docket(1)", "tableau: tableaus(1), tableauxx(2)"]);
+    expect(compactLines([])).toEqual([]);
   });
 
   it("N7: a word that is already a name written without its hyphen is not a neighbour (distance 0)", () => {

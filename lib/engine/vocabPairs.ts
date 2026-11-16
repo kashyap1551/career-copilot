@@ -1,4 +1,4 @@
-import { allowanceFor, closeTargets, osaDistance } from "./closeSpelling";
+import { acceptsDistance, closeTargets, osaDistance } from "./closeSpelling";
 import { mapName } from "./mapName";
 import type { Skill } from "./types";
 
@@ -49,7 +49,7 @@ export function vocabPairs(skills: Skill[]): PairInfo[] {
       for (const s of byId.get(ids[i])!) {
         for (const t of byId.get(ids[j])!) {
           const d = osaDistance(s.form, t.form, 2);
-          if (d > allowanceFor(Math.min(s.form.length, t.form.length))) continue;
+          if (!acceptsDistance(s.form, t.form, d)) continue;
           if (!best || d < best.d) best = { d, s, t };
         }
       }
