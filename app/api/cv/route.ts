@@ -1,4 +1,5 @@
 import { aiPaused, PAUSED_MESSAGE, PAUSED_STATUS } from "@/lib/ai/enabled";
+import { jsonNoStore } from "@/lib/ai/noStore";
 import { ReadAdError } from "@/lib/ai/errors";
 import { readCvLines } from "@/lib/ai/readCv";
 import { readCvRequestSchema } from "@/lib/schemas/cv";
@@ -10,33 +11,27 @@ import { readCvRequestSchema } from "@/lib/schemas/cv";
 // and logs nothing about the CV (docs/PLAN-4.2.md).
 export async function POST(request: Request) {
   if (aiPaused()) {
-    return Response.json({ error: PAUSED_MESSAGE }, { status: PAUSED_STATUS });
+    return jsonNoStore({ error: PAUSED_MESSAGE }, { status: PAUSED_STATUS });
   }
 
   let body: unknown;
   try {
     body = await request.json();
   } catch {
-    return Response.json(
-      { error: 'Send JSON like { "lines": ["first line", "second line"] }.' },
-      { status: 400 },
-    );
+    return jsonNoStore({ error: 'Send JSON like { "lines": ["first line", "second line"] }.' }, { status: 400 });
   }
 
   const parsed = readCvRequestSchema.safeParse(body);
   if (!parsed.success) {
-    return Response.json(
-      { error: parsed.error.issues[0]?.message ?? "Invalid request." },
-      { status: 400 },
-    );
+    return jsonNoStore({ error: parsed.error.issues[0]?.message ?? "Invalid request." }, { status: 400 });
   }
 
   try {
     const { skills, removed, duplicates, unlisted } = await readCvLines(parsed.data.lines);
-    return Response.json({ skills, removed, duplicates, unlisted });
+    return jsonNoStore({ skills, removed, duplicates, unlisted });
   } catch (error) {
     if (error instanceof ReadAdError) {
-      return Response.json(
+      return jsonNoStore(
         {
           error: error.message,
           ...(process.env.NODE_ENV !== "production" && error.detail ? { detail: error.detail } : {}),
@@ -45,6 +40,6 @@ export async function POST(request: Request) {
       );
     }
     console.error("cv: unexpected error in route");
-    return Response.json({ error: "Something went wrong. Please try again." }, { status: 500 });
+    return jsonNoStore({ error: "Something went wrong. Please try again." }, { status: 500 });
   }
 }

@@ -6,13 +6,17 @@ import { buildProfile, initialConfirm, type ConfirmState } from "@/lib/cv/profil
 import { builtFromSaved } from "@/lib/saved/profile";
 import type { SavedProfile } from "@/lib/saved/types";
 import type { BuildResult, RemovalReason } from "@/lib/engine/fromAd";
+import type { ExtractedAd } from "@/lib/schemas/job";
+import { AD_GONE, openMessage, savedMessage } from "@/lib/saved/messages";
+import { openJob } from "@/lib/saved/openJob";
+import { loadJob } from "@/lib/saved/saved";
 import type { CvBuildResult } from "@/lib/engine/fromCv";
 import ConfirmBox from "./ConfirmBox";
 import CvBox from "./CvBox";
 import { profileReport } from "./fitReport";
 import ReportView from "./ReportView";
-import { profileKey } from "@/lib/saved/ui";
-import { SaveProfileButton, SavedDeleteAll, SavedOffer, SavedStatus } from "./SavedControls";
+import { adStatusKey, openView, profileKey } from "@/lib/saved/ui";
+import { AdStatus, SaveAdButton, SaveProfileButton, SavedAdsList, SavedDeleteAll, SavedOffer, SavedStatus } from "./SavedControls";
 import { closeMatchLines, reportNote } from "./reportText";
 import { readSkillList, skillsOnlyReport } from "./skillsOnly";
 import { useSaved } from "./useSaved";
@@ -37,10 +41,18 @@ const REASONS: Record<RemovalReason, string> = {
   "tag-not-sentence": "it was only a tag, not a sentence",
 };
 
+// What /api/read answers: the checked reading plus, since 6.1, the AI's raw reading (kept so a saved ad can be checked again
+// later without another AI call).
+type ReadAnswer = BuildResult & { extraction?: ExtractedAd | null };
+
 export default function Home() {
   const [text, setText] = useState("");
   const [skillText, setSkillText] = useState("");
-  const [result, setResult] = useState<BuildResult | null>(null);
+  const [result, setResult] = useState<ReadAnswer | null>(null);
+  // 6.1: set only when the ad on screen was just read by the AI (it can then be saved); null for an ad opened from the saved
+  // list. `rereadOffered` is true when an opened ad was read with older instructions or cannot be checked here.
+  const [fresh, setFresh] = useState<{ adText: string; extraction: ExtractedAd | null } | null>(null);
+  const [rereadOffered, setRereadOffered] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   // The last successful reading of the CV, and what the person has confirmed.
@@ -54,6 +66,8 @@ export default function Home() {
     setLoading(true);
     setError(null);
     setResult(null);
+    setFresh(null);
+    setRereadOffered(false);
     try {
       const res = await fetch("/api/read", {
         method: "POST",
@@ -66,13 +80,40 @@ export default function Home() {
       if (!res.ok) {
         setError(data?.error ?? `The server returned an error (${res.status}).`);
       } else {
-        setResult(data as BuildResult);
+        setResult(data as ReadAnswer);
+        setFresh({ adText: text.trim(), extraction: (data as ReadAnswer).extraction ?? null });
       }
     } catch {
       setError("Could not reach the server. Check your connection and try again.");
     } finally {
       setLoading(false);
     }
+  }
+
+  // Click handler: open a saved ad. It READS the record (loadJob) and decides how to show it (openJob, plain code, no AI).
+  // It calls NO save function: a re-check is never written back. An AI call happens only on the separate click on
+  // "Read it again with the AI".
+  async function onOpenAd(id: string) {
+    const ctx = saved.state.phase === "ready" ? saved.state.ctx : null;
+    if (!ctx) return;
+    const loaded = await loadJob(ctx, id);
+    if (!loaded.ok) {
+      saved.setAdStatus(loaded.reason === "newer-version" ? openMessage("newer-version") : savedMessage(loaded.reason));
+      return;
+    }
+    if (loaded.job === null) {
+      saved.setAdStatus(AD_GONE);
+      return;
+    }
+    const opened = openJob(loaded.job, { stamps: ctx.stamps, skills });
+    const view = openView(opened.kind);
+    saved.setAdStatus(view.message, adStatusKey(loaded.job.adText));
+    if (!view.showReading || opened.kind === "newer-version") return;
+    setError(null);
+    setText(loaded.job.adText);
+    setResult(opened.reading); // shown like a fresh reading; the fit level is computed against the profile in use
+    setFresh(null); // an opened ad is not saved again from the screen
+    setRereadOffered(view.offerReread);
   }
 
   function onCvRead(lines: string[], r: CvBuildResult) {
@@ -186,8 +227,34 @@ export default function Home() {
         </p>
       )}
 
+      <AdStatus saved={saved} adKey={adStatusKey(text)} />
+      <SavedAdsList saved={saved} onOpen={onOpenAd} />
+
       {result && report && (
         <>
+          {fresh && (
+            <SaveAdButton
+              saved={saved}
+              adText={fresh.adText}
+              extraction={fresh.extraction}
+              reading={{ job: result.job, removed: result.removed, moved: result.moved, unlisted: result.unlisted, notCounted: result.notCounted }}
+            />
+          )}
+          {rereadOffered && (
+            <div>
+              {/* Nothing is sent until this click: it runs the normal read flow (one AI call) on the text shown above. */}
+              <button
+                onClick={() => {
+                  setRereadOffered(false);
+                  readAd();
+                }}
+                disabled={loading}
+                className="rounded border border-zinc-400 px-3 py-1 text-sm font-medium dark:border-zinc-600 disabled:opacity-40"
+              >
+                Read it again with the AI
+              </button>
+            </div>
+          )}
           <ReportView
             title={`${result.job.title}${result.job.company ? `, ${result.job.company}` : ""}`}
             report={report.view}

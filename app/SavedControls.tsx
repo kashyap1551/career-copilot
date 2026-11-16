@@ -6,15 +6,18 @@ import { KINDS, KIND_WORDS } from "@/lib/cv/profile";
 import { skills } from "@/fixtures/skills";
 import { deleteStatus, SAVE_NOTICE, saveStatus } from "@/lib/saved/messages";
 import { summarizeProfile } from "@/lib/saved/profile";
-import { deleteAll, deleteProfile, saveProfile } from "@/lib/saved/saved";
-import { profileKey, statusVisible } from "@/lib/saved/ui";
+import type { SavedReading } from "@/lib/saved/types";
+import { deleteAll, deleteJob, deleteProfile, listJobs, saveJob, saveProfile } from "@/lib/saved/saved";
+import { adStatusKey, canSaveAd, jobRows, listNotice, profileKey, statusVisible } from "@/lib/saved/ui";
+import type { ExtractedAd } from "@/lib/schemas/job";
 import type { SavedProfile } from "@/lib/saved/types";
-import type { Saved } from "./useSaved";
+import { NO_ADS, type Saved } from "./useSaved";
 
 // 6.1 part 3b: the profile controls on the page, in the style of the existing page. Display and wiring only: every decision
 // (the words, what is offered, whether saving is available) is a plain function in lib/saved, with tests.
-// saveProfile, deleteProfile and deleteAll are called ONLY from the click handlers below (onSave, onDeleteProfile,
-// onDeleteAll): never from an effect, never while rendering. A profile is never saved without the click.
+// saveProfile, saveJob, deleteProfile, deleteJob and deleteAll are called ONLY from the click handlers below (onSave,
+// onSaveAd, onDeleteProfile, onDeleteAd, onDeleteAll): never from an effect, never while rendering. Nothing is saved
+// without a click. (Opening a saved ad, in app/page.tsx, calls no save function at all.)
 
 const button = "rounded border border-zinc-400 px-3 py-1 text-sm font-medium dark:border-zinc-600 disabled:opacity-40";
 const quiet = "text-sm text-zinc-600 dark:text-zinc-400";
@@ -190,7 +193,7 @@ export function SaveProfileButton({ saved, built }: { saved: Saved; built: Built
   );
 }
 
-// Whenever saving is available: delete everything (the profile now; the saved jobs when 3c adds them).
+// Whenever saving is available: delete everything (the profile and all saved ads: deleteAll clears both stores).
 export function SavedDeleteAll({ saved, onForget }: { saved: Saved; onForget: () => void }) {
   const { state, setStatus, clearOffer } = saved;
   const [confirming, setConfirming] = useState(false);
@@ -205,6 +208,8 @@ export function SavedDeleteAll({ saved, onForget }: { saved: Saved; onForget: ()
     setStatus(deleteStatus(result, "everything"));
     if (result.ok) {
       clearOffer();
+      saved.setAds(NO_ADS); // the list is empty now
+      saved.setAdStatus(null);
       onForget();
     }
   }
@@ -226,6 +231,108 @@ export function SavedDeleteAll({ saved, onForget }: { saved: Saved; onForget: ()
           Delete everything saved on this device
         </button>
       )}
+    </div>
+  );
+}
+
+// ---- saved ads (6.1 part 3c) -------------------------------------------------------------------------------------------
+
+// The one status line about saved ads (saving, opening, deleting one). A message about an ad is shown only while that ad's
+// text is on screen (`adKey`); a message about the list (an ad deleted) has no key and is always shown.
+export function AdStatus({ saved, adKey }: { saved: Saved; adKey: string | null }) {
+  return statusVisible(saved.adStatus, [adKey]) ? (
+    <p role="status" className={quiet}>
+      {saved.adStatus?.text}
+    </p>
+  ) : null;
+}
+
+// After an ad was read by the AI: "Save this ad" with the notice. The only place an ad is saved.
+export function SaveAdButton({
+  saved,
+  adText,
+  extraction,
+  reading,
+}: {
+  saved: Saved;
+  adText: string;
+  extraction: ExtractedAd | null;
+  reading: SavedReading;
+}) {
+  const { state, setAdStatus, setAds } = saved;
+  const [busy, setBusy] = useState(false);
+  if (state.phase !== "ready" || !state.ctx || !canSaveAd(state.available, true)) return null;
+  const ctx = state.ctx;
+
+  // Click handler: the ONLY place an ad is saved. One record per ad text: saving the same text again replaces it.
+  async function onSaveAd() {
+    const key = adStatusKey(adText);
+    setBusy(true);
+    setAdStatus("Saving…", key);
+    const result = await saveJob(ctx, { adText, extraction, reading });
+    setAdStatus(saveStatus(result), key);
+    if (result.ok) {
+      const listed = await listJobs(ctx); // the list is refreshed after the click
+      if (listed.ok) setAds({ list: listed.jobs, corrupted: listed.corrupted, newer: listed.newer });
+    }
+    setBusy(false);
+  }
+
+  return (
+    <div className="flex flex-col gap-1">
+      <div>
+        <button className={button} disabled={busy} onClick={onSaveAd}>
+          Save this ad
+        </button>
+      </div>
+      <p className={quiet}>{SAVE_NOTICE}</p>
+    </div>
+  );
+}
+
+// "Saved ads": shown when there is at least one saved ad or something to say about the list. Each row: the label, the date,
+// "Open" and "Delete". No cap on the number of ads.
+export function SavedAdsList({ saved, onOpen }: { saved: Saved; onOpen: (id: string) => void }) {
+  const { state, setAdStatus, setAds } = saved;
+  if (state.phase !== "ready" || !state.available || !state.ctx) return null;
+  const ctx = state.ctx;
+  const ads = state.ads;
+  const rows = jobRows(ads.list);
+  const notice = listNotice(ads.corrupted, ads.newer);
+  if (rows.length === 0 && notice === null) return null;
+
+  // Click handler: delete ONE saved ad; the list is updated from the result.
+  async function onDeleteAd(id: string) {
+    const result = await deleteJob(ctx, id);
+    setAdStatus(deleteStatus(result, "ad"));
+    if (result.ok) setAds({ ...ads, list: ads.list.filter((j) => j.id !== id) });
+  }
+
+  return (
+    <div className="flex flex-col gap-2 rounded border border-zinc-300 p-3 text-sm dark:border-zinc-700">
+      <p className="font-medium">Saved ads</p>
+      {notice && (
+        <ul className={`list-disc pl-5 ${quiet}`}>
+          {notice.map((line) => (
+            <li key={line}>{line}</li>
+          ))}
+        </ul>
+      )}
+      <ul className="flex flex-col gap-1">
+        {rows.map((r) => (
+          <li key={r.id} className="flex flex-wrap items-center gap-2">
+            <span>
+              {r.label} <span className={quiet}>({r.date})</span>
+            </span>
+            <button className={button} onClick={() => onOpen(r.id)}>
+              Open
+            </button>
+            <button className={button} onClick={() => onDeleteAd(r.id)}>
+              Delete
+            </button>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

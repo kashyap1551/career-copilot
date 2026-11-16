@@ -7,6 +7,8 @@ import type { Failed, FailureReason } from "./types";
 export const SAVED_OK = "Saved on this device.";
 export const ALL_DELETED = "Everything saved on this device was deleted.";
 export const PROFILE_DELETED = "The saved profile was deleted.";
+export const AD_DELETED = "The saved ad was deleted.";
+export const AD_GONE = "That saved ad is no longer there.";
 
 // The one-line notice next to the Save button (docs/PLAN-6.1.md, section 2).
 export const SAVE_NOTICE =
@@ -31,8 +33,22 @@ export function saveStatus(result: { ok: true } | Failed): string {
 
 // The status line after a click on a Delete button. A failed delete says so plainly (it must never say "saving did not
 // work"); an unavailable store keeps the unavailable message.
-export function deleteStatus(result: { ok: true } | Failed, what: "everything" | "profile"): string {
-  if (result.ok) return what === "everything" ? ALL_DELETED : PROFILE_DELETED;
+export function deleteStatus(result: { ok: true } | Failed, what: "everything" | "profile" | "ad"): string {
+  if (result.ok) return what === "everything" ? ALL_DELETED : what === "profile" ? PROFILE_DELETED : AD_DELETED;
   if (result.reason === "unavailable") return savedMessage("unavailable");
-  return `Could not delete ${what === "everything" ? "everything" : "the saved profile"}. Try again, or clear this site's data in your browser settings.`;
+  const thing = what === "everything" ? "everything" : what === "profile" ? "the saved profile" : "the saved ad";
+  return `Could not delete ${thing}. Try again, or clear this site's data in your browser settings.`;
+}
+
+// What the page says when a saved ad is opened, by the outcome of openJob (lib/saved/openJob.ts). null: nothing to say.
+export type OpenKind = "newer-version" | "as-stored" | "rechecked" | "older-instructions" | "cannot-recheck";
+const OPEN_MESSAGES: Record<OpenKind, string | null> = {
+  "newer-version": "This ad was saved by a newer version of the app, so it is left untouched.",
+  "as-stored": null,
+  rechecked: "Checked again on this device with the current skill list. The saved copy was not changed, and no AI call was made.",
+  "older-instructions": "This ad was read with older instructions for the AI, so you see the old reading. You can read it again with the AI (one AI call).",
+  "cannot-recheck": "This saved ad cannot be checked again here, so you see the old reading. You can read it again with the AI (one AI call).",
+};
+export function openMessage(kind: OpenKind): string | null {
+  return OPEN_MESSAGES[kind];
 }

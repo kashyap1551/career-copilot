@@ -1,4 +1,5 @@
 import { aiPaused, PAUSED_MESSAGE, PAUSED_STATUS } from "@/lib/ai/enabled";
+import { jsonNoStore } from "@/lib/ai/noStore";
 import { readThroughCache } from "@/lib/ai/readCache";
 import { readJobAd, ReadAdError } from "@/lib/ai/readJob";
 import { readRequestSchema } from "@/lib/schemas/job";
@@ -7,25 +8,19 @@ import { readRequestSchema } from "@/lib/schemas/job";
 export async function POST(request: Request) {
   // The kill switch: AI_ENABLED=false pauses this route without calling the AI.
   if (aiPaused()) {
-    return Response.json({ error: PAUSED_MESSAGE }, { status: PAUSED_STATUS });
+    return jsonNoStore({ error: PAUSED_MESSAGE }, { status: PAUSED_STATUS });
   }
 
   let body: unknown;
   try {
     body = await request.json();
   } catch {
-    return Response.json(
-      { error: 'Send JSON like { "text": "the job ad" }.' },
-      { status: 400 },
-    );
+    return jsonNoStore({ error: 'Send JSON like { "text": "the job ad" }.' }, { status: 400 });
   }
 
   const parsed = readRequestSchema.safeParse(body);
   if (!parsed.success) {
-    return Response.json(
-      { error: parsed.error.issues[0]?.message ?? "Invalid request." },
-      { status: 400 },
-    );
+    return jsonNoStore({ error: parsed.error.issues[0]?.message ?? "Invalid request." }, { status: 400 });
   }
 
   try {
@@ -36,10 +31,10 @@ export async function POST(request: Request) {
     // one call; x-reading-cache says hit or miss (docs/DECISIONS.md, "the reading cache"). A copy is stored, never the
     // object returned, and a failed read is never stored.
     const { reading, source } = await readThroughCache(parsed.data.text, readJobAd);
-    return Response.json(reading, { headers: { "x-reading-cache": source } });
+    return jsonNoStore(reading, { headers: { "x-reading-cache": source } });
   } catch (error) {
     if (error instanceof ReadAdError) {
-      return Response.json(
+      return jsonNoStore(
         {
           error: error.message,
           // Technical detail only on a developer's machine, never live.
@@ -51,9 +46,6 @@ export async function POST(request: Request) {
       );
     }
     console.error("read: unexpected error in route");
-    return Response.json(
-      { error: "Something went wrong. Please try again." },
-      { status: 500 },
-    );
+    return jsonNoStore({ error: "Something went wrong. Please try again." }, { status: 500 });
   }
 }
