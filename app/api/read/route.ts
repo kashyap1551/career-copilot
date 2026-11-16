@@ -1,4 +1,5 @@
 import { aiPaused, PAUSED_MESSAGE, PAUSED_STATUS } from "@/lib/ai/enabled";
+import { readThroughCache } from "@/lib/ai/readCache";
 import { readJobAd, ReadAdError } from "@/lib/ai/readJob";
 import { readRequestSchema } from "@/lib/schemas/job";
 
@@ -31,8 +32,11 @@ export async function POST(request: Request) {
     // { job, removed, moved, unlisted, notCounted }: the checked job, what was dropped,
     // what moved to otherConditions, skills not in the skill list yet, and requirements
     // that are not skills a CV can show (not counted, still listed).
-    const { job, removed, moved, unlisted, notCounted } = await readJobAd(parsed.data.text);
-    return Response.json({ job, removed, moved, unlisted, notCounted });
+    // The reading cache sits here: after the kill switch and the input checks, before the AI call. The same ad twice is
+    // one call; x-reading-cache says hit or miss (docs/DECISIONS.md, "the reading cache"). A copy is stored, never the
+    // object returned, and a failed read is never stored.
+    const { reading, source } = await readThroughCache(parsed.data.text, readJobAd);
+    return Response.json(reading, { headers: { "x-reading-cache": source } });
   } catch (error) {
     if (error instanceof ReadAdError) {
       return Response.json(
