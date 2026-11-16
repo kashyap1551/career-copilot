@@ -1,4 +1,5 @@
-import { KINDS, KIND_WORDS } from "../cv/profile";
+import { KINDS, KIND_WORDS, type BuiltProfile } from "../cv/profile";
+import { stableStringify } from "../engine/stableStringify";
 import type { Skill } from "../engine/types";
 import { skills as liveVocabulary } from "../vocab";
 import { savedMessage } from "./messages";
@@ -42,4 +43,22 @@ export function profileOfferState(loaded: Loaded, vocabulary: Skill[] = liveVoca
 // Are the Save controls shown? Only when the stamps could be computed AND the browser database could be read.
 export function savingAvailable(stamps: { ok: boolean }, offer: ProfileOfferState): boolean {
   return stamps.ok && offer.kind !== "unavailable";
+}
+
+// The key of the profile on the page: what saving it would store (the skills with their cited lines, the constraints, the
+// kinds the person set), as text with sorted keys. The same content gives the same key; no time is in it, and what is not
+// saved (notes, problems, names not in our skill list) is not in it. The status line is tied to a key.
+export function profileKey(built: BuiltProfile): string {
+  return stableStringify({ skills: built.profile.skills, constraints: built.profile.constraints, set: built.set });
+}
+
+// A message about saving, tied to the key of the profile it spoke about (null for a message that is about no profile in
+// particular, such as "Everything saved on this device was deleted.").
+export type StatusLine = { text: string; key: string | null };
+
+// The status line never claims something that is no longer true: a message about a profile is shown only while that same
+// profile (the same key) is on screen. No effect is needed: it is decided when the page is drawn.
+export function statusVisible(status: StatusLine | null, currentKey: string | null): boolean {
+  if (status === null) return false;
+  return status.key === null || status.key === currentKey;
 }

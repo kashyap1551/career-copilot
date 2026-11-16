@@ -11,6 +11,7 @@ import ConfirmBox from "./ConfirmBox";
 import CvBox from "./CvBox";
 import { profileReport } from "./fitReport";
 import ReportView from "./ReportView";
+import { profileKey } from "@/lib/saved/ui";
 import { SaveProfileButton, SavedDeleteAll, SavedOffer, SavedStatus } from "./SavedControls";
 import { closeMatchLines, reportNote } from "./reportText";
 import { readSkillList, skillsOnlyReport } from "./skillsOnly";
@@ -136,7 +137,7 @@ export default function Home() {
       {cvRead && confirm && built && !usingSaved && <SaveProfileButton saved={saved} built={built} />}
 
       <SavedDeleteAll saved={saved} onForget={() => setUsingSaved(null)} />
-      <SavedStatus saved={saved} />
+      <SavedStatus saved={saved} currentKey={profile ? profileKey(profile) : null} />
 
       <details className="text-sm">
         <summary className="cursor-pointer font-medium">Or type a list of skills instead</summary>

@@ -5,7 +5,7 @@ import { currentStamps } from "@/lib/saved/currentStamps";
 import { createIdbStore } from "@/lib/saved/idbStore";
 import { savedMessage } from "@/lib/saved/messages";
 import { loadProfile, type SavedContext } from "@/lib/saved/saved";
-import { profileOfferState, savingAvailable, type ProfileOfferState } from "@/lib/saved/ui";
+import { profileOfferState, savingAvailable, type ProfileOfferState, type StatusLine } from "@/lib/saved/ui";
 import type { SavedProfile } from "@/lib/saved/types";
 import { withTimeout } from "@/lib/saved/withTimeout";
 
@@ -26,7 +26,9 @@ export type SavedState =
 
 export function useSaved() {
   const [state, setState] = useState<SavedState>({ phase: "checking" });
-  const [status, setStatus] = useState<string | null>(null);
+  // A message about saving, tied to the profile it spoke about (lib/saved/ui.ts: statusVisible).
+  const [status, setStatusLine] = useState<StatusLine | null>(null);
+  const setStatus = useCallback((text: string | null, key: string | null = null) => setStatusLine(text === null ? null : { text, key }), []);
 
   useEffect(() => {
     let alive = true;

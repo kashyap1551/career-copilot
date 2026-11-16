@@ -7,6 +7,7 @@ import { skills } from "@/fixtures/skills";
 import { deleteStatus, SAVE_NOTICE, saveStatus } from "@/lib/saved/messages";
 import { summarizeProfile } from "@/lib/saved/profile";
 import { deleteAll, deleteProfile, saveProfile } from "@/lib/saved/saved";
+import { profileKey, statusVisible } from "@/lib/saved/ui";
 import type { SavedProfile } from "@/lib/saved/types";
 import type { Saved } from "./useSaved";
 
@@ -18,11 +19,13 @@ import type { Saved } from "./useSaved";
 const button = "rounded border border-zinc-400 px-3 py-1 text-sm font-medium dark:border-zinc-600 disabled:opacity-40";
 const quiet = "text-sm text-zinc-600 dark:text-zinc-400";
 
-// The status line (one place for all messages about saving).
-export function SavedStatus({ saved }: { saved: Saved }) {
-  return saved.status ? (
+// The status line (one place for all messages about saving). A message about a profile is shown only while that same
+// profile is on screen (`currentKey`; lib/saved/ui.ts, statusVisible): "Saved on this device." disappears when the person
+// changes the confirm box, because the saved copy is then the OLD version. Decided at draw time: no effect, no write.
+export function SavedStatus({ saved, currentKey }: { saved: Saved; currentKey: string | null }) {
+  return statusVisible(saved.status, currentKey) ? (
     <p role="status" className={quiet}>
-      {saved.status}
+      {saved.status?.text}
     </p>
   ) : null;
 }
@@ -163,13 +166,14 @@ export function SaveProfileButton({ saved, built }: { saved: Saved; built: Built
   const [busy, setBusy] = useState(false);
   if (state.phase !== "ready" || !state.available || !state.ctx) return null;
   const ctx = state.ctx;
+  const key = profileKey(built); // the profile as it is NOW: the message below is about this one
 
   // Click handler: the ONLY place a profile is saved.
   async function onSave() {
     setBusy(true);
-    setStatus("Saving…");
+    setStatus("Saving…", key);
     const result = await saveProfile(ctx, built);
-    setStatus(saveStatus(result));
+    setStatus(saveStatus(result), key);
     if (result.ok) clearOffer(); // what is on the page now is what is saved: no older offer
     setBusy(false);
   }

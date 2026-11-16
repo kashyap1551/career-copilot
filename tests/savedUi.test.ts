@@ -4,7 +4,10 @@ import { buildProfile, type ConfirmState } from "@/lib/cv/profile";
 import type { CvSkill } from "@/lib/engine/fromCv";
 import { ALL_DELETED, PROFILE_DELETED, SAVED_OK, SAVE_NOTICE, deleteStatus, saveStatus, savedMessage } from "@/lib/saved/messages";
 import { savedFromBuilt } from "@/lib/saved/profile";
-import { profileOfferState, savingAvailable } from "@/lib/saved/ui";
+import { skills as fixtureSkills } from "@/fixtures/skills";
+import { skills as liveSkills } from "@/lib/vocab";
+import { summarizeProfile } from "@/lib/saved/profile";
+import { profileKey, profileOfferState, savingAvailable, statusVisible } from "@/lib/saved/ui";
 import type { FailureReason } from "@/lib/saved/types";
 
 // 6.1 part 3b: every decision the page makes lives in a plain function (lib/saved/messages.ts, lib/saved/ui.ts) and is
@@ -97,5 +100,70 @@ describe("savingAvailable: whether the Save controls are shown", () => {
     expect(savingAvailable({ ok: true }, { kind: "problem", reason: "corrupted", message: "m" })).toBe(true); // the person can still delete it
     expect(savingAvailable({ ok: true }, { kind: "unavailable", message: "m" })).toBe(false);
     expect(savingAvailable({ ok: false }, { kind: "nothing" })).toBe(false);
+  });
+});
+
+// ---- 6.1 part 3b fixes ---------------------------------------------------------------------------------------------
+
+// The key of the profile on screen = what saving it would store (the skills with their cited lines, the constraints, the
+// kinds set), as text. The same content gives the same key; no time is in it. The status line is tied to a key, so
+// "Saved on this device." is never shown next to a profile that differs from the saved copy.
+describe("profileKey", () => {
+  const build = (over: Partial<ConfirmState> = {}) =>
+    buildProfile(LINES, [p("SQL", "sql", 2, "Wrote SQL queries"), p("Tableau", "tableau", 3, "dashboards in Tableau")], { ...CONFIRM, ...over }, skills);
+
+  it("K1: the same confirm state built twice gives equal keys (no time in it)", async () => {
+    const a = profileKey(build());
+    await new Promise((r) => setTimeout(r, 5)); // a few milliseconds later
+    expect(profileKey(build())).toBe(a);
+  });
+
+  it("K2: removing one kept skill gives a different key", () => {
+    expect(profileKey(build({ keptIds: ["sql"] }))).not.toBe(profileKey(build()));
+  });
+
+  it("K3: changing the cities text gives a different key", () => {
+    expect(profileKey(build({ cities: "Hamburg" }))).not.toBe(profileKey(build()));
+  });
+
+  it("K4: adding an in-progress skill gives a different key", () => {
+    expect(profileKey(build({ inProgress: [...CONFIRM.inProgress, { name: "Docker", date: "2027-09-01" }] }))).not.toBe(profileKey(build()));
+  });
+
+  it("K5: what is not saved does not change the key: a name that stays off the profile (not in our skill list) only adds a note", () => {
+    // By hand: 'Zymurgy' is in no list, so it lands in `unmatchable`, not in profile.skills; the saved content is the same.
+    const withUnlisted = build({ added: [...CONFIRM.added, "Zymurgy"] });
+    expect(withUnlisted.unmatchable.length).toBeGreaterThan(build().unmatchable.length);
+    expect(profileKey(withUnlisted)).toBe(profileKey(build()));
+  });
+});
+
+// By hand: a status is tied to the key of the profile it spoke about. Shown when that key is the one on screen; a status
+// with no key (a delete message) is always shown; a status about a profile is hidden when nothing is on screen.
+describe("statusVisible", () => {
+  it("K6: shown for the same key, hidden for another key or for no profile, always shown without a key; nothing to show for no status", () => {
+    expect(statusVisible({ text: "Saved on this device.", key: "A" }, "A")).toBe(true);
+    expect(statusVisible({ text: "Saved on this device.", key: "A" }, "B")).toBe(false);
+    expect(statusVisible({ text: "Saved on this device.", key: "A" }, null)).toBe(false);
+    expect(statusVisible({ text: "Everything saved on this device was deleted.", key: null }, "B")).toBe(true);
+    expect(statusVisible({ text: "Everything saved on this device was deleted.", key: null }, null)).toBe(true);
+    expect(statusVisible(null, "A")).toBe(false);
+  });
+
+  it("K7: the person edits back to the saved content: the old 'Saved' line is true again and is shown again (the key is equal)", () => {
+    expect(statusVisible({ text: "Saved on this device.", key: "A" }, "B")).toBe(false);
+    expect(statusVisible({ text: "Saved on this device.", key: "A" }, "A")).toBe(true);
+  });
+});
+
+describe("one vocabulary", () => {
+  it("V1: fixtures/skills is the live vocabulary itself (the same array), so the page and lib/saved cannot name skills differently", () => {
+    expect(fixtureSkills).toBe(liveSkills);
+  });
+
+  it("V2: the summary of a saved profile names a skill that is only in the live vocabulary (not one of the original 17)", () => {
+    const onlyLive = saved.skills.concat([{ kind: "have", skillId: "experimentation", evidence: null }]);
+    const summary = summarizeProfile({ ...saved, skills: onlyLive });
+    expect(summary.have.find((h) => h.skillId === "experimentation")).toMatchObject({ name: "Experimentation", known: true });
   });
 });
