@@ -11,6 +11,7 @@ Scope and roles: see the first line of this file and docs/REVIEWER-BRIEF.md. Sec
 **Status**
 - **Done and ticked:** Day 1 to Day 4, **5.1** (vocabulary v0 in `lib/vocab/`, exact name matching, trait handling, eval fingerprint format 3) and **5.3** (the reading cache: `lib/ai/readCache.ts`, `readingVersion.ts`; ad route only, memory only, 20 entries, header `x-reading-cache`; DECISIONS 2026-11-16).
 - **5.2 is ticked (2026-11-16).** Stage 1 (exact, three tries) and **stage 2 (close spelling) are LIVE** (wired 2026-11-16 through `lib/engine/readName.ts` into `fromAd` and `fromCv`; order: not-a-skill flag, stage 1, stage 2; READING_VERSION is "2"). **5.3 is done (see above).**
+- **Day 6, step 6.1:** plan drafted (docs/PLAN-6.1.md, 2026-11-16), waiting for review by the reviewer and approval by the owner (open questions in section 11); no code yet.
 - **Tests:** 1,184 pass in 65 files. `npx tsc --noEmit`, `npm run lint`, `npm run build` are green. Live site: https://career-copilot-theta-seven.vercel.app (deploys on push to `main`).
 
 **Stage 2 rules (all fixed BEFORE any measure; docs/PLAN-5.1.md "5.2 stage 2 rules" and "Changes before any measure", docs/DECISIONS.md)**
