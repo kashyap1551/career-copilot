@@ -1,11 +1,11 @@
 import { nameKeys } from "../engine/skillIds";
 import type { Skill } from "../engine/types";
-import { LEFT_UNLISTED_V0, NOT_A_SKILL_V0, VOCAB_V0, type LeftUnlisted, type NotASkillEntry, type VocabEntry } from "./data";
+import { LEFT_UNLISTED_V0, NEVER_MAP_V0, NOT_A_SKILL_V0, VOCAB_V0, type LeftUnlisted, type NeverMap, type NotASkillEntry, type VocabEntry } from "./data";
 
 // The vocabulary the app uses (data in ./data.ts, docs/PLAN-5.1.md). Typed data
 // and two small views of it. No AI, no network.
 
-export type { LeftUnlisted, NotASkillEntry, VocabEntry };
+export type { LeftUnlisted, NeverMap, NotASkillEntry, VocabEntry };
 export const VOCAB: VocabEntry[] = VOCAB_V0;
 export const NOT_A_SKILL: NotASkillEntry[] = NOT_A_SKILL_V0;
 
@@ -30,6 +30,7 @@ export function isNotASkill(name: string): boolean {
 }
 
 export const LEFT_UNLISTED: LeftUnlisted[] = LEFT_UNLISTED_V0;
+export const NEVER_MAP: NeverMap[] = NEVER_MAP_V0;
 
 const undecidedKeys = new Set(VOCAB.flatMap((e) => e.undecided.map((u) => nameKeys(u).exact)));
 const leftUnlistedKeys = new Set(LEFT_UNLISTED.map((l) => nameKeys(l.name).exact));

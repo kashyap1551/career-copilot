@@ -3,6 +3,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { cvFixtures } from "../fixtures/synthetic-cvs";
 import { skillIdFor } from "../lib/engine/skillIds";
+import { vocabHash } from "../lib/engine/vocabHash";
 import { nameStatus, NOT_A_SKILL, skills } from "../lib/vocab";
 
 // npm run vocab-check: how much of the test material the vocabulary covers (docs/PLAN-5.1.md, step 5.1).
@@ -101,7 +102,7 @@ async function main() {
     if (hold.length > 0) console.log(line(sumOf("ads 09-10 *", hold)));
     for (const r of extra) console.log(line(r));
   };
-  console.log(`VOCAB CHECK (no AI call) | vocabulary: ${skills.length} skills, ${NOT_A_SKILL.length} not-a-skill phrases`);
+  console.log(`VOCAB CHECK (no AI call) | vocab ${vocabHash().slice(0, 10)} | vocabulary: ${skills.length} skills, ${NOT_A_SKILL.length} not-a-skill phrases`);
   section("KEYS (the names we wrote; one row per requirement)", "reqs", keyRows, [cvKeyRow]);
   if (aiRows.length > 0) section("AI NAMES (capture run, distinct names)", "names", aiRows.filter((r) => r.label !== "five CVs"), aiRows.filter((r) => r.label === "five CVs"));
   console.log("* ad-09 and ad-10: counts only, their names are never printed.");

@@ -92,6 +92,7 @@ Note: until this day's vocabulary exists, skill names are free text, so the same
   Note: Check met on ad-01 to ad-08 and the five CVs (unmapped 0; in-sample by construction, after aliases, entries and phrases were added from those names). Not met on the holdout ad-09 and ad-10 (7 of 31 requirements and 12 of 29 AI names mapped, counts only): not tuned to by design; 5.2 measures it.
 - [ ] **5.2** Mapping: exact alias first, then close spelling, then an AI pick among the top candidates; anything unsure goes to a review list.
   Check: wrong mappings stay under 5% on the test ads.
+  Note: Stage 2 (close spelling) built offline and not wired; the one-shot measure on the fresh set is still to do (see docs/HANDOFF.md).
 - [ ] **5.3** Store each reading under a hash of the text.
   Check: pasting the same ad twice makes one AI call.
 

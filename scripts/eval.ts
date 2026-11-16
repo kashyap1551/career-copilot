@@ -5,8 +5,8 @@ import { skills } from "../fixtures/skills";
 import { INSTRUCTIONS, readJobAd } from "../lib/ai/readJob";
 import { captureRequestBody } from "../lib/ai/requestBody";
 import { checkKey, type AnswerKey } from "../lib/engine/answerKey";
-import { evalFingerprint, fingerprintLine, vocabularyHash } from "../lib/engine/evalFingerprint";
-import { LEFT_UNLISTED, NOT_A_SKILL, VOCAB } from "../lib/vocab";
+import { evalFingerprint, fingerprintLine } from "../lib/engine/evalFingerprint";
+import { vocabHash } from "../lib/engine/vocabHash";
 import { formatReport, summarize } from "../lib/engine/evalReport";
 import { formatShow, showRefusal } from "../lib/engine/evalShow";
 import { runEval, twoInARow, type EvalAd, type RunState } from "../lib/engine/evalRun";
@@ -26,7 +26,7 @@ import { runEval, twoInARow, type EvalAd, type RunState } from "../lib/engine/ev
 
 const HOLDOUT = new Set(["ad-09", "ad-10"]);
 // The scores depend on the vocabulary, so it is part of every fingerprint (format 3).
-const VOCABULARY = vocabularyHash({ VOCAB, NOT_A_SKILL, LEFT_UNLISTED });
+const VOCABULARY = vocabHash();
 const root = process.cwd();
 const args = process.argv.slice(2);
 const only = args.includes("--only") ? (args[args.indexOf("--only") + 1] ?? "") : null;

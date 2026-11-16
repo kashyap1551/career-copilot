@@ -1,8 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
-import { vocabularyHash } from "../lib/engine/evalFingerprint";
 import { compactLines, loadWords, neighbourPairs } from "../lib/engine/neighbours";
-import { isNotASkill, LEFT_UNLISTED, NOT_A_SKILL, skills, VOCAB } from "../lib/vocab";
+import { vocabHash } from "../lib/engine/vocabHash";
+import { isNotASkill, skills } from "../lib/vocab";
 
 // npm run neighbours: the ordinary English words (from /usr/share/dict/words) that close spelling would map to a
 // skill (docs/PLAN-5.1.md). No AI call; the vocabulary is not edited and no never-map list is added: the owner decides
@@ -17,7 +17,7 @@ if (!fs.existsSync(DICT)) {
 
 const words = loadWords(fs.readFileSync(DICT, "utf8"));
 const pairs = neighbourPairs(skills, words, isNotASkill);
-const hash = vocabularyHash({ VOCAB, NOT_A_SKILL, LEFT_UNLISTED }).slice(0, 10);
+const hash = vocabHash().slice(0, 10);
 const longWords = words.filter((w) => w.length >= 6).length;
 const affected = new Set(pairs.map((p) => p.id)).size;
 

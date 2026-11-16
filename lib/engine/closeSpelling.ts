@@ -1,3 +1,4 @@
+import { NEVER_MAP } from "../vocab";
 import { nameKeys, slugOf } from "./skillIds";
 import type { Skill } from "./types";
 
@@ -96,6 +97,10 @@ export function closeTargets(skills: Skill[]): CloseTarget[] {
   return targets;
 }
 
+// Ordinary words and look-alike tools that are never mapped BY SPELLING (lib/vocab/data.ts, NEVER_MAP), compared after
+// the same spelling fold as the name. Stage 1 (exact) is untouched.
+const NEVER_FORMS = new Set(NEVER_MAP.map((n) => spellingForm(n.word)));
+
 export type CloseResult =
   | { how: "close"; id: string; distance: number; via: string }
   | { how: "tie"; ids: string[] }
@@ -109,6 +114,7 @@ type PerSkill = { id: string; distance: number; ok: boolean; via: string };
 export function closeMatch(name: string, skills: Skill[]): CloseResult {
   const x = spellingForm(name);
   if (x === "") return { how: "none" };
+  if (NEVER_FORMS.has(x)) return { how: "none" };
   const best = new Map<string, PerSkill>();
   for (const t of closeTargets(skills)) {
     const d = osaDistance(x, t.form, MAX_ALLOWANCE);

@@ -11,8 +11,8 @@ import { formatCvReport } from "../lib/engine/evalCvReport";
 import { passLines } from "../lib/engine/evalCvScore";
 import { missingGuard, mismatchGuard } from "../lib/engine/evalCvGuard";
 import { runCvEval } from "../lib/engine/evalCvRun";
-import { evalFingerprint, fingerprintLine, requestHash, vocabularyHash } from "../lib/engine/evalFingerprint";
-import { LEFT_UNLISTED, NOT_A_SKILL, VOCAB } from "../lib/vocab";
+import { evalFingerprint, fingerprintLine, requestHash } from "../lib/engine/evalFingerprint";
+import { vocabHash } from "../lib/engine/vocabHash";
 import { twoInARow, type RunState } from "../lib/engine/evalRun";
 
 // npm run eval-cv -- --fingerprint   prints the fingerprint and stops. No AI call: the request is captured on a
@@ -65,7 +65,7 @@ async function main() {
   }
 
   // The scores depend on the vocabulary (the key matcher uses its ids), so it is part of the fingerprint (format 3).
-  const vocabulary = vocabularyHash({ VOCAB, NOT_A_SKILL, LEFT_UNLISTED });
+  const vocabulary = vocabHash();
   const request = await captureCvRequestBody();
   const fingerprint = evalFingerprint({
     request,

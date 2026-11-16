@@ -1,9 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
-import { vocabularyHash } from "../lib/engine/evalFingerprint";
 import { detailRows, formatSetLines, judge, measureSet, outcomeFor, repeatNote, type DetailRow, type Item } from "../lib/engine/mapMeasure";
 import { MUST_NOT_MERGE, MUST_NOT_MERGE_NAMES } from "../lib/vocab/mustNotMerge";
-import { isNotASkill, LEFT_UNLISTED, NOT_A_SKILL, skills, VOCAB } from "../lib/vocab";
+import { vocabHash } from "../lib/engine/vocabHash";
+import { isNotASkill, skills } from "../lib/vocab";
 
 // npm run map-measure -- <labels.json> [more labels files]
 // Maps every labelled name (flagged first, then stage 1, then stage 2) and prints COUNTS ONLY: never a name.
@@ -15,7 +15,7 @@ import { isNotASkill, LEFT_UNLISTED, NOT_A_SKILL, skills, VOCAB } from "../lib/v
 
 const files = process.argv.slice(2).filter((a) => !a.startsWith("--"));
 const dir = process.env.MAP_MEASURE_DIR ?? path.join(process.cwd(), "eval-runs");
-const hash = vocabularyHash({ VOCAB, NOT_A_SKILL, LEFT_UNLISTED }).slice(0, 10);
+const hash = vocabHash().slice(0, 10);
 
 if (files.length === 0) {
   console.error("Usage: npm run map-measure -- <labels.json> [more labels files]");

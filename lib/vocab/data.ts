@@ -318,3 +318,17 @@ export const LEFT_UNLISTED_V0: LeftUnlisted[] = [
   { name: "partnership development", why: "partnership development is business development, not relationship management (owner, 2026-11-16)" },
 ];
 
+// Ordinary words and look-alike tools that must never be mapped BY SPELLING (close spelling, stage 2). Stage 1 (exact)
+// is unaffected: a listed word that is also an exact alias still maps exactly. Compared after the same spelling fold
+// as stage 2. Decided by the owner and the reviewer from the neighbour audit and general knowledge, before any measure,
+// with no ad name (docs/PLAN-5.1.md, "Changes before any measure", item 5).
+export type NeverMap = { word: string; why: string };
+export const NEVER_MAP_V0: NeverMap[] = [
+  { word: "confluent", why: "Confluent, the Kafka platform, is not Confluence" },
+  { word: "commerce", why: "the field or degree is not e-commerce" },
+  { word: "market", why: "an ordinary word, one letter from Marketo" },
+  { word: "markets", why: "an ordinary word, one letter from Marketo" },
+  { word: "personal", why: "an ordinary word, not persona development" },
+  { word: "typoscript", why: "TypoScript of TYPO3 is not TypeScript" },
+];
+

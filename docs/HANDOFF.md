@@ -4,19 +4,39 @@ Scope: the Career Co-pilot is for anyone, in any country. English and German are
 
 Read this and docs/PLAN-3.1.md, then continue. Written at the end of the session of 2026-11-14.
 
-## Where we are now (updated 2026-11-16, Day 5)
+## Where we are now (updated 2026-11-16, end of Day 5)
 
-- **Done and ticked:** Day 1 to Day 4, and **5.1** (vocabulary v0 in `lib/vocab/`, exact name matching, `vocab-check`, trait handling, eval fingerprint format 3).
-- **5.2 stage 2 (close spelling) is built OFFLINE and NOT wired:** `lib/engine/closeSpelling.ts` and `mapName.ts` (stage 1, then stage 2), `npm run vocab-pairs`, `npm run map-measure -- <labels.json>`, `npm run neighbours`. Nothing in `fromAd`, `fromCv`, the routes or the page imports it. **5.2 is NOT ticked.** The rules and outcome definitions are in docs/PLAN-5.1.md ("5.2 stage 2 rules ... fixed before any measure", then "Changes before any measure, 2026-11-16").
-- **Three rule changes made before any measure (2026-11-16; none taken from an ad name or a result):** (1) the allowance by the shorter folded string is now up to 5 letters 0, 6 to 8 letters 1, 9 or more 2 (it mapped the word "shift" to Swift; a typo in a name of 5 letters or fewer, such as "Excell", now goes to the review list); (2) the wrong line's limit is `floor(5 x (|L| - traitNotFlagged) / 100)` and the printout shows |L|, trait not flagged and the size used; (3) MySQL ~ MSSQL is accepted (both exact aliases, stage 1 beats stage 2). `vocab-pairs` now finds 4 pairs, all tie-protected, no "check" pair.
-- **A fourth rule change, before any measure (2026-11-16), from the neighbour audit:** a distance of 1 is accepted anywhere (allowance permitting); a distance of 2 only when the two folded strings share a common prefix of at least (shorter length minus 3) letters, i.e. a second change only at the very end of a long word. One shared function `acceptsDistance` serves `closeMatch` and `vocabPairs`; the audit goes through `mapName`. Cost: a long name with two typos in the middle, and a long German word with two umlauts typed as ae/oe/ue, are no longer repaired. `vocab-pairs` now finds 0 pairs.
-- **Neighbour audit (`npm run neighbours`, /usr/share/dict/words, no AI call): 118 (skill, word) pairs across 43 skills** after the fourth rule (it was 201 across 60 before it). One line per skill is printed and written to `eval-runs/neighbours.txt` (gitignored). The vocabulary was not edited and no never-map list was added: the owner decides that from the output.
-- **Fresh-set capture is built and tested but NOT run:** `npm run capture-fresh` (one call per `fixtures/real-ads/fresh-*.txt`, guards `EXPECT_AD_HASH=85357f8fac EXPECT_AD_LEN=3347`, writes `fresh-labels-TODO.json`, counts only, refuses to overwrite labelling work) and `npm run skill-ids` (the labels sheet). No `fresh-*.txt` exists yet, so nothing was read. `map-measure` refuses a labels file that still contains "TODO".
-- **The fresh set is not collected.** The owner adds 3 new ads (at least 2 in German); they are labelled (`{"set":"fresh","names":{...}}` in `fixtures/real-ads/`, gitignored) and measured ONCE with `npm run map-measure`. The holdout (ad-09, ad-10) is printed next to it, not pooled. The vocabulary is never edited after seeing either.
-- **Still to do:** teach the eval scorer about `notCounted` (before the next counted ad eval); Day 5 then 5.3 (the reading cache); the older numbers below are marked as measured on the 17-skill list.
-- **Commands that work now:** `npm test`, `npm run -s vocab-check`, `npm run -s vocab-pairs`, `npm run -s map-measure -- <file>`, `npm run -s neighbours`, `npm run -s skill-ids`, `npm run capture-fresh` (needs the fresh ads), `npm run eval -- --fingerprint` and `npm run eval-cv -- --fingerprint` (call-free), `npm run build`. The request hashes are pinned: ad `85357f8fac`, CV `193e02ee3f`.
+Scope and roles: see the first line of this file and docs/REVIEWER-BRIEF.md. Sections (a) to (g) below are older and partly out of date; this block is the current state.
 
-(The sections (a) to (g) below were written earlier and are partly out of date; this block is the current state.)
+**Status**
+- **Done and ticked:** Day 1 to Day 4, and **5.1** (vocabulary v0 in `lib/vocab/`, exact name matching, trait handling, eval fingerprint format 3).
+- **5.2 is NOT ticked.** Stage 1 (exact, three tries) is live. **Stage 2 (close spelling) is built OFFLINE and NOT wired:** `lib/engine/closeSpelling.ts`, `mapName.ts`; nothing in `fromAd`, `fromCv`, the routes or the page imports it (a test checks it). **5.3 not started.**
+- **Tests:** 1,106 pass in 58 files. `npx tsc --noEmit`, `npm run lint`, `npm run build` are green. Live site: https://career-copilot-theta-seven.vercel.app (deploys on push to `main`).
+
+**Stage 2 rules (all fixed BEFORE any measure; docs/PLAN-5.1.md "5.2 stage 2 rules" and "Changes before any measure", docs/DECISIONS.md)**
+- Allowance by the SHORTER folded string: up to 5 letters 0, 6 to 8 letters 1, 9 or more 2. A swap of two neighbouring letters counts 1.
+- A distance of 2 only at the very end of a long word (common prefix at least shorter minus 3); one shared function `acceptsDistance`.
+- A tie goes to the review list. Targets never include undecided aliases, exactOnly entries (R, C, Go) or the not-a-skill phrases.
+- Never-map list (never mapped BY SPELLING; stage 1 unaffected): confluent, commerce, market, markets, personal, typoscript.
+- Pass lines (fresh set only): wrong <= floor(5 x (|L| - traitNotFlagged) / 100); recall 4 x right_M >= 3 x |M| (|M| = 0 is not passed); must-not-merge 0. The holdout is printed beside it, not judged; one-shot log in `eval-runs/map-measure-log.txt`.
+- Tools (no AI call): `npm run vocab-check`, `vocab-pairs` (0 pairs), `neighbours` (113 pairs across 39 skills, English only), `map-measure`, `skill-ids`, and `capture-fresh` (built and tested, NOT run).
+
+**Hashes:** request 85357f8fac (ad, INSTRUCTIONS 3,347) and 193e02ee3f (CV, 1,496), both pinned by tests. Vocabulary hash **cf3e44da32** (skills, not-a-skill phrases, left-unlisted names AND the never-map list, from one helper `vocabHash()`). Eval fingerprint format 3. Earlier eval numbers were measured on the 17-skill list and are not comparable.
+
+**Next steps, in order**
+1. The owner saves 3 to 5 fresh ads (at least 2 German) as `fixtures/real-ads/fresh-01.txt` and so on.
+2. `EXPECT_AD_HASH=85357f8fac EXPECT_AD_LEN=3347 npm run capture-fresh` (one call per ad, counts only, writes `fresh-labels-TODO.json`).
+3. The owner labels every name (`npm run skill-ids` lists the labels; `none` and `not-a-skill` are the two special ones) and saves the file as `fresh-labels.json` BEFORE any measure.
+4. `npm run map-measure -- fixtures/real-ads/fresh-labels.json`, once.
+5. If all three lines pass: wire `mapName` into `fromAd` and `fromCv` and show close matches on the page. If recall fails: decide with the reviewer on stage 3 (the AI pick among at most 5 code-chosen candidates), which needs a new fresh set to be measured fairly.
+6. Then teach the eval scorer about `notCounted` (before the next counted ad eval).
+7. 5.3: the reading cache.
+
+**Rules for the next session:** no vocabulary edit after seeing fresh or holdout names; fresh names are not pasted into the chat; the holdout is counts only; do not run `map-measure` before labelling is complete.
+
+**Open items:** the owner confirms whether ad-03 is partly German; optional owner check of "German names to check" in docs/VOCAB-REVIEW.md (28 entries); Groq training terms and Zero Data Retention unverified; Vercel Firewall rate-limit rule unverified; an access code before the link is shared; the kill switch `AI_ENABLED=false` (both routes answer 503) exists; thin CV reader recall; re-reading the CV resets the confirm screen; a stopwatch-timed run by a second person; accuracy backlog a to e; the Groq upgrade question (CLAUDE.md rule 7 must be edited first); composite names split at reading time.
+
+**Still true:** macOS gotchas (`sed -i` fails silently, use python; no `timeout` command; zsh does not split an unquoted variable of file names, use arrays; tsx top-level await needs `.mts`). Scratch tools: `eval-runs/tuning-tools/` (gitignored). The readJob 429 / RetryError bug is fixed (`lib/ai/errors.ts`). `docs/REVIEWER-BRIEF.md` is the brief for a new reviewer chat.
 
 ## (a) Where we are
 
