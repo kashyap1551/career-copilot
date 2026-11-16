@@ -10,7 +10,7 @@ Scope and roles: see the first line of this file and docs/REVIEWER-BRIEF.md. Sec
 
 **Status**
 - **Done and ticked:** Day 1 to Day 4, **5.1** (vocabulary v0 in `lib/vocab/`, exact name matching, trait handling, eval fingerprint format 3) and **5.3** (the reading cache: `lib/ai/readCache.ts`, `readingVersion.ts`; ad route only, memory only, 20 entries, header `x-reading-cache`; DECISIONS 2026-11-16).
-- **5.2 is NOT ticked yet (the reviewer ticks after reading the report).** Stage 1 (exact, three tries) and **stage 2 (close spelling) are LIVE** (wired 2026-11-16 through `lib/engine/readName.ts` into `fromAd` and `fromCv`; order: not-a-skill flag, stage 1, stage 2; READING_VERSION is "2"). **5.3 is done (see above).**
+- **5.2 is ticked (2026-11-16).** Stage 1 (exact, three tries) and **stage 2 (close spelling) are LIVE** (wired 2026-11-16 through `lib/engine/readName.ts` into `fromAd` and `fromCv`; order: not-a-skill flag, stage 1, stage 2; READING_VERSION is "2"). **5.3 is done (see above).**
 - **Tests:** 1,184 pass in 65 files. `npx tsc --noEmit`, `npm run lint`, `npm run build` are green. Live site: https://career-copilot-theta-seven.vercel.app (deploys on push to `main`).
 
 **Stage 2 rules (all fixed BEFORE any measure; docs/PLAN-5.1.md "5.2 stage 2 rules" and "Changes before any measure", docs/DECISIONS.md)**
@@ -30,7 +30,7 @@ Scope and roles: see the first line of this file and docs/REVIEWER-BRIEF.md. Sec
 2. DONE 2026-11-16: `capture-fresh` ran once: 5 calls, 23,412 tokens, 62 distinct names (19, 14, 13, 9, 12 per ad), written to `fresh-labels-TODO.json`.
 3. DONE 2026-11-16: the fresh set is labelled and checked (62 entries, 26 skill ids on 25 distinct ids, 26 none, 10 not-a-skill, 0 invalid, 0 TODO; `fresh-labels.json` sha256 starts bd1086d9ad; vocabulary hash e96370fe4c; DECISIONS 2026-11-16). No measure has been run.
 4. DONE 2026-11-16: the one-shot map-measure on the fresh set passed all three lines (|L| 62, |M| 26, right_M 25, wrong 2 at the limit of 2, traitNotFlagged 9, must-not-merge 0; stage 1 gave 24 of the 25 right, stage 2 one; both wrong merges were stage 1 aliases). DECISIONS 2026-11-16. The fresh set is spent.
-5. DONE 2026-11-16: stage 2 wired into `fromAd` and `fromCv` (DECISIONS "5.2 wired: stage 2 live"): one shared path, close-match fields carried and shown on the page, READING_VERSION 2, tests and breaks all caught. NEXT: the reviewer reads the report, ticks 5.2 in SPRINT.md, then Day 6 (saved jobs).
+5. DONE 2026-11-16: stage 2 wired into `fromAd` and `fromCv` (DECISIONS "5.2 wired: stage 2 live"): one shared path, close-match fields carried and shown on the page, READING_VERSION 2, tests and breaks all caught. 5.2 ticked 2026-11-16. NEXT: Day 6 (saved jobs); the trait-flagging step with a new fresh set (item 7) is open and is scheduled by the owner and reviewer.
 6. DONE 2026-11-16: the eval scorer knows `notCounted` (scorer v2: hits, not counted, missed, strict and adjusted recall; DECISIONS 2026-11-16). `npm run eval -- --not-counted` lists the not-counted key items of ad-01 to ad-08 (real AI calls, one per ad: ask first). No counted ad eval has been run since.
 7. DONE 2026-11-16: 5.3, the reading cache. Next after the fresh-set sequence (steps 1 to 5): Day 6 (saved jobs). Open items below.
 
@@ -44,8 +44,11 @@ Scope and roles: see the first line of this file and docs/REVIEWER-BRIEF.md. Sec
   4. Vocabulary: Teamwork is a listed skill (flag BORDERLINE) while "team player" is not-a-skill; decide in the vocabulary review.
   5. Composite names split at reading time: the ad-05 example (the reader returned only the first half of "...or you're a seasoned Growth PM...").
   6. Run-to-run spread is not something we set: the ad request carries temperature 0, seed 20261115 and reasoning_effort medium (no max output tokens), all inside the pinned request hash (set in `lib/ai/settings.ts`). Groq documents the seed as best effort, and the 2026-11-15 noise test with these exact settings still varied (ad-04 found 11, 12, 7), so the spread is not from our settings; the cause is not verified.
-  7. Trait flagging does not generalise: 1 of 10 not-a-skill labels flagged on the fresh set; the NOT_A_SKILL list was built from tuning ads; expand it only from a NEW fresh set.
+  7. Trait flagging does not generalise: 1 of 10 not-a-skill labels flagged on the fresh set; the NOT_A_SKILL list was built from tuning ads; expand it only from a NEW fresh set. Seen live 2026-11-16: 'structured way' leaked and counted as a missing must-have.
   8. Two wrong merges are stage 1 aliases: 'acceptance criteria' -> User stories and 'financial analysis' -> Financial planning and analysis. Decide in the vocabulary review together with the Teamwork borderline (item 4). Any vocabulary change changes the vocabulary hash and needs a new fresh set to be verified.
+  9. Names the person types (skill list, hand-added, in-progress) are exact-only; the same word read from a CV gets close matching. Decide later whether typed names get stage 2 (needs a 'Read as' line there too).
+  10. The eval stamp covers the vocabulary but not the matching code: add READING_VERSION to it at the next eval session; until then eval numbers from before the stage 2 wiring are a different baseline.
+  11. For an ad, the 'Read as...' line sits under 'What the AI read', not next to the requirement row; move it next to the row if close matches turn out common.
 - Before the repo goes public: close the access code, rate-limit rule and Groq terms items, then read docs/ for personal and security notes.
 
 **Still true:** macOS gotchas (`sed -i` fails silently, use python; no `timeout` command; zsh does not split an unquoted variable of file names, use arrays; tsx top-level await needs `.mts`). Scratch tools: `eval-runs/tuning-tools/` (gitignored). The readJob 429 / RetryError bug is fixed (`lib/ai/errors.ts`). `docs/REVIEWER-BRIEF.md` is the brief for a new reviewer chat.

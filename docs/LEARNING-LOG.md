@@ -34,3 +34,4 @@ One line per step: what you learned, in your own words. This becomes the case st
 | 2026-11-16 | Day 5 | One AI run is a sample, not a measurement: the same 7 ads gave 72 hits in one run and 69 in the next, so I trust only differences bigger than that spread, and I never move a pass line after seeing a result. |
 | 2026-11-16 | Day 5 | Before blaming the AI for a bad score, check the scorer: 18 of 26 'misses' were lines the AI had read, because my key split one line into several items, the AI merged them, and my scorer paired one to one. |
 | 2026-11-16 | Day 5 | A pass line can be carried by the part you did not change. Split a result by stage before you credit the new stage (5.2: stage 1 gave 24 of 25 right, stage 2 gave 1). |
+| 2026-11-16 | Day 5 | Offline tests can pass while the live page still shows a gap: an invented ad showed a trait ('structured way') counted as a missing must-have. Test the live page with an ad whose right answer you know. |

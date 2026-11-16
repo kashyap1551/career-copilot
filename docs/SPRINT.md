@@ -91,9 +91,9 @@ Note: until this day's vocabulary exists, skill names are free text, so the same
 - [x] **5.1** A starter vocabulary: every skill in the test ads, with English and German names and aliases ("SQL-Kenntnisse", "MS Excel").
   Check: every requirement in the test ads has a skill to map to.
   Note: Check met on ad-01 to ad-08 and the five CVs (unmapped 0; in-sample by construction, after aliases, entries and phrases were added from those names). Not met on the holdout ad-09 and ad-10 (7 of 31 requirements and 12 of 29 AI names mapped, counts only): not tuned to by design; 5.2 measures it.
-- [ ] **5.2** Mapping: exact alias first, then close spelling, then an AI pick among the top candidates; anything unsure goes to a review list.
+- [x] **5.2** Mapping: exact alias first, then close spelling, then an AI pick among the top candidates; anything unsure goes to a review list.
   Check: wrong mappings stay under 5% on the test ads.
-  Note: Stage 2 (close spelling) built offline and not wired; the one-shot measure on the fresh set is still to do (see docs/HANDOFF.md).
+  Note: ticked 2026-11-16: measure PASS (DECISIONS 2026-11-16), stage 2 live (DECISIONS 2026-11-16 'stage 2 live'); stage 3 not built: recall passed.
 - [x] **5.3** Store each reading under a hash of the text.
   Check: pasting the same ad twice makes one AI call.
   Note: ticked because both checks passed: test R1 (same ad twice: the reader stub is called once; x-reading-cache miss, then hit, same body) and the live check on the local server with ad-01 (miss then hit, same body, one call counted to the AI host: 5.07 s then 0.01 s). Memory only, ad route only, 20 entries (docs/DECISIONS.md, the reading cache).
