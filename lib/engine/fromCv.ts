@@ -1,7 +1,7 @@
 import type { ExtractedCv } from "../schemas/cv";
 import { isNotASkill } from "../vocab";
 import { hasRealWord } from "./quoteMatch";
-import { skillIdFor } from "./skillIds";
+import { readNameId } from "./readName";
 import { foldText, isInAd } from "./text";
 import type { Skill } from "./types";
 
@@ -21,6 +21,9 @@ export type CvSkill = {
   // named: the skill's name is written in the cited line as a whole word.
   // inferred: the line shows the skill without writing that name.
   label: "named" | "inferred";
+  // Only when stage 2 (close spelling) matched the name: the vocabulary term it matched. `name` stays the CV's own
+  // wording and `skillId` is the skill it was read as. Absent for an exact match.
+  closeMatch?: { via: string };
 };
 
 export type CvRemovalReason =
@@ -74,7 +77,8 @@ export function fromCv(extracted: ExtractedCv, lines: string[], skills: Skill[])
       drop("not-a-skill");
       continue;
     }
-    const id = skillIdFor(name, skills);
+    // The not-a-skill flag came first (above); then stage 1, then stage 2, in one shared path (readNameId).
+    const id = readNameId(name, skills);
     if (id === null) {
       drop("no-name");
       continue;
@@ -109,6 +113,7 @@ export function fromCv(extracted: ExtractedCv, lines: string[], skills: Skill[])
       line: item.line,
       quote: item.quote,
       label: nameWrittenIn(name, lineText) ? "named" : "inferred",
+      ...(id.close ? { closeMatch: { via: id.close.via } } : {}),
     });
   }
 

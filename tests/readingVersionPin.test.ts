@@ -11,8 +11,8 @@ beforeEach(() => vi.stubEnv("GROQ_MODEL", "openai/gpt-oss-120b"));
 afterEach(() => vi.unstubAllEnvs());
 
 describe("the pair (READING_VERSION, ad request hash)", () => {
-  it("P1: READING_VERSION 1 goes with request hash 85357f8fac", async () => {
+  it("P1: READING_VERSION 2 goes with request hash 85357f8fac", async () => {
     const pair = `${READING_VERSION}|${requestHash(await captureRequestBody()).slice(0, 10)}`;
-    expect(pair, "The ad request hash and READING_VERSION must change together: change READING_VERSION in lib/ai/readingVersion.ts when the request hash changes, then update this pin.").toBe("1|85357f8fac");
+    expect(pair, "The ad request hash and READING_VERSION must change together: change READING_VERSION in lib/ai/readingVersion.ts when the request hash changes, then update this pin.").toBe("2|85357f8fac");
   });
 });

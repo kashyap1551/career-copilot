@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { skills } from "@/fixtures/skills";
 import type { BuiltProfile, ConfirmState } from "@/lib/cv/profile";
 import type { CvSkill } from "@/lib/engine/fromCv";
 import { LANGUAGE_LEVELS, type LanguageLevel, type WorkMode } from "@/lib/engine/types";
+import { closeMatchLine } from "./reportText";
 
 // Step 4.3: the confirm screen. Keep or remove each skill the AI found, add
 // skills by hand, add skills you are learning, and set the constraints you want
@@ -30,6 +32,14 @@ function SkillRow({ s, checked, onToggle }: { s: CvSkill; checked: boolean; onTo
             (CV line {s.line}
             {s.listed ? "" : "; not in our skill list yet, so it can't be matched with an ad"})
           </span>
+          {s.closeMatch && (
+            <>
+              <br />
+              <span className="text-zinc-600 dark:text-zinc-400">
+                {closeMatchLine(s.name, skills.find((k) => k.id === s.skillId)?.name ?? s.skillId)}
+              </span>
+            </>
+          )}
           <br />
           <span className="text-zinc-600 dark:text-zinc-400">&ldquo;{s.quote}&rdquo;</span>
         </span>

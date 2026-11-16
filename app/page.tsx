@@ -9,7 +9,7 @@ import ConfirmBox from "./ConfirmBox";
 import CvBox from "./CvBox";
 import { profileReport } from "./fitReport";
 import ReportView from "./ReportView";
-import { reportNote } from "./reportText";
+import { closeMatchLines, reportNote } from "./reportText";
 import { readSkillList, skillsOnlyReport } from "./skillsOnly";
 
 // One page, in this order: your CV, confirm your profile, the job ad, the
@@ -89,6 +89,9 @@ export default function Home() {
       view: { ...skillsOnlyReport(result.job, list.cvLines, list.lines, skills, result.unlisted), conflicts: [] as string[] },
     };
   }, [result, built, cvRead, list]);
+
+  // Names the reader matched by close spelling (stage 2): one short line each; exact matches show nothing.
+  const closeLines = result ? closeMatchLines(result.job.requirements, (id) => skills.find((k) => k.id === id)?.name ?? id) : [];
 
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-4 px-6 py-12">
@@ -210,6 +213,14 @@ export default function Home() {
               <p className="text-sm text-zinc-600 dark:text-zinc-400">
                 Not in our skill list yet: {result.unlisted.map((s) => s.name).join(", ")}.
               </p>
+            )}
+
+            {closeLines.length > 0 && (
+              <ul className="list-disc pl-5 text-sm text-zinc-600 dark:text-zinc-400">
+                {closeLines.map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+              </ul>
             )}
 
             <details>

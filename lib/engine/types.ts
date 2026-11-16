@@ -47,12 +47,18 @@ export type JobConstraints = {
   otherConditions: { quote: string }[];
 };
 
+// A name the reader wrote that was matched to a skill by CLOSE SPELLING (stage 2): the original wording, the skill it
+// was read as, and the vocabulary term it matched. Shown on the page; the engine ignores it.
+export type CloseMatch = { name: string; skillId: SkillId; via: string };
+
 export type Requirement = {
   // Any one of these counts as met ("Power BI or Tableau"). A normal
   // requirement has exactly one id. Never empty.
   skillIds: SkillId[];
   importance: "must" | "nice";
   quote: string; // the ad's own words, copied exactly
+  // Only when a name was matched by close spelling (absent otherwise; an exact match carries nothing extra).
+  closeMatches?: CloseMatch[];
 };
 
 export type Job = {

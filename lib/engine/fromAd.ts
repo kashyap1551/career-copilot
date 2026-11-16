@@ -3,9 +3,9 @@ import { datesInText } from "./dates";
 import { languageCodeFor, levelFromWording } from "./languageWording";
 import { isNotASkill } from "../vocab";
 import { hasRealWord } from "./quoteMatch";
-import { skillIdFor } from "./skillIds";
+import { readNameId } from "./readName";
 import { foldText, isInAd, normalizeText } from "./text";
-import type { Job, JobLanguage, Requirement, Skill } from "./types";
+import type { CloseMatch, Job, JobLanguage, Requirement, Skill } from "./types";
 
 // Turns the AI's reading of an ad into the engine's Job, checking every claim
 // against the ad's own text. Pure code: no AI, no network. The rules, with a
@@ -237,11 +237,14 @@ export function buildJob(
     }
     const ids: string[] = [];
     const pending: Skill[] = [];
+    const closes: CloseMatch[] = [];
     for (const { name } of real) {
-      const hit = skillIdFor(name, skills);
+      // The flag came first (above); then stage 1, then stage 2, in one shared path (readNameId).
+      const hit = readNameId(name, skills);
       if (hit === null || ids.includes(hit.id)) continue;
       ids.push(hit.id);
       if (!hit.listed) pending.push({ id: hit.id, name: name.trim() });
+      if (hit.close) closes.push({ name: name.trim(), skillId: hit.id, via: hit.close.via });
     }
     if (ids.length === 0) {
       drop("requirement", "no-skill", item.quote);
@@ -252,12 +255,16 @@ export function buildJob(
     const existing = keys.get(key);
     if (existing) {
       if (item.importance === "must") existing.importance = "must";
+      const known = existing.closeMatches ?? [];
+      const more = closes.filter((c) => !known.some((k) => k.name === c.name && k.skillId === c.skillId));
+      if (more.length > 0) existing.closeMatches = [...known, ...more];
       continue;
     }
     const requirement: Requirement = {
       skillIds: ids,
       importance: item.importance,
       quote: item.quote.trim(),
+      ...(closes.length > 0 ? { closeMatches: closes } : {}),
     };
     keys.set(key, requirement);
     requirements.push(requirement);

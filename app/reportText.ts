@@ -37,3 +37,24 @@ export function reportNote(kind: "cv" | "list"): string {
       : "Skills only: a skill counts because it is on your list (from your list, not a CV). Language, location, work mode, years and start date are not judged.";
   return `${base} ${LEVELS_NOTE}`;
 }
+
+// The one short line shown where a name was matched by close spelling (stage 2). `skillName` is the skill's name in our
+// list; `written` is the wording in the ad or CV. Exact matches show nothing.
+// For the ad: one line per distinct close match across the requirements (the same wording and skill only once).
+export function closeMatchLines(
+  requirements: { closeMatches?: { name: string; skillId: string; via: string }[] }[],
+  nameOf: (skillId: string) => string,
+): string[] {
+  const lines: string[] = [];
+  for (const r of requirements) {
+    for (const c of r.closeMatches ?? []) {
+      const line = closeMatchLine(c.name, nameOf(c.skillId));
+      if (!lines.includes(line)) lines.push(line);
+    }
+  }
+  return lines;
+}
+
+export function closeMatchLine(written: string, skillName: string): string {
+  return `Read as "${skillName}" (close spelling of "${written}")`;
+}
