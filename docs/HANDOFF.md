@@ -20,16 +20,16 @@ Scope and roles: see the first line of this file and docs/REVIEWER-BRIEF.md. Sec
 - Never-map list (never mapped BY SPELLING; stage 1 unaffected): confluent, commerce, market, markets, personal, typoscript.
 - Guard (item 6, PLAN-5.1): `closeMatch` gives none for any name that `isNotASkill` flags; stage 1 unaffected. "personal development" is now a not-a-skill phrase (55 in all).
 - Pass lines (fresh set only): wrong <= floor(5 x (|L| - traitNotFlagged) / 100); recall 4 x right_M >= 3 x |M| (|M| = 0 is not passed); must-not-merge 0. The holdout is printed beside it, not judged; one-shot log in `eval-runs/map-measure-log.txt`.
-- Tools (no AI call): `npm run vocab-check`, `vocab-pairs` (0 pairs), `neighbours` (113 pairs across 39 skills, English only), `map-measure`, `skill-ids`, and `capture-fresh` (built and tested, NOT run).
+- Tools (no AI call): `npm run vocab-check`, `vocab-pairs` (0 pairs), `neighbours` (113 pairs across 39 skills, English only), `map-measure`, `skill-ids`, and `capture-fresh` (run once, 2026-11-16).
 
 **Hashes:** request 85357f8fac (ad, INSTRUCTIONS 3,347) and 193e02ee3f (CV, 1,496), both pinned by tests. Vocabulary hash **e96370fe4c** (was cf3e44da32 before item 6; skills, 55 not-a-skill phrases, left-unlisted names AND the never-map list, from one helper `vocabHash()`). Eval fingerprint format 3. Earlier eval numbers were measured on the 17-skill list and are not comparable.
 
 **Next steps, in order**
 0. DONE 2026-11-16: the step 0 check found "Personal development" mapping close to Persona development (distance 1, three casings) and two flagged phrases mapping at distance 2; fixed by the guard and one entry (item 6), tests first, six breaks all caught, nothing else changed (neighbours 113 pairs, vocab-pairs 0, vocab-check unchanged on ad-01 to ad-08).
-1. The owner saves 3 to 5 fresh ads (at least 2 German) as `fixtures/real-ads/fresh-01.txt` and so on.
-2. `EXPECT_AD_HASH=85357f8fac EXPECT_AD_LEN=3347 npm run capture-fresh` (one call per ad, counts only, writes `fresh-labels-TODO.json`).
-3. The owner labels every name (`npm run skill-ids` lists the labels; `none` and `not-a-skill` are the two special ones) and saves the file as `fresh-labels.json` BEFORE any measure.
-4. `npm run map-measure -- fixtures/real-ads/fresh-labels.json`, once.
+1. DONE 2026-11-16: the owner saved 5 fresh ads (at least 2 German) as `fixtures/real-ads/fresh-01.txt` to `fresh-05.txt` (gitignored; never pasted into a chat).
+2. DONE 2026-11-16: `capture-fresh` ran once: 5 calls, 23,412 tokens, 62 distinct names (19, 14, 13, 9, 12 per ad), written to `fresh-labels-TODO.json`.
+3. DONE 2026-11-16: the fresh set is labelled and checked (62 entries, 26 skill ids on 25 distinct ids, 26 none, 10 not-a-skill, 0 invalid, 0 TODO; `fresh-labels.json` sha256 starts bd1086d9ad; vocabulary hash e96370fe4c; DECISIONS 2026-11-16). No measure has been run.
+4. NEXT: `npm run map-measure -- fixtures/real-ads/fresh-labels.json`, once, with the vocabulary hash still e96370fe4c (a different hash would make it a second look). Counts only; names stay in the gitignored detail file.
 5. If all three lines pass: wire `mapName` into `fromAd` and `fromCv` and show close matches on the page. Order stays: not-a-skill flag, then stage 1, then stage 2. Regression tests through `fromAd` and `fromCv`: "Personal development", "data analyst experience" and "product analyst experience" must end up not counted (ad) or removed as not-a-skill (CV), never mapped to a skill. If recall fails: decide with the reviewer on stage 3 (the AI pick among at most 5 code-chosen candidates), which needs a new fresh set to be measured fairly.
 6. DONE 2026-11-16: the eval scorer knows `notCounted` (scorer v2: hits, not counted, missed, strict and adjusted recall; DECISIONS 2026-11-16). `npm run eval -- --not-counted` lists the not-counted key items of ad-01 to ad-08 (real AI calls, one per ad: ask first). No counted ad eval has been run since.
 7. DONE 2026-11-16: 5.3, the reading cache. Next after the fresh-set sequence (steps 1 to 5): Day 6 (saved jobs). Open items below.
