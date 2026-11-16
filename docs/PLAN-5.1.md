@@ -1,4 +1,4 @@
-STATUS: PROPOSED (plan only: nothing built, no AI calls). Careful lane for all of Day 5 (it decides what a skill is). Written 2026-11-16.
+STATUS: APPROVED by the owner on 2026-11-16 with the changes in the Answers section below. Careful lane for all of Day 5 (it decides what a skill is). Written 2026-11-16.
 
 # Plan for Day 5: one name per skill
 
@@ -30,7 +30,7 @@ Goal (docs/SPRINT.md): the same skill gets the same id in every ad and CV, in En
 
 ## Across Day 5
 - **Prompts and fingerprints:** unchanged by 5.1 and 5.3; 5.2 adds a third prompt family only if stage 3 is built. The eval fingerprint gains the vocabulary hash.
-- **Page:** more requirements become "listed", so fewer "not in our skill list yet" lines and different fit levels for the same ad; the page logic (3.4, 4.3) does not change.
+- **Page:** more requirements become "listed", so fewer "not in our skill list yet" lines and different fit levels for the same ad. (Corrected after review: the page logic does change for traits and for the level note; see Answers. The engine does not change.)
 - **Moves:** `fixtures/skills.ts` is production data; it moves to `lib/vocab/` with its tests and a re-export for fixtures, so tests keep passing.
 - **Order:** capture run, then 5.1 (the biggest part: authoring and your review), then 5.2 stages 1 and 2 measured, then decide stage 3, then 5.3.
 
@@ -45,3 +45,27 @@ Goal (docs/SPRINT.md): the same skill gets the same id in every ad and CV, in En
 8. **Pass lines for 5.2:** wrong at most 5% of the labelled names as a count (set when the name count is known), wrong merges of the must-not-merge set 0, review list at most a count we fix before the run.
 9. **Fingerprint format 3** with the vocabulary hash, and all earlier eval numbers marked as measured on the 17-skill list. Yes.
 10. **Level and version words are dropped** ("advanced Excel", "Python 3"): skill level is not modelled (see the 2026-11-14 decision). Yes.
+
+## Answers (2026-11-16, owner)
+**Decisions 1 to 10: yes, with these changes.**
+
+**Traits (decision 4).** A requirement that is a personal trait stays visible under "Check this yourself" with its quote. It is not counted as a must-have met or missing, and the counts sentence says how many requirements were not counted ("2 requirements were personal traits and were not counted."). Real skills that are soft (Communication, negotiation, teamwork, time management and similar) stay skills in the vocabulary. What has to change:
+- **`fromAd` (plain code, careful lane):** a requirement whose every skill name is on the not-a-skill list is taken out of `requirements` and returned, with its quote and importance, in a new `BuildResult.notCounted` list; a requirement that mixes a trait with real skills keeps only the real skills. `fromCv` drops a trait proposed from a CV with a new removal reason "not-a-skill". Hand-worked cases first: all traits; mixed; a trait inside an "or" list; the same trait in another case or in German; a real soft skill that must stay.
+- **The engine does not change.** It never sees these requirements, so its must and nice counts leave them out by construction. The `Job` type is untouched (the list lives on `BuildResult`, which the page keeps).
+- **The page changes:** "Check this yourself" lists the `notCounted` quotes next to the engine's list, and the counts sentence gets the extra sentence (also in the typed-list mode).
+- **You review the not-a-skill list** (the second table of docs/VOCAB-REVIEW.md) before any code uses it; borderline entries are marked.
+
+**Fresh set (decision 3 extended).** Before the final measure of 5.2 you add 3 new ads, at least 2 in German, as a second out-of-sample set (today none of the ten ads is German and one is mixed; four of the five CVs are English and one is mixed). The holdout (ad-09, ad-10) and the fresh set are each measured once, at the end, and the vocabulary is never edited after seeing them. Their names are never used to add aliases before that measure.
+
+**5.2 pass lines, fixed now, before any measure.** Let L be the labelled distinct names of the out-of-sample sets (holdout and fresh set together; each set's numbers are also printed), M the part of L whose expected outcome is a vocabulary skill, `right_M` the names of M mapped to the expected id, and `wrong` the names mapped to a different id, or mapped when the expected outcome is "stay unlisted" or "personal trait". The check passes only if all three hold:
+1. **wrong at most 5%:** `wrong <= floor(5 x |L| / 100)` (at |L| = 60 that is 3; at 250 it is 12);
+2. **wrong merges 0:** none of the fixed must-not-merge pairs (Java and JavaScript, C, C++ and C#, SQL, NoSQL, MySQL and SQL Server, Power BI and Power Query, Excel and Spreadsheets, R and Rust, and the like, written down before the run) is merged;
+3. **recall at least 75%:** `4 x right_M >= 3 x |M|`, so mapping nothing cannot pass.
+Review-list names count as not mapped (they lower `right_M`) and are not wrong. In-sample numbers (names the vocabulary was built from) are printed for information only.
+**Stage 3 (the AI pick)** is built only if stages 1 and 2 map fewer than 75% of the names in M, in the sense of line 3. Known tension: on in-sample names recall is high by construction, so this test can only show stage 3 is needed, never that it is not. If the single out-of-sample measure then fails line 3, the result is reported as it is, and the next step (stage 3, then a second fresh set) is your decision.
+
+**The 5.1 check ("unmapped 0")** shows coverage on the names the vocabulary was built from. It does not show accuracy; the accuracy question is 5.2's, on names the vocabulary has not seen.
+
+**Level words (decision 10).** When "advanced", "basic" and the like are dropped by normalising, the report note on the page says: "Skill levels (such as advanced) are not compared." (a text change in the page, fast lane; the engine and `fromAd` already ignore levels).
+
+**Capture run (decision 2): done 2026-11-16.** 16 calls (ten ads, the barista case, five CVs), none failed, 58,745 tokens, with the guards (ad `85357f8fac` with INSTRUCTIONS 3,347 and CV `193e02ee3f` with 1,496; the script refused without them). Raw AI names only, in the gitignored `eval-runs/capture-names.json`. Counts: ads 01 to 08 returned 136 names (125 distinct), of which 4 distinct map to the 17 skills; ads 09 and 10 together 30 names (28 distinct), 1 maps; the five CVs 23 names (22 distinct), 10 map. The vocabulary draft uses ad-01 to ad-08, the CV keys and these captures, and general knowledge only; the keys and capture of ad-09 and ad-10 were not opened for it.
