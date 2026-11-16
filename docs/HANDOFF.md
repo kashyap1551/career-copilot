@@ -11,25 +11,26 @@ Scope and roles: see the first line of this file and docs/REVIEWER-BRIEF.md. Sec
 **Status**
 - **Done and ticked:** Day 1 to Day 4, and **5.1** (vocabulary v0 in `lib/vocab/`, exact name matching, trait handling, eval fingerprint format 3).
 - **5.2 is NOT ticked.** Stage 1 (exact, three tries) is live. **Stage 2 (close spelling) is built OFFLINE and NOT wired:** `lib/engine/closeSpelling.ts`, `mapName.ts`; nothing in `fromAd`, `fromCv`, the routes or the page imports it (a test checks it). **5.3 not started.**
-- **Tests:** 1,106 pass in 58 files. `npx tsc --noEmit`, `npm run lint`, `npm run build` are green. Live site: https://career-copilot-theta-seven.vercel.app (deploys on push to `main`).
+- **Tests:** 1,121 pass in 59 files. `npx tsc --noEmit`, `npm run lint`, `npm run build` are green. Live site: https://career-copilot-theta-seven.vercel.app (deploys on push to `main`).
 
 **Stage 2 rules (all fixed BEFORE any measure; docs/PLAN-5.1.md "5.2 stage 2 rules" and "Changes before any measure", docs/DECISIONS.md)**
 - Allowance by the SHORTER folded string: up to 5 letters 0, 6 to 8 letters 1, 9 or more 2. A swap of two neighbouring letters counts 1.
 - A distance of 2 only at the very end of a long word (common prefix at least shorter minus 3); one shared function `acceptsDistance`.
 - A tie goes to the review list. Targets never include undecided aliases, exactOnly entries (R, C, Go) or the not-a-skill phrases.
 - Never-map list (never mapped BY SPELLING; stage 1 unaffected): confluent, commerce, market, markets, personal, typoscript.
+- Guard (item 6, PLAN-5.1): `closeMatch` gives none for any name that `isNotASkill` flags; stage 1 unaffected. "personal development" is now a not-a-skill phrase (55 in all).
 - Pass lines (fresh set only): wrong <= floor(5 x (|L| - traitNotFlagged) / 100); recall 4 x right_M >= 3 x |M| (|M| = 0 is not passed); must-not-merge 0. The holdout is printed beside it, not judged; one-shot log in `eval-runs/map-measure-log.txt`.
 - Tools (no AI call): `npm run vocab-check`, `vocab-pairs` (0 pairs), `neighbours` (113 pairs across 39 skills, English only), `map-measure`, `skill-ids`, and `capture-fresh` (built and tested, NOT run).
 
-**Hashes:** request 85357f8fac (ad, INSTRUCTIONS 3,347) and 193e02ee3f (CV, 1,496), both pinned by tests. Vocabulary hash **cf3e44da32** (skills, not-a-skill phrases, left-unlisted names AND the never-map list, from one helper `vocabHash()`). Eval fingerprint format 3. Earlier eval numbers were measured on the 17-skill list and are not comparable.
+**Hashes:** request 85357f8fac (ad, INSTRUCTIONS 3,347) and 193e02ee3f (CV, 1,496), both pinned by tests. Vocabulary hash **e96370fe4c** (was cf3e44da32 before item 6; skills, 55 not-a-skill phrases, left-unlisted names AND the never-map list, from one helper `vocabHash()`). Eval fingerprint format 3. Earlier eval numbers were measured on the 17-skill list and are not comparable.
 
 **Next steps, in order**
-0. Check-only task for Claude Code, no AI call, before step 2 (capture-fresh): can the spelling stage wrongly merge a multi-word phrase? Names are folded with spaces dropped, so 'Personal development' is one letter from 'Persona development'. Print isNotASkill(name) and mapName(name, skills) for 'Personal development' in three casings. Then run mapName on every LEFT_UNLISTED name and every NOT_A_SKILL phrase (English and German) and list any that map to a skill. Report only; the reviewer decides what goes on the never-map list. If a word is added it is item 6 in docs/PLAN-5.1.md 'Changes before any measure' and in docs/DECISIONS.md, and the vocabulary hash changes.
+0. DONE 2026-11-16: the step 0 check found "Personal development" mapping close to Persona development (distance 1, three casings) and two flagged phrases mapping at distance 2; fixed by the guard and one entry (item 6), tests first, six breaks all caught, nothing else changed (neighbours 113 pairs, vocab-pairs 0, vocab-check unchanged on ad-01 to ad-08).
 1. The owner saves 3 to 5 fresh ads (at least 2 German) as `fixtures/real-ads/fresh-01.txt` and so on.
 2. `EXPECT_AD_HASH=85357f8fac EXPECT_AD_LEN=3347 npm run capture-fresh` (one call per ad, counts only, writes `fresh-labels-TODO.json`).
 3. The owner labels every name (`npm run skill-ids` lists the labels; `none` and `not-a-skill` are the two special ones) and saves the file as `fresh-labels.json` BEFORE any measure.
 4. `npm run map-measure -- fixtures/real-ads/fresh-labels.json`, once.
-5. If all three lines pass: wire `mapName` into `fromAd` and `fromCv` and show close matches on the page. If recall fails: decide with the reviewer on stage 3 (the AI pick among at most 5 code-chosen candidates), which needs a new fresh set to be measured fairly.
+5. If all three lines pass: wire `mapName` into `fromAd` and `fromCv` and show close matches on the page. Order stays: not-a-skill flag, then stage 1, then stage 2. Regression tests through `fromAd` and `fromCv`: "Personal development", "data analyst experience" and "product analyst experience" must end up not counted (ad) or removed as not-a-skill (CV), never mapped to a skill. If recall fails: decide with the reviewer on stage 3 (the AI pick among at most 5 code-chosen candidates), which needs a new fresh set to be measured fairly.
 6. Then teach the eval scorer about `notCounted` (before the next counted ad eval).
 7. 5.3: the reading cache.
 

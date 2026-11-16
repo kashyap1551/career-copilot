@@ -18,9 +18,9 @@ const OLD_17: [string, string][] = [
 const termsOf = (e: (typeof VOCAB)[number]) => [e.id, e.name, e.de, ...e.aliases];
 
 describe("the vocabulary data", () => {
-  it("V1: 226 entries (17 original, 207 from the reviewed draft, 2 added after the vocab-check) and 54 not-a-skill phrases (50 + 4)", () => {
+  it("V1: 226 entries (17 original, 207 from the reviewed draft, 2 added after the vocab-check) and 55 not-a-skill phrases (50 + 4 + 1 added by item 6 of 'Changes before any measure')", () => {
     expect(VOCAB.length).toBe(226);
-    expect(NOT_A_SKILL.length).toBe(54);
+    expect(NOT_A_SKILL.length).toBe(55);
   });
 
   it("V2: ids are unique and slug-shaped", () => {

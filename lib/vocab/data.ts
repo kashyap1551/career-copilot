@@ -307,6 +307,7 @@ export const NOT_A_SKILL_V0: NotASkillEntry[] = [
   {"phrase": "technical understanding", "de": "technisches Verständnis", "cls": "vague", "note": "names no skill; added after the vocab-check", "unsure": []},
   {"phrase": "adapt to new technology", "de": "Offenheit für neue Technologien", "cls": "trait", "note": "a wording of 'adapting to new technology'", "unsure": []},
   {"phrase": "work independently", "de": "selbstständig arbeiten", "cls": "trait", "note": "a wording of 'working independently'", "unsure": []},
+  {"phrase": "personal development", "de": "persönliche Weiterentwicklung", "cls": "trait", "note": "added from the reviewer's multi-word look-alike check, not from any ad", "unsure": []},
 ];
 // Names the owner decided to leave unlisted ON PURPOSE (they are not aliases and not "not a skill"): the report
 // shows them as "not in our skill list yet" and vocab-check counts them apart from the unmapped.

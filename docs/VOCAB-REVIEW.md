@@ -358,4 +358,4 @@ Each group must never map onto one another: Java | JavaScript | TypeScript; C | 
 
 **Vetoed by the owner (2026-11-16):** the aliases "task management" (not time management) and "partnership development" (business development, not relationship management) were taken out and are now in `LEFT_UNLISTED` (names left unlisted on purpose, with the reason). Left unlisted on purpose so far: account growth, online shop development, task management, partnership development.
 
-Counts now: 209 new entries (batch 1: 71, batch 2: 66, batch 3: 70, plus 2), 54 not-a-skill phrases, 17 existing.
+Counts now: 209 new entries (batch 1: 71, batch 2: 66, batch 3: 70, plus 2), 54 not-a-skill phrases (55 since 2026-11-16, PLAN-5.1 item 6), 17 existing.

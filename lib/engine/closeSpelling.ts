@@ -1,4 +1,4 @@
-import { NEVER_MAP } from "../vocab";
+import { isNotASkill, NEVER_MAP } from "../vocab";
 import { nameKeys, slugOf } from "./skillIds";
 import type { Skill } from "./types";
 
@@ -112,6 +112,10 @@ type PerSkill = { id: string; distance: number; ok: boolean; via: string };
 // that distance is within the allowance. Two or more ids at the smallest distance, at least one within the allowance,
 // is a tie (no mapping, the review list). The skills are compared with the exact stage already out of the way.
 export function closeMatch(name: string, skills: Skill[]): CloseResult {
+  // A name on the not-a-skill list never gets spelling help (docs/PLAN-5.1.md, "Changes before any measure", item 6):
+  // with spaces dropped, a two-word phrase can sit one letter from a skill ("Personal development" and Persona
+  // development). Stage 1 (exact) is untouched; it runs before this and does not call this function.
+  if (isNotASkill(name)) return { how: "none" };
   const x = spellingForm(name);
   if (x === "") return { how: "none" };
   if (NEVER_FORMS.has(x)) return { how: "none" };
