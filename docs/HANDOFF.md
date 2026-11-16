@@ -24,6 +24,7 @@ Scope and roles: see the first line of this file and docs/REVIEWER-BRIEF.md. Sec
 **Hashes:** request 85357f8fac (ad, INSTRUCTIONS 3,347) and 193e02ee3f (CV, 1,496), both pinned by tests. Vocabulary hash **cf3e44da32** (skills, not-a-skill phrases, left-unlisted names AND the never-map list, from one helper `vocabHash()`). Eval fingerprint format 3. Earlier eval numbers were measured on the 17-skill list and are not comparable.
 
 **Next steps, in order**
+0. Check-only task for Claude Code, no AI call, before step 2 (capture-fresh): can the spelling stage wrongly merge a multi-word phrase? Names are folded with spaces dropped, so 'Personal development' is one letter from 'Persona development'. Print isNotASkill(name) and mapName(name, skills) for 'Personal development' in three casings. Then run mapName on every LEFT_UNLISTED name and every NOT_A_SKILL phrase (English and German) and list any that map to a skill. Report only; the reviewer decides what goes on the never-map list. If a word is added it is item 6 in docs/PLAN-5.1.md 'Changes before any measure' and in docs/DECISIONS.md, and the vocabulary hash changes.
 1. The owner saves 3 to 5 fresh ads (at least 2 German) as `fixtures/real-ads/fresh-01.txt` and so on.
 2. `EXPECT_AD_HASH=85357f8fac EXPECT_AD_LEN=3347 npm run capture-fresh` (one call per ad, counts only, writes `fresh-labels-TODO.json`).
 3. The owner labels every name (`npm run skill-ids` lists the labels; `none` and `not-a-skill` are the two special ones) and saves the file as `fresh-labels.json` BEFORE any measure.
@@ -35,6 +36,7 @@ Scope and roles: see the first line of this file and docs/REVIEWER-BRIEF.md. Sec
 **Rules for the next session:** no vocabulary edit after seeing fresh or holdout names; fresh names are not pasted into the chat; the holdout is counts only; do not run `map-measure` before labelling is complete.
 
 **Open items:** the owner confirms whether ad-03 is partly German; optional owner check of "German names to check" in docs/VOCAB-REVIEW.md (28 entries); Groq training terms and Zero Data Retention unverified; Vercel Firewall rate-limit rule unverified; an access code before the link is shared; the kill switch `AI_ENABLED=false` (both routes answer 503) exists; thin CV reader recall; re-reading the CV resets the confirm screen; a stopwatch-timed run by a second person; accuracy backlog a to e; the Groq upgrade question (CLAUDE.md rule 7 must be edited first); composite names split at reading time.
+- Before the repo goes public: close the access code, rate-limit rule and Groq terms items, then read docs/ for personal and security notes.
 
 **Still true:** macOS gotchas (`sed -i` fails silently, use python; no `timeout` command; zsh does not split an unquoted variable of file names, use arrays; tsx top-level await needs `.mts`). Scratch tools: `eval-runs/tuning-tools/` (gitignored). The readJob 429 / RetryError bug is fixed (`lib/ai/errors.ts`). `docs/REVIEWER-BRIEF.md` is the brief for a new reviewer chat.
 
