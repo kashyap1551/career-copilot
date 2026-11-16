@@ -93,8 +93,9 @@ Note: until this day's vocabulary exists, skill names are free text, so the same
 - [ ] **5.2** Mapping: exact alias first, then close spelling, then an AI pick among the top candidates; anything unsure goes to a review list.
   Check: wrong mappings stay under 5% on the test ads.
   Note: Stage 2 (close spelling) built offline and not wired; the one-shot measure on the fresh set is still to do (see docs/HANDOFF.md).
-- [ ] **5.3** Store each reading under a hash of the text.
+- [x] **5.3** Store each reading under a hash of the text.
   Check: pasting the same ad twice makes one AI call.
+  Note: ticked because both checks passed: test R1 (same ad twice: the reader stub is called once; x-reading-cache miss, then hit, same body) and the live check on the local server with ad-01 (miss then hit, same body, one call counted to the AI host: 5.07 s then 0.01 s). Memory only, ad route only, 20 entries (docs/DECISIONS.md, the reading cache).
 
 ## Day 6: Saved jobs and the fit report
 
