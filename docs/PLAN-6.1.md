@@ -1,4 +1,4 @@
-STATUS: DRAFT, awaiting the reviewer and the owner. The owner approves this plan before any code. Written 2026-11-16. Careful lane (privacy, storage, a record that a reading depends on). No code, no AI call, no change to the vocabulary, NOT_A_SKILL or any rule is made by writing this plan.
+STATUS: APPROVED by the owner on 2026-11-16, with the reviewer's answers to section 12: (1) offer the saved profile with one click, nothing automatic; (2) one record per ad text, savedAt updated; (3) fit level computed on opening; (4) a stored profile is used and deleted, not edited; (5) the small controls on the existing page are enough for the 15-ad check; (6) a re-check is not written back; (7) no cap on saved jobs; (8) no fake-indexeddb now; (9) the extraction field, READING_VERSION "3" and the AD_REQUEST_HASH constant are approved. Amended on approval (2026-11-16): sections 1, 2, 2a, 4, 7, 8, 9 and 11 (the build order), and decisions 1 to 9 of the approval, are written into this text. Written 2026-11-16. Careful lane (privacy, storage, a record that a reading depends on). No code, no AI call, no change to the vocabulary, NOT_A_SKILL or any rule is made by writing this plan.
 
 # Plan for step 6.1 (and the data side of 6.2): keep the profile and saved jobs on this device
 
@@ -10,7 +10,7 @@ Built on the reviewer's six answers (the owner may overrule at approval). Standi
 
 **Finding (checked in the code, 2026-11-16).** Something DOES read `cvLines` after the profile is built: `lib/engine/match.ts:58`, `citesCvLine`: a skill counts as met only if `profile.cvLines[evidence.line - 1] === evidence.text` ("no evidence, never met"). Other readers: `app/skillsOnly.ts` (the typed-list path, which builds its own lines and is not stored) and tests and fixtures. `profile.name` is the constant "You"; `profile.id` is the constant "confirmed-profile".
 
-**Smallest alternative (proposed, fits answer 1).** Store no CV text at all except the lines the profile cites. Each kept `have` skill already carries `evidence: { line, text }`. On opening, rebuild a sparse `cvLines`: an array whose length is the highest cited line number, with `cvLines[line - 1] = text` for every cited line and `""` elsewhere. The engine check passes for every real citation and fails for anything else, exactly as with the full CV. A hand-worked test shows the engine gives the same result with the sparse array as with the full one (section 8, S2), and a test shows an uncited CV line never reaches the stored record (S3).
+**Smallest alternative (proposed, fits answer 1).** Store no CV text at all except the lines the profile cites. Each kept `have` skill already carries `evidence: { line, text }`. On opening, rebuild a sparse `cvLines`: an array whose length is the highest cited line number, with `cvLines[line - 1] = text` for every cited line and `""` elsewhere. After saving, the engine's `citesCvLine` check is satisfied BY CONSTRUCTION: the sparse array is built from the same evidence text the check compares it with, so the check can no longer catch anything on a stored profile. That is fine and must be said plainly: the real guard is at BUILD time, when the AI's quote is checked against the real CV (`fromCv`); a stored profile is the person's own statement about themselves. A hand-worked test shows the engine and the page report give the same result for a saved and reloaded profile as for the one just built (section 8, S2), a test documents the limit (S2b), and a test shows an uncited CV line never reaches the stored record (S3).
 
 Stored profile record (key `"current"`; one profile in 6.1):
 
@@ -25,16 +25,20 @@ type SavedProfile = {
 };
 ```
 
-Not stored: the whole CV text, the raw AI proposals, unticked proposals, the names of unlisted or ignored skills, the problems and notes shown on the confirm screen. A skill id that is no longer in the vocabulary on opening is shown as "no longer in our skill list" (never dropped silently, never counted as met).
+Not stored: the whole CV text, the raw AI proposals, unticked proposals, the names of unlisted or ignored skills, the problems and notes shown on the confirm screen. A saved profile whose vocabulary stamp differs from the current one is used as it is. A skill id that is no longer in the vocabulary on opening is shown as "no longer in our skill list" (never dropped silently from what the person sees, and never counted as met: it is left out of what the engine gets).
 
 Consequence to approve: a stored profile is for JUDGING. Changing it means reading the CV again (the CV is not kept). Open question Q4.
 
 ## 2. Saving is explicit; deleting ships with 6.1
 
 - A "Save on this device" button next to the confirmed profile (and next to a read ad, for a job). Nothing is written to the browser without a click. Reading, building and opening never write. A test counts writes (S4).
-- A one-line notice next to the button, proposed wording: "Saved on this device, in this browser only. It is not sent anywhere. You can delete it at any time." (Wording to be agreed with the reviewer.)
+- A one-line notice next to the button, proposed wording: "Saved on this device, in this browser only. It is not sent anywhere. You can delete it at any time. In a private window it is deleted when you close the window." (Wording to be agreed with the reviewer.)
 - A "Delete everything saved on this device" button, with a confirm step, deletes the profile and all saved jobs (S9). It ships with 6.1. The privacy page and consent stay in 9.3.
 - 6.1 puts only these small controls on the existing page `/`: Save profile, Save this ad, one status line ("1 profile and N jobs saved on this device"), Delete everything. The saved-jobs LIST screen is 6.2 (Q5).
+
+## 2a. What the page shows when a saved profile is loaded
+
+A loaded profile has no CV proposals, so the confirm screen cannot be shown. Instead the page shows a READ-ONLY summary of exactly what is stored: the skills with the cited line's text, the in-progress skills with their dates, the constraints, and which constraint kinds were set; a skill id no longer in our list is marked "no longer in our skill list". Two actions: "Delete" and "Read a CV again". Nothing else can be edited (answer 4). The page work is part 3 of the build order (section 11); part 1 builds only the pure helper that produces the summary data.
 
 ## 3. The saved job record (the data side of 6.2)
 
@@ -88,7 +92,7 @@ interface KeyValueStore {
 ```
 
 - `MemoryStore` (in-memory double) implements it; ALL logic is tested against it.
-- `IndexedDbStore` (a thin adapter, about 60 lines, database `career-copilot`, version 1, two object stores) implements it. Errors are mapped to three typed outcomes: `unavailable`, `quota`, `failed`.
+- `IndexedDbStore` (a thin adapter, about 60 lines, database `career-copilot`, version 1, two object stores) implements it. A write counts as done only when the TRANSACTION completes (`oncomplete`), not when the request succeeds (`onsuccess`): a request can succeed and the transaction still abort (quota, a closed page). The manual checklist (save, reload, still there) is what proves it. Errors are mapped to three typed outcomes: `unavailable`, `quota`, `failed`.
 - A logic layer (`saved.ts`, pure, takes a store): `saveProfile`, `loadProfile`, `saveJob`, `listJobs`, `loadJob`, `deleteJob`, `deleteAll`, each returning a result object (`{ ok: true }` or `{ ok: false, reason }`) and never throwing for a storage problem. Records are validated on reading with Zod (an existing dependency).
 
 **The adapter and automated tests (answer 3).** The adapter only opens, reads and writes by key; every rule is above it. I judge a hand-checked adapter acceptable for the MVP (the manual checklist in section 7 covers save, reload, delete and 15 jobs). The cost of automating it: `fake-indexeddb`, a dev-only package (a rule-7 question, nothing installed by this plan); worth it only if the adapter grows. Recommendation: do not install it now (Q8).
@@ -104,7 +108,7 @@ interface KeyValueStore {
 
 | Case | What happens | Message (plain) |
 |---|---|---|
-| IndexedDB missing or blocked (private mode, a browser setting) | Save buttons are disabled; everything else works as today | "Saving is not available in this browser (private mode or a setting). You can still use everything else; nothing will be kept." |
+| IndexedDB blocked by a browser setting or a company policy (private windows normally work; see section 7) | Save buttons are disabled; everything else works as today | "Saving is not available in this browser (a setting or a policy blocks it). You can still use everything else; nothing will be kept." |
 | Quota full on a write | The write returns `quota`; nothing partial is kept; the page keeps working | "Not saved: this browser's storage for this site is full. Delete some saved jobs and try again." |
 | A write fails for another reason (aborted transaction) | `failed`; nothing partial | "Could not save. Please try again." |
 | A record is corrupted (fails validation) | The list shows the others; the bad one is counted and can be deleted | "1 saved item could not be read. You can delete it." |
@@ -116,7 +120,9 @@ interface KeyValueStore {
 - **What is stored:** the confirmed profile (skill ids; for each kept skill the cited CV line's number and exact text; in-progress skills with dates; the constraints and which kinds were set) and saved jobs (public ad text, the AI's reading of it, stamps, dates). Not the full CV, not names or contact details beyond what a cited line happens to contain (D2: names and addresses cannot be removed reliably, and a cited line, for example an employer line, can hold them).
 - **Where:** this browser's IndexedDB for this site's address. No server copy, no cookie, no other service. Saving makes no network call (a test spies `fetch`, S4).
 - **How long:** until the person deletes it ("Delete everything saved on this device"), or until the browser or the person clears this site's data. There is no expiry in 6.1.
-- **Shared computer:** anyone using the same browser profile can open the site and see the saved profile's cited lines and the saved jobs. There is no password and no encryption (the browser's own separation between sites and profiles is the only wall). The notice and the delete button are the mitigation; a private window saves nothing that survives. This is stated in the one-line notice next to Save, and the full privacy page comes in 9.3.
+- **Shared computer:** anyone using the same browser profile can open the site and see the saved profile's cited lines and the saved jobs. There is no password and no encryption (the browser's own separation between sites and profiles is the only wall). The notice and the delete button are the mitigation. This is stated in the one-line notice next to Save, and the full privacy page comes in 9.3.
+- **Private windows:** IndexedDB works in private windows in current browsers (Firefox 115 and later; Chrome and Safari as far as known), and the data is discarded when the window closes. The notice says so. Whether it works in each browser is checked by hand (section 9).
+- **The site address:** saved data belongs to the site address (the origin). A preview deployment on another address, or a future custom domain, starts empty; nothing is carried across.
 - **The Groq terms check still gates any real CV through the live AI reading** (D2 and HANDOFF: training terms and Zero Data Retention unverified; an access code is still to be built). Storing on this device does not change what is sent to Groq; "Save" sends nothing.
 - No secrets or keys are involved; nothing is logged.
 
@@ -126,8 +132,9 @@ interface KeyValueStore {
 |---|---|---|
 | S1 | The store interface: put, get, list, delete, clear on the double | put 3 keys, get returns each, list has 3, delete one leaves 2, clear leaves 0; a missing key is `undefined` |
 | S1b | 15 saved jobs survive a "reload": a second `saved` layer over the same backing data lists the same 15 | 15 saved, 15 listed, ids equal |
-| S2 | The sparse `cvLines` gives the engine the same answer as the full CV | for fixture profile `maya` and a hand-picked job: rebuilt-from-evidence profile gives the same fit level, the same met and missing lists; a skill with `evidence: null` is still not met; a skill whose stored text was altered is not met |
-| S3 | The stored profile holds no uncited CV line | a CV with 10 lines, 3 cited: the serialised record contains the 3 texts and none of the other 7 |
+| S2 | Save, load and match gives the same answer as the profile just built | (a) for a built profile from a made-up CV: save, load, `match` gives the same fit level, met and missing lists as the profile with the full CV; (b) `profileReport(job, builtFromSaved(saved), skills, [])` equals `profileReport(job, built, skills, [])` for the same job; (c) a hand-added skill with `evidence: null` is still not met |
+| S2b | DOCUMENTS the limit: a stored profile whose evidence text was edited still counts as met | the check is satisfied by construction (section 1); the test says so in its name |
+| S3 | The stored profile holds no uncited CV line (and S13: nothing under `lib/saved`, and nothing it imports, uses `node:` or `fs`) | a CV with 10 lines, 3 cited: the serialised record contains the 3 texts and none of the other 7 |
 | S4 | Nothing is written without a click; saving makes no network call | building and opening a profile: 0 `put` calls; `saveProfile` once: 1 `put`; `fetch` spy: 0 calls |
 | S5 | Versions: v1 opens; a future version (99) is reported "newer", left untouched, not deleted; an absent optional field reads as empty; a fake v2 migration keeps all v1 fields | as written |
 | S6 | The stamp table of section 3, every row | 5 rows, each one outcome |
@@ -143,12 +150,12 @@ interface KeyValueStore {
 ## 9. Manual browser checklist (the adapter, by hand, with the real IndexedDB)
 
 Run locally and once on the live site, in Chrome and Safari (and Firefox private mode for the unavailable case). Written results go in the end-of-day notes.
-1. Read the made-up CV, confirm, click "Save on this device": the status line says 1 profile; reload: the profile is still found and can be used.
+1. Read the made-up CV, confirm, click "Save on this device": the status line says 1 profile; reload: the profile is still found and can be used (this is also the check that the write counted only after the transaction completed: save, reload at once, still there).
 2. Read a made-up ad, click "Save this ad": the status line says 1 job; reload: still 1.
 3. Save 15 different made-up or public ads: the status line says 15 jobs; reload; close the tab and reopen: still 15 (the 6.1 check).
 4. Save the same ad again: still 15 (one record per ad).
 5. Delete everything: the confirm appears; after it: 0 and 0; reload: still 0.
-6. Private window (Firefox): the Save buttons show the "not available" message; the rest of the page works.
+6. Private window (Firefox, and Chrome or Safari as far as available): save a profile and a job; it works and survives a reload inside the same window; close the window, reopen the site in a new private window: gone (0 and 0).
 7. Open the browser's storage inspector (Application > IndexedDB): the stored profile holds only cited lines and no uncited CV line.
 8. Fill the browser's quota is not tested by hand; the quota path is covered by S8.
 
@@ -156,7 +163,13 @@ Run locally and once on the live site, in Chrome and Safari (and Firefox private
 
 The jobs page and the saved-jobs list with fit levels (6.2); the fit report page (6.3); the remove-only requirement list (only the room for it); editing a stored profile; accounts, sync or export and import; the privacy page, consent and Impressum check (9.3); usage events (9.4); encryption; an AI re-read button's UI (6.2; 6.1 only marks the record and returns the stamps decision); the item 12 decision (unlisted requirements count as not met), which is settled before 6.2; no new package, no change to the vocabulary, NOT_A_SKILL or any rule, and no change to the prompts or the request hashes (85357f8fac, 193e02ee3f).
 
-## 11. Open questions for the owner
+## 11. Build order (approved)
+
+- **Part 1 (logic and tests, no UI, no route change):** `lib/saved/` with the types, `KeyValueStore`, `MemoryStore`, the logic layer, the pure helpers (sparse rebuild, `builtFromSaved`, `jobIdFor`, `openJob`), tests S1 to S10, S2b and a no-node-imports test (S13). It takes the CURRENT stamps as parameters, so it does not depend on part 2.
+- **Part 2 (route, extraction, hashes):** `/api/read` returns `extraction`; `READING_VERSION` "3"; the `AD_REQUEST_HASH` constant and its pin; the browser-safe vocabulary hash (S11, S12).
+- **Part 3 (adapter and page):** the `IndexedDbStore` adapter, the page controls (Save profile, Save this ad, the status line, Delete everything), the loaded-profile summary (section 2a), and the manual browser checklist.
+
+## 12. Open questions for the owner (answered at approval, kept for the record)
 
 1. **Opening the profile.** When a saved profile exists, should the page offer it ("A saved profile was found: use it / delete it") or apply it automatically? Proposal: offer, one click, nothing automatic.
 2. **Same ad saved twice.** One record per ad text (updated), as proposed, or a new record each time?
