@@ -9,6 +9,7 @@ import ConfirmBox from "./ConfirmBox";
 import CvBox from "./CvBox";
 import { profileReport } from "./fitReport";
 import ReportView from "./ReportView";
+import { reportNote } from "./reportText";
 import { readSkillList, skillsOnlyReport } from "./skillsOnly";
 
 // One page, in this order: your CV, confirm your profile, the job ad, the
@@ -159,11 +160,8 @@ export default function Home() {
           <ReportView
             title={`${result.job.title}${result.job.company ? `, ${result.job.company}` : ""}`}
             report={report.view}
-            note={
-              report.kind === "cv"
-                ? "Evidence for each skill is the CV line it came from. A kind you did not set is not judged."
-                : "Skills only: a skill counts because it is on your list (from your list, not a CV). Language, location, work mode, years and start date are not judged."
-            }
+            note={reportNote(report.kind)}
+            notCounted={result.notCounted ?? []}
             extra={
               report.kind === "list" && list.lines.some((l) => !l.listed) ? (
                 <div className="text-sm">

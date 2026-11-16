@@ -104,8 +104,12 @@ Not in the sprint. Each one that changes a schema goes through the careful lane.
 - CV reader is thin: it returns named tools but only about a third of the inferred skills, and recall varies run to run; revisit after Day 5, when inferred skills can match ads.
 - Confirm screen: reading the CV again resets everything on it, including cities, years, languages, work modes, available from and the in-progress entries. Consider keeping those and resetting only the skill ticks.
 - A stopwatch-timed run of the confirm step by a second person on the made-up CV (the 4.3 check is "under 3 minutes"; so far only the owner's estimate). Also useful as portfolio evidence.
+- Composite names (two skills in one name, such as "Systems thinking and prioritization" or "Analytical and quantitative skills") map to their first skill in vocabulary v0; split them at reading time later (the reader or `fromAd` should return one requirement per skill).
+- Eval scorer and traits: `fromAd` now returns requirements that are not skills in `BuildResult.notCounted`, but the eval scorer (lib/engine/evalScore, evalMatch) does not know it: key items that are traits (25 of the 108 key requirements of ad-01 to ad-08) will count as missed. Teach the scorer to pair a key item that is a trait with a `notCounted` quote before the next counted ad eval.
 
 ## (g) Eval run log
+
+**Note (2026-11-16, Day 5):** every number in this log was measured on the 17-skill list (fingerprint format 1 or 2). From format 3 the fingerprint carries a vocabulary hash, and earlier numbers are NOT comparable with later ones: the ad eval (75 and 76 of 100 and the others) and the CV eval (found 25 and 23 of 42). No counted eval run has been made since the vocabulary.
 
 Counts only. Holdout (ad-09, ad-10) is included in the totals as numbers; its per-item output has not been read.
 

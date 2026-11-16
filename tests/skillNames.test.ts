@@ -116,6 +116,14 @@ describe("skillIdFor with the vocabulary", () => {
     expect(id("ecommerce")).toBe("e-commerce");
   });
 
+  it("M7b: the owner's vetoes: 'task management' is not time management, 'partnership development' is not relationship management", () => {
+    expect(skillIdFor("task management", skills)).toEqual({ id: "new:task-management", listed: false });
+    expect(skillIdFor("partnership development", skills)).toEqual({ id: "new:partnership-development", listed: false });
+    expect(id("Time management")).toBe("time-management");
+    expect(id("manage multiple priorities")).toBe("time-management");
+    expect(id("Relationship management")).toBe("relationship-management");
+  });
+
   it("M8: HTML and CSS are two skills; 'HTML and CSS' as one name is not merged", () => {
     expect(id("HTML")).toBe("html");
     expect(id("HTML5")).toBe("html");
@@ -204,7 +212,7 @@ describe("isNotASkill", () => {
 describe("nameStatus (the coverage check's five answers)", () => {
   const st = (n: string) => nameStatus(n, (x) => skillIdFor(x, skills));
   it("S1: a name in the vocabulary is mapped, in any wording", () => {
-    for (const n of ["Docker", "SQL-Kenntnisse", "Advanced Excel", "Media and PR", "task management", "Scripting languages", "measuring automation"]) {
+    for (const n of ["Docker", "SQL-Kenntnisse", "Advanced Excel", "Media and PR", "manage multiple priorities", "Scripting languages", "measuring automation"]) {
       expect(st(n)).toBe("mapped");
     }
   });
@@ -215,7 +223,9 @@ describe("nameStatus (the coverage check's five answers)", () => {
     for (const n of ["analytical", "events", "QA", "Looker Studio"]) expect(st(n)).toBe("undecided");
   });
   it("S4: a name left unlisted on purpose", () => {
-    for (const n of ["account growth", "Account Growth", "Online shop development"]) expect(st(n)).toBe("left-unlisted");
+    for (const n of ["account growth", "Account Growth", "Online shop development", "task management", "Task Management", "partnership development"]) {
+      expect(st(n)).toBe("left-unlisted");
+    }
   });
   it("S5: anything else is unmapped", () => {
     for (const n of ["Origami", "Welding", "Zymurgy"]) expect(st(n)).toBe("unmapped");

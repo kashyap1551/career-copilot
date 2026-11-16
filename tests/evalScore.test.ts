@@ -70,7 +70,7 @@ function result(p: {
     },
     removed: p.removed ?? [],
     moved: [],
-    unlisted: [],
+    unlisted: [], notCounted: [],
   };
 }
 

@@ -16,6 +16,7 @@ import type { CvBuildResult, CvRemovalReason } from "@/lib/engine/fromCv";
 const REASONS: Record<CvRemovalReason, string> = {
   "no-name": "it had no usable name",
   "name-too-long": "its name was too long",
+  "not-a-skill": "it is not a skill a CV can show (for example a personal trait)",
   "line-out-of-range": "it cited a line that does not exist",
   "quote-too-short": "its quote had no real word",
   "quote-not-in-line": "its quote is not in the line it cited",

@@ -5,7 +5,8 @@ import { skills } from "../fixtures/skills";
 import { INSTRUCTIONS, readJobAd } from "../lib/ai/readJob";
 import { captureRequestBody } from "../lib/ai/requestBody";
 import { checkKey, type AnswerKey } from "../lib/engine/answerKey";
-import { evalFingerprint, fingerprintLine } from "../lib/engine/evalFingerprint";
+import { evalFingerprint, fingerprintLine, vocabularyHash } from "../lib/engine/evalFingerprint";
+import { LEFT_UNLISTED, NOT_A_SKILL, VOCAB } from "../lib/vocab";
 import { formatReport, summarize } from "../lib/engine/evalReport";
 import { formatShow, showRefusal } from "../lib/engine/evalShow";
 import { runEval, twoInARow, type EvalAd, type RunState } from "../lib/engine/evalRun";
@@ -24,6 +25,8 @@ import { runEval, twoInARow, type EvalAd, type RunState } from "../lib/engine/ev
 // It makes real Groq calls, one at a time (docs/PLAN-3.2.md, section 5).
 
 const HOLDOUT = new Set(["ad-09", "ad-10"]);
+// The scores depend on the vocabulary, so it is part of every fingerprint (format 3).
+const VOCABULARY = vocabularyHash({ VOCAB, NOT_A_SKILL, LEFT_UNLISTED });
 const root = process.cwd();
 const args = process.argv.slice(2);
 const only = args.includes("--only") ? (args[args.indexOf("--only") + 1] ?? "") : null;
@@ -109,8 +112,8 @@ async function main() {
 
   if (printFingerprint) {
     const request = await captureRequestBody();
-    const fp = evalFingerprint({ request, ads: loaded.ads });
-    process.stdout.write(fingerprintLine(request, INSTRUCTIONS.length, fp));
+    const fp = evalFingerprint({ request, ads: loaded.ads, vocabulary: VOCABULARY });
+    process.stdout.write(fingerprintLine(request, INSTRUCTIONS.length, fp, VOCABULARY));
     return;
   }
 
@@ -172,8 +175,8 @@ async function main() {
   // "Two runs in a row" only counts for full runs with the same request (prompt, schema, model, settings), ads and keys.
   if (only === null) {
     const { met, complete } = summarize(input);
-    const fingerprint = evalFingerprint({ request, ads });
-    text += fingerprintLine(request, INSTRUCTIONS.length, fingerprint);
+    const fingerprint = evalFingerprint({ request, ads, vocabulary: VOCABULARY });
+    text += fingerprintLine(request, INSTRUCTIONS.length, fingerprint, VOCABULARY);
     const current: RunState = { fingerprint, met, complete };
     const stateFile = path.join(root, "eval-runs/state.json");
     const previous: RunState | null = fs.existsSync(stateFile) ? JSON.parse(fs.readFileSync(stateFile, "utf8")) : null;
@@ -181,7 +184,7 @@ async function main() {
     fs.mkdirSync(path.dirname(stateFile), { recursive: true });
     fs.writeFileSync(stateFile, JSON.stringify(current));
   } else {
-    text += fingerprintLine(request, INSTRUCTIONS.length);
+    text += fingerprintLine(request, INSTRUCTIONS.length, undefined, VOCABULARY);
   }
 
   // Keep a copy of the report (the folder is gitignored; the holdout is still hidden in it).

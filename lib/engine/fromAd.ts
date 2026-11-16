@@ -1,6 +1,7 @@
 import type { ExtractedAd } from "../schemas/job";
 import { datesInText } from "./dates";
 import { languageCodeFor, levelFromWording } from "./languageWording";
+import { isNotASkill } from "../vocab";
 import { hasRealWord } from "./quoteMatch";
 import { skillIdFor } from "./skillIds";
 import { foldText, isInAd, normalizeText } from "./text";
@@ -44,7 +45,12 @@ export type BuildResult = {
   moved: { from: RemovedWhat; quote: string }[];
   // Skills whose names are not in the skill list, with their provisional ids.
   unlisted: Skill[];
+  // Requirements whose every name is on the not-a-skill list (a personal trait, a working environment, a vague
+  // phrase...): they are not counted as must-haves or nice-to-haves, and stay visible with their quote.
+  notCounted: NotCounted[];
 };
+
+export type NotCounted = { quote: string; importance: "must" | "nice" };
 
 const UNTITLED = "Untitled job";
 const MIN_YEARS = 0;
@@ -211,14 +217,27 @@ export function buildJob(
   const requirements: Requirement[] = [];
   const keys = new Map<string, Requirement>();
   const unlistedById = new Map<string, Skill>();
+  const notCounted: NotCounted[] = [];
   for (const item of ex.requirements) {
     if (!isInAd(item.quote, adText)) {
       drop("requirement", "not-in-ad", item.quote);
       continue;
     }
+    // Names that are not skills a CV can show are set aside. If nothing real is left the whole requirement is
+    // not counted (once per quote; a must-have wins); if a real skill is left, only it stays.
+    const real = item.skills.filter(({ name }) => !isNotASkill(name));
+    if (item.skills.length > 0 && real.length === 0) {
+      const same = notCounted.find((n) => normalizeText(n.quote) === normalizeText(item.quote));
+      if (same) {
+        if (item.importance === "must") same.importance = "must";
+      } else {
+        notCounted.push({ quote: item.quote.trim(), importance: item.importance });
+      }
+      continue;
+    }
     const ids: string[] = [];
     const pending: Skill[] = [];
-    for (const { name } of item.skills) {
+    for (const { name } of real) {
       const hit = skillIdFor(name, skills);
       if (hit === null || ids.includes(hit.id)) continue;
       ids.push(hit.id);
@@ -264,5 +283,6 @@ export function buildJob(
     removed,
     moved,
     unlisted: [...unlistedById.values()],
+    notCounted,
   };
 }

@@ -52,7 +52,7 @@ const result: BuildResult = {
     ],
   },
   removed: [{ what: "workMode", why: "tag-not-sentence", text: "#LI-onsite" }],
-  moved: [], unlisted: [],
+  moved: [], unlisted: [], notCounted: [],
 };
 const ad: EvalAd = { id: "ad-02", text: "x", key, holdout: false, known: false };
 

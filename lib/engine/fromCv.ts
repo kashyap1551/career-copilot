@@ -1,4 +1,5 @@
 import type { ExtractedCv } from "../schemas/cv";
+import { isNotASkill } from "../vocab";
 import { hasRealWord } from "./quoteMatch";
 import { skillIdFor } from "./skillIds";
 import { foldText, isInAd } from "./text";
@@ -25,6 +26,7 @@ export type CvSkill = {
 export type CvRemovalReason =
   | "no-name"
   | "name-too-long"
+  | "not-a-skill" // a personal trait or similar: not a skill a CV can show
   | "line-out-of-range"
   | "quote-too-short"
   | "quote-not-in-line"
@@ -66,6 +68,10 @@ export function fromCv(extracted: ExtractedCv, lines: string[], skills: Skill[])
     }
     if (name.length > MAX_NAME_CHARS) {
       drop("name-too-long");
+      continue;
+    }
+    if (isNotASkill(name)) {
+      drop("not-a-skill");
       continue;
     }
     const id = skillIdFor(name, skills);

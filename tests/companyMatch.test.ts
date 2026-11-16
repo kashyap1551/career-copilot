@@ -65,7 +65,7 @@ const resultWith = (company: string | null) => ({
     constraints: { languages: [], location: null, remote: null, minYears: null, startDate: null, otherConditions: [] },
     requirements: [],
   },
-  removed: [], moved: [], unlisted: [],
+  removed: [], moved: [], unlisted: [], notCounted: [],
 });
 
 describe("company verdict in scoreAd", () => {

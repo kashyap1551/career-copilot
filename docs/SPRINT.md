@@ -87,8 +87,9 @@ Goal: the same skill gets the same id in every ad and CV, in English and German.
 
 Note: until this day's vocabulary exists, skill names are free text, so the same skill can appear under different names.
 
-- [ ] **5.1** A starter vocabulary: every skill in the test ads, with English and German names and aliases ("SQL-Kenntnisse", "MS Excel").
+- [x] **5.1** A starter vocabulary: every skill in the test ads, with English and German names and aliases ("SQL-Kenntnisse", "MS Excel").
   Check: every requirement in the test ads has a skill to map to.
+  Note: Check met on ad-01 to ad-08 and the five CVs (unmapped 0; in-sample by construction, after aliases, entries and phrases were added from those names). Not met on the holdout ad-09 and ad-10 (7 of 31 requirements and 12 of 29 AI names mapped, counts only): not tuned to by design; 5.2 measures it.
 - [ ] **5.2** Mapping: exact alias first, then close spelling, then an AI pick among the top candidates; anything unsure goes to a review list.
   Check: wrong mappings stay under 5% on the test ads.
 - [ ] **5.3** Store each reading under a hash of the text.

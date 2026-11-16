@@ -28,10 +28,11 @@ export async function POST(request: Request) {
   }
 
   try {
-    // { job, removed, moved, unlisted }: the checked job, what was dropped,
-    // what moved to otherConditions, and skills not in the skill list yet.
-    const { job, removed, moved, unlisted } = await readJobAd(parsed.data.text);
-    return Response.json({ job, removed, moved, unlisted });
+    // { job, removed, moved, unlisted, notCounted }: the checked job, what was dropped,
+    // what moved to otherConditions, skills not in the skill list yet, and requirements
+    // that are not skills a CV can show (not counted, still listed).
+    const { job, removed, moved, unlisted, notCounted } = await readJobAd(parsed.data.text);
+    return Response.json({ job, removed, moved, unlisted, notCounted });
   } catch (error) {
     if (error instanceof ReadAdError) {
       return Response.json(

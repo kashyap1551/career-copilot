@@ -41,14 +41,14 @@ describe("the fingerprint and a made-up schema", () => {
   it("changing nothing does not change the fingerprint", async () => {
     const a = await bodyFor("The town only.");
     const b = await bodyFor("The town only.");
-    expect(evalFingerprint({ request: a, ads })).toBe(evalFingerprint({ request: b, ads }));
+    expect(evalFingerprint({ request: a, ads, vocabulary: "v" })).toBe(evalFingerprint({ request: b, ads, vocabulary: "v" }));
   });
 
   it("changing only one description changes the fingerprint", async () => {
     const a = await bodyFor("The town only.");
     const b = await bodyFor("The town only. The same town twice is one town.");
     expect(JSON.stringify(a)).not.toBe(JSON.stringify(b)); // the model really sees a difference
-    expect(evalFingerprint({ request: a, ads })).not.toBe(evalFingerprint({ request: b, ads }));
+    expect(evalFingerprint({ request: a, ads, vocabulary: "v" })).not.toBe(evalFingerprint({ request: b, ads, vocabulary: "v" }));
   });
 });
 

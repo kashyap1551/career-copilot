@@ -4,8 +4,11 @@ import {
   FINGERPRINT_FORMAT,
   fingerprintLine,
   stableStringify,
+  requestHash,
+  vocabularyHash,
   type FingerprintInput,
 } from "@/lib/engine/evalFingerprint";
+import { LEFT_UNLISTED, NOT_A_SKILL, VOCAB } from "@/lib/vocab";
 
 // The request is a made-up body in the shape the Groq provider sends. Expectations
 // worked out by hand: the same inputs give the same fingerprint, and changing any
@@ -41,6 +44,7 @@ const base = (): FingerprintInput => ({
     { id: "ad-01", text: "Text one", key: { a: 1 } },
     { id: "ad-02", text: "Text two", key: { a: 2 } },
   ],
+  vocabulary: "vocab-hash-one",
 });
 
 // The same content with every object's keys in the opposite order.
@@ -78,9 +82,24 @@ describe("evalFingerprint", () => {
     expect(evalFingerprint(x)).not.toBe(evalFingerprint(base()));
   });
 
-  it("changes with the format number, so a format 1 fingerprint never equals a format 2 one", () => {
+  it("changes with the format number, so a format 1 or 2 fingerprint never equals a format 3 one", () => {
     expect(evalFingerprint(base(), 1)).not.toBe(evalFingerprint(base(), 2));
-    expect(evalFingerprint(base(), 2)).toBe(evalFingerprint(base()));
+    expect(evalFingerprint(base(), 2)).not.toBe(evalFingerprint(base(), 3));
+    expect(evalFingerprint(base(), 3)).toBe(evalFingerprint(base()));
+  });
+
+  it("changes when the vocabulary changes, and not when it stays the same", () => {
+    const changed = base();
+    changed.vocabulary = "vocab-hash-two";
+    expect(evalFingerprint(changed)).not.toBe(evalFingerprint(base()));
+    expect(evalFingerprint({ ...base(), vocabulary: "vocab-hash-one" })).toBe(evalFingerprint(base()));
+  });
+
+  it("the request hash does not depend on the vocabulary (the prompts are untouched by Day 5)", () => {
+    expect(requestHash(baseRequest())).toBe(requestHash(baseRequest()));
+    const a = fingerprintLine(baseRequest(), 100, evalFingerprint(base()), "aaaaaaaaaaaaaaa");
+    const b = fingerprintLine(baseRequest(), 100, evalFingerprint({ ...base(), vocabulary: "other" }), "bbbbbbbbbbbbbbb");
+    expect(a.match(/request ([0-9a-f]{10})/)?.[1]).toBe(b.match(/request ([0-9a-f]{10})/)?.[1]);
   });
 
   it("still changes with an ad text or a key", () => {
@@ -92,13 +111,33 @@ describe("evalFingerprint", () => {
 });
 
 describe("fingerprint format", () => {
-  it("is format 2 and the report line says so", () => {
-    expect(FINGERPRINT_FORMAT).toBe(2);
-    const line = fingerprintLine(baseRequest(), 3347, evalFingerprint(base()));
-    expect(line).toMatch(/^FINGERPRINT: format 2 \| request [0-9a-f]{10} \| full [0-9a-f]{10} \| INSTRUCTIONS 3,347 characters\n$/);
+  it("is format 3 and the report line carries the vocabulary hash", () => {
+    expect(FINGERPRINT_FORMAT).toBe(3);
+    const line = fingerprintLine(baseRequest(), 3347, evalFingerprint(base()), vocabularyHash({ a: 1 }));
+    expect(line).toMatch(/^FINGERPRINT: format 3 \| request [0-9a-f]{10} \| full [0-9a-f]{10} \| vocab [0-9a-f]{10} \| INSTRUCTIONS 3,347 characters\n$/);
   });
 
-  it("the line for a partial run has no full fingerprint", () => {
-    expect(fingerprintLine(baseRequest(), 4000)).toMatch(/^FINGERPRINT: format 2 \| request [0-9a-f]{10} \| INSTRUCTIONS 4,000 characters\n$/);
+  it("the line for a partial run has no full fingerprint, but still the vocabulary", () => {
+    expect(fingerprintLine(baseRequest(), 4000, undefined, vocabularyHash({ a: 1 }))).toMatch(
+      /^FINGERPRINT: format 3 \| request [0-9a-f]{10} \| vocab [0-9a-f]{10} \| INSTRUCTIONS 4,000 characters\n$/,
+    );
+    expect(fingerprintLine(baseRequest(), 4000)).toMatch(/^FINGERPRINT: format 3 \| request [0-9a-f]{10} \| INSTRUCTIONS 4,000 characters\n$/);
+  });
+});
+
+describe("vocabularyHash", () => {
+  const real = () => vocabularyHash({ VOCAB, NOT_A_SKILL, LEFT_UNLISTED });
+
+  it("is 64 hex characters, the same for the same data, and independent of key order", () => {
+    expect(real()).toMatch(/^[0-9a-f]{64}$/);
+    expect(real()).toBe(real());
+    expect(vocabularyHash({ a: 1, b: { c: 2, d: 3 } })).toBe(vocabularyHash({ b: { d: 3, c: 2 }, a: 1 }));
+  });
+
+  it("changes when an alias, a not-a-skill phrase or an unlisted name changes", () => {
+    const withAlias = VOCAB.map((e, i) => (i === 0 ? { ...e, aliases: [...e.aliases, "one more alias"] } : e));
+    expect(vocabularyHash({ VOCAB: withAlias, NOT_A_SKILL, LEFT_UNLISTED })).not.toBe(real());
+    expect(vocabularyHash({ VOCAB, NOT_A_SKILL: NOT_A_SKILL.slice(1), LEFT_UNLISTED })).not.toBe(real());
+    expect(vocabularyHash({ VOCAB, NOT_A_SKILL, LEFT_UNLISTED: LEFT_UNLISTED.slice(1) })).not.toBe(real());
   });
 });

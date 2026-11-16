@@ -41,7 +41,7 @@ const goodResult: BuildResult = {
   },
   removed: [],
   moved: [],
-  unlisted: [],
+  unlisted: [], notCounted: [],
 };
 
 const BACKOFFS = [5000, 15000, 45000];

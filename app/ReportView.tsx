@@ -1,3 +1,5 @@
+import type { NotCounted } from "@/lib/engine/fromAd";
+import { checkYourselfRows, notCountedSentence } from "./reportText";
 import type { RequirementRow } from "./skillsOnly";
 
 // The fit report as shown on the page: the same for a confirmed CV profile and
@@ -20,12 +22,16 @@ export default function ReportView({
   report,
   note,
   extra,
+  notCounted = [],
 }: {
   title: string;
   report: ReportViewData;
   note: string;
   extra?: React.ReactNode;
+  notCounted?: NotCounted[];
 }) {
+  const notCountedText = notCountedSentence(notCounted.length);
+  const checkRows = checkYourselfRows(report.checkYourself, notCounted);
   return (
     <section className="flex flex-col gap-3">
       <h2 className="text-lg font-semibold">{title}</h2>
@@ -34,6 +40,7 @@ export default function ReportView({
       <p className="text-sm">
         Must-haves met: {report.counts.mustsMet} of {report.counts.mustsTotal}. Nice-to-haves met:{" "}
         {report.counts.nicesMet} of {report.counts.nicesTotal}.
+        {notCountedText ? ` ${notCountedText}` : ""}
       </p>
       <p className="text-sm text-zinc-600 dark:text-zinc-400">{note}</p>
 
@@ -92,12 +99,15 @@ export default function ReportView({
         </div>
       )}
 
-      {report.checkYourself.length > 0 && (
+      {checkRows.length > 0 && (
         <div className="text-sm">
           <p className="font-medium">Check this yourself:</p>
           <ul className="list-disc pl-5">
-            {report.checkYourself.map((q, i) => (
-              <li key={i}>&ldquo;{q}&rdquo;</li>
+            {checkRows.map((r, i) => (
+              <li key={i}>
+                &ldquo;{r.quote}&rdquo;
+                {r.note ? <span className="text-zinc-600 dark:text-zinc-400"> ({r.note})</span> : null}
+              </li>
             ))}
           </ul>
         </div>

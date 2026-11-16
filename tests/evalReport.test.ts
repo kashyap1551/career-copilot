@@ -46,7 +46,7 @@ const read = (quote: string, company: string | null = null): BuildResult => ({
   },
   removed: [{ what: "requirement", why: "not-in-ad", text: `${quote} removed` }],
   moved: [],
-  unlisted: [],
+  unlisted: [], notCounted: [],
 });
 
 const mk = (id: string, quote: string, holdout = false, known = false, extra: Partial<AnswerKey> = {}) => {
@@ -174,7 +174,7 @@ describe("the widened and narrowed lines (C5)", () => {
       job: { id: "x", title: "Untitled job", company: null, source: null,
         constraints: { languages: [], location: null, remote: null, minYears: null, startDate: null, otherConditions: [] },
         requirements: [{ skillIds: ["sql", "new:docker"], importance: "must", quote: "Same line" }] },
-      removed: [], moved: [], unlisted: [],
+      removed: [], moved: [], unlisted: [], notCounted: [],
     };
     const ad: EvalAd = { id: "ad-77", text: "x", key: k, holdout: false, known: false };
     const text = formatReport({ scored: [{ ad, score: scoreAd(k, res, skills), job: res.job }], failed: [], skipped: [], reveal: false });
