@@ -31,3 +31,4 @@ One line per step: what you learned, in your own words. This becomes the case st
 | 2026-11-16 | Day 5 | Write down what a rule costs: every rule change was recorded with what it no longer repairs, so a later reader can tell a choice from a mistake. |
 | 2026-11-16 | Day 5 | A deliberate break that survives is information: it is either a missing test or an equivalent change that cannot matter; both are written down. |
 | 2026-11-16 | Day 5 | A dictionary check sees single words, but a two-word phrase can sit one letter from a skill ("Personal development" next to "Persona development"). Fix the cause with a structure (flagged phrases never reach spelling help) and a vocabulary entry, not a patch per phrase. |
+| 2026-11-16 | Day 5 | One AI run is a sample, not a measurement: the same 7 ads gave 72 hits in one run and 69 in the next, so I trust only differences bigger than that spread, and I never move a pass line after seeing a result. |
