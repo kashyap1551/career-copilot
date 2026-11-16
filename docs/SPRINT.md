@@ -62,6 +62,7 @@ Goal: paste an ad, get a fit report on the live link. Rough is fine; working end
 - [x] **3.3** Fix the prompts until at least 90% of must-haves are found and nothing is invented on the 10 ads, with "not stated" instead of guesses.
   Check: the target holds on two runs in a row.
   Note: closed, target not met: 75 and 76 of 100 found, 9 and 13 invented (PLAN-3.3 section 20).
+  2026-11-16: closed, target not met: 75 and 76 of 100 found on the tuning set against the target of 94 (116 of 128 on all ten ads), see docs/PLAN-3.3.md 'What was learned'; the reading gate is to be written afresh, before the holdout is read, with the coverage view (HANDOFF open item 1).
 - [x] **3.4** A rough page: paste an ad and a list of skills, see the fit report from the rules engine.
   Check: it works on the live link.
   Note: a requirement whose skills are all unlisted (provisional `new:` ids from step 3.1) counts as not met. The report must say so on its verdict line ("X: not in our skill list yet, so it can't be matched with your CV") and show how many requirements are in that state. The skills a person pastes go through the same name-to-id function as the ad's skills (see docs/PLAN-3.1.md).
