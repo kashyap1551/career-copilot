@@ -22,3 +22,5 @@ One line per step: what you learned, in your own words. This becomes the case st
 | 2026-11-16 | Day 4 | One text for everyone: I remove contact details first and number the lines after, so what the person sees, what the AI reads and what the evidence quotes are the same lines. |
 | 2026-11-16 | Day 4 | A test must be able to fail: I broke the code on purpose 18 times and the tests caught 16. A break that survives means a missing test or code that does nothing, and I have to show which. |
 | 2026-11-16 | Day 4 | Measure the number you can control: the reader is noisy even at temperature 0, so I counted invented skills (target 0), kept "found" as information only, and ran a calibration run that did not count. |
+| 2026-11-16 | Day 4 | Test the combinations, not just examples: the page said "the ad does not say" about a city the ad did name, because no example had a city without a work mode. A grid over 2,048 combinations of ad and settings now checks it. |
+| 2026-11-16 | Day 4 | A surviving break is a question, not a failure: it means a missing test or code that does nothing. I showed which, deleted the dead filter, and let a grid test guard the fact instead. |
