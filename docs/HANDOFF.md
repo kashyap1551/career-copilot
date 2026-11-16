@@ -56,7 +56,7 @@ Scope and roles: see the first line of this file and docs/REVIEWER-BRIEF.md. Sec
   15. Report, constraints: a constraint that is judged and satisfied (years: the ad asks 2+, the profile says 3) gets no line of its own; only the "judged:" header names it (manual check 2026-11-16, step 8, O-1). Decide whether to show a line per satisfied constraint.
   16. After "Delete this profile" the report already on screen stays and still says "on your profile" until the page is reloaded (manual check 2026-11-16, step 9, O-2). Decide whether the report should be cleared or relabelled.
   17. A "Long shot" level although every must-have and nice-to-have is met, because of one location conflict marked "can't be closed soon" (manual check 2026-11-16, step 8, O-3). Decide in the fit-level review whether one location conflict should cap the level this hard.
-- Before the repo goes public: close the access code, rate-limit rule and Groq terms items, then read docs/ for personal and security notes.
+- Before the repo goes public or the link is shared: build the access code and confirm the Vercel rate-limit rule (the two AI routes are open to anyone today), read the Groq terms, and settle the owner decisions in the local pre-public report `eval-runs/PUBLIC-REPO-CHECK.md` (git-ignored on purpose: it describes weak spots, never commit it).
 
 **Still true:** macOS gotchas (`sed -i` fails silently, use python; no `timeout` command; zsh does not split an unquoted variable of file names, use arrays; tsx top-level await needs `.mts`). Scratch tools: `eval-runs/tuning-tools/` (gitignored). The readJob 429 / RetryError bug is fixed (`lib/ai/errors.ts`). `docs/REVIEWER-BRIEF.md` is the brief for a new reviewer chat.
 

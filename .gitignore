@@ -42,9 +42,14 @@ next-env.d.ts
 
 # real job ads and their answer keys: git history is permanent and the repo
 # may go public (see docs/DECISIONS.md). SOURCES.md and known-cases/ are committed.
-/fixtures/real-ads/*.txt
-/fixtures/real-ads/*.json
+# Everything in fixtures/real-ads/ is ignored except SOURCES.md: every file type
+# (.txt, .json, .md, .pdf, .csv, .docx) and every subfolder.
+/fixtures/real-ads/*
+!/fixtures/real-ads/SOURCES.md
 /fixtures/answer-keys/
 
 # results of `npm run eval`
 /eval-runs/
+
+# local Claude Code settings (may hold pasted paths or tokens)
+.claude/settings.local.json
