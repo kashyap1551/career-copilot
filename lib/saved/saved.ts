@@ -23,16 +23,24 @@ const nowOf = (ctx: SavedContext) => (ctx.now ?? (() => new Date()))();
 
 type Read<T> = { ok: true; value: T } | Failed;
 function readRecord<T>(raw: unknown, schema: { safeParse: (v: unknown) => { success: boolean; data?: unknown } }): Read<T> {
-  const migrated = migrateRecord(raw, SCHEMA_VERSION, MIGRATIONS);
-  if (!migrated.ok) return fail(migrated.reason);
-  const parsed = schema.safeParse(migrated.record);
-  return parsed.success ? { ok: true, value: parsed.data as T } : fail("corrupted");
+  try {
+    const migrated = migrateRecord(raw, SCHEMA_VERSION, MIGRATIONS);
+    if (!migrated.ok) return fail(migrated.reason);
+    const parsed = schema.safeParse(migrated.record);
+    // `as T` is safe because schemas.ts checks at compile time that what the schema parses is assignable to the type.
+    return parsed.success ? { ok: true, value: parsed.data as T } : fail("corrupted");
+  } catch {
+    return fail("corrupted"); // a migration step that throws on a record it cannot handle
+  }
 }
 
 // ---- the profile -----------------------------------------------------------------------------------------------------
 
 export async function saveProfile(ctx: SavedContext, built: BuiltProfile): Promise<{ ok: true } | Failed> {
   try {
+    // A profile a NEWER app wrote is never overwritten (like saveJob).
+    const existing = await ctx.store.get("profile", PROFILE_KEY);
+    if (existing !== undefined && isNewerRecord(existing, SCHEMA_VERSION)) return fail("newer-version");
     await ctx.store.put("profile", PROFILE_KEY, savedFromBuilt(built, ctx.stamps, nowOf(ctx)));
     return { ok: true };
   } catch (e) {
@@ -58,9 +66,10 @@ export type JobInput = { adText: string; extraction: ExtractedAd | null; reading
 // One record per ad text: saving the same ad again replaces it and updates savedAt. A record a NEWER app wrote under the
 // same id is never overwritten.
 export async function saveJob(ctx: SavedContext, input: JobInput): Promise<{ ok: true; id: string } | Failed> {
-  const adText = input.adText.trim();
-  const id = await jobIdFor(adText);
   try {
+    // Everything that can fail is inside the try: the trim (a caller mistake), the hash (crypto missing) and the store.
+    const adText = input.adText.trim();
+    const id = await jobIdFor(adText);
     const existing = await ctx.store.get("jobs", id);
     if (existing !== undefined && isNewerRecord(existing, SCHEMA_VERSION)) return fail("newer-version");
     const record: SavedJob = {

@@ -1,3 +1,4 @@
+import { MAX_CV_LINES } from "../cv/limits";
 import type { BuiltProfile } from "../cv/profile";
 import type { ProfileSkill, Skill } from "../engine/types";
 import { skills as liveVocabulary } from "../vocab";
@@ -9,12 +10,15 @@ import { SCHEMA_VERSION, type SavedProfile } from "./types";
 // profile.cvLines[line - 1], so the lines are rebuilt from the cited evidence alone: an array as long as the highest
 // cited line, the cited text at its place, "" elsewhere. After saving, that check is satisfied by construction (it is
 // built from the same text); the real guard is at build time, when the AI's quote is checked against the real CV.
+// A cited line outside 1..MAX_CV_LINES (the most lines a CV can have here) is ignored, so the array can never be
+// huge: that skill then ties to no CV line and is not met.
+const usable = (line: number) => Number.isInteger(line) && line >= 1 && line <= MAX_CV_LINES;
 export function sparseCvLines(skills: ProfileSkill[]): string[] {
   let longest = 0;
-  for (const s of skills) if (s.kind === "have" && s.evidence) longest = Math.max(longest, s.evidence.line);
+  for (const s of skills) if (s.kind === "have" && s.evidence && usable(s.evidence.line)) longest = Math.max(longest, s.evidence.line);
   const lines: string[] = Array.from({ length: longest }, () => "");
   for (const s of skills) {
-    if (s.kind === "have" && s.evidence && lines[s.evidence.line - 1] === "") lines[s.evidence.line - 1] = s.evidence.text;
+    if (s.kind === "have" && s.evidence && usable(s.evidence.line) && lines[s.evidence.line - 1] === "") lines[s.evidence.line - 1] = s.evidence.text;
   }
   return lines;
 }
