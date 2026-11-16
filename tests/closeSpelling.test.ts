@@ -361,8 +361,12 @@ describe("the live path is untouched (C16)", () => {
     expect(lookupExact("Strong Excel skills", skills)).toEqual({ id: "excel", try: 2 });
   });
 
-  it("Y3: nothing in the live path imports the mapper: fromAd, fromCv, the routes, the pages and lib/ai", () => {
+  it("Y3: the mapper is live only through ONE file (readName.ts): fromAd and fromCv call readNameId and never the mapper itself; the routes, the pages and lib/ai do not touch it (changed deliberately at step 5, when stage 2 went live; it said 'nothing imports the mapper' before)", () => {
     const root = process.cwd();
+    for (const f of ["lib/engine/fromAd.ts", "lib/engine/fromCv.ts"]) {
+      expect(`${f}: ${fs.readFileSync(path.join(root, f), "utf8").includes("readNameId(")}`).toBe(`${f}: true`);
+    }
+    expect(fs.readFileSync(path.join(root, "lib/engine/readName.ts"), "utf8")).toContain("mapName(");
     const files: string[] = ["lib/engine/fromAd.ts", "lib/engine/fromCv.ts"];
     const walk = (dir: string) => {
       for (const f of fs.readdirSync(path.join(root, dir), { withFileTypes: true })) {

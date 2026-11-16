@@ -3,8 +3,8 @@ import { nameKeys, slugOf } from "./skillIds";
 import type { Skill } from "./types";
 
 // Stage 2 of the name mapping: close spelling (docs/PLAN-5.1.md, "5.2 stage 2 rules and outcome definitions").
-// Pure code: no AI, no network. It is NOT wired into the live path (fromAd, fromCv, the routes, the pages): only the
-// offline tools and the tests use it until the fresh-set measure passes.
+// Pure code: no AI, no network. Live since 2026-11-16 (step 5): reached through mapName and readNameId from fromAd
+// and fromCv, after the not-a-skill flag.
 
 // The distance counts insert, delete, replace, and a swap of two neighbouring letters, each as 1 (the "optimal string
 // alignment" distance). Distances above `cap` are returned as cap + 1: the allowance never exceeds 2, so nothing

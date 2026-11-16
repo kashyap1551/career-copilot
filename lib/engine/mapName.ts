@@ -3,8 +3,9 @@ import { lookupExact } from "./skillIds";
 import type { Skill } from "./types";
 
 // The name mapper for 5.2: stage 1 (exact, three tries) always runs first and wins; only when it finds nothing does
-// stage 2 (close spelling) look. Pure code. NOT wired into the live path until the fresh-set measure passes: nothing
-// in fromAd, fromCv, the routes or the pages imports this file (a test checks it).
+// stage 2 (close spelling) look. Pure code. Live since step 5 of the fresh-set sequence (2026-11-16): `readNameId`
+// (lib/engine/readName.ts) calls it for the names the AI reads in fromAd and fromCv, after the not-a-skill flag; the
+// measure's outcomeFor calls it too, so the live product and the measure cannot drift apart.
 
 export type MapResult =
   | { how: "exact"; id: string; try: 1 | 2 | 3 }
