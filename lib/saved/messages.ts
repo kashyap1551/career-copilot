@@ -139,17 +139,24 @@ export const WHAT_TO_LEARN = "What to learn";
 
 export const ROADMAP_FAILED_LINE = "What to learn could not be worked out.";
 
-// STUB: stage 3 replaces this. Step 8.1 (docs/PLAN-8.1.md section 1): the words of the roadmap report. Empty for now so the red tests
-// fail on an assertion and not on a missing import.
-export const REPORT_BUTTON_OPEN = "";
-export const REPORT_BUTTON_CLOSE = "";
-export const REPORT_TITLE = "";
-/* eslint-disable @typescript-eslint/no-unused-vars -- STUB: stage 3 replaces these two */
-export const reportBasisLine = (_counted: number): string => "";
-export const reportAskedLine = (_must: number, _nice: number, _counted: number): string | null => "";
-/* eslint-enable @typescript-eslint/no-unused-vars */
-export const REPORT_FOOTNOTE = "";
-export const REPORT_COPY = "";
-export const REPORT_COPIED = "";
-export const REPORT_COPY_FAILED = "";
-export const REPORT_FAILED_LINE = "";
+// Step 8.1 (docs/PLAN-8.1.md section 1): the words of the roadmap report. The report's other sentences are the box's own constants
+// (alreadyStrongLine, RANKING_HEADER, rankingNoneLine, the blocked and timeline lines) and the engine's sentences, never retyped.
+export const REPORT_BUTTON_OPEN = "Make my roadmap report";
+export const REPORT_BUTTON_CLOSE = "Hide the roadmap report";
+export const REPORT_TITLE = "Your roadmap report";
+export const reportBasisLine = (counted: number) =>
+  `Based on ${counted} saved ${noun(counted, "ad", "ads")} we could judge and the profile in use. Every number was counted by the app from them; none is a prediction.`;
+// The sub line under a ranked skill: how many of the counted ads ask for it (the gap counts of step 7.1). Null when it has no counts.
+export function reportAskedLine(must: number, nice: number, counted: number): string | null {
+  const of = `of your ${counted} saved ${noun(counted, "ad", "ads")}`;
+  if (must > 0 && nice > 0) return `Asked as a must-have in ${must} ${of}, and as a nice-to-have in ${nice}.`;
+  if (must > 0) return `Asked as a must-have in ${must} ${of}.`;
+  if (nice > 0) return `Asked as a nice-to-have in ${nice} ${of}.`;
+  return null;
+}
+export const REPORT_FOOTNOTE =
+  "A skill can be asked in more ads than it unlocks: an ad may need more than one skill, may already be unlocked by a skill higher up this list, or may be held back by something other than skills.";
+export const REPORT_COPY = "Copy report as text";
+export const REPORT_COPIED = "Copied.";
+export const REPORT_COPY_FAILED = "Could not copy. Select the text and copy it by hand.";
+export const REPORT_FAILED_LINE = "The roadmap report could not be worked out.";
