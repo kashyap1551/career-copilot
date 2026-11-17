@@ -79,7 +79,7 @@ export function reportAsText(report: RoadmapReport): string {
 
 // Writes `text` once through `write` and ALWAYS resolves: "copied" when the write resolves, "failed" when it is refused (a rejection) or
 // throws at once (a missing browser feature throws before any promise exists). The caller passes the real write in.
-export async function copyReport(text: string, write: (text: string) => Promise<void>): Promise<CopyStatus> {
+export async function copyReport(text: string, write: (text: string) => Promise<void>): Promise<CopyRecord["status"]> {
   try {
     await write(text);
     return "copied";

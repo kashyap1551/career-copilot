@@ -16,6 +16,8 @@ import AccessBox from "./AccessBox";
 import { postJson } from "./accessFetch";
 import CvBox from "./CvBox";
 import { roadmapAds, roadmapBoxSafe } from "./roadmap";
+import RoadmapReportView from "./RoadmapReportView";
+import { roadmapReportSafe } from "./roadmapReport";
 import RoadmapView from "./RoadmapView";
 import { openedReadings, reportFor } from "./savedAdRows";
 import ReportView from "./ReportView";
@@ -153,10 +155,13 @@ export default function Home() {
   // the profile in use): no storage read, no AI call. It recomputes when the ads or the profile change.
   const adList = saved.state.phase === "ready" ? saved.state.ads.list : NO_ADS.list;
   const adStamps = saved.state.phase === "ready" && saved.state.ctx ? saved.state.ctx.stamps : null;
-  const roadmap = useMemo(
-    () => roadmapBoxSafe(profile, roadmapAds(adStamps ? openedReadings(adList, { stamps: adStamps, skills }) : []), skills),
-    [adList, adStamps, profile],
+  // The opened saved ads are worked out ONCE and given to the box and to the roadmap report (step 8.1): the two read the same ads.
+  const roadmapAdList = useMemo(
+    () => roadmapAds(adStamps ? openedReadings(adList, { stamps: adStamps, skills }) : []),
+    [adList, adStamps],
   );
+  const roadmap = useMemo(() => roadmapBoxSafe(profile, roadmapAdList, skills), [roadmapAdList, profile]);
+  const reportOutcome = useMemo(() => roadmapReportSafe(profile, roadmapAdList, skills), [roadmapAdList, profile]);
 
   // Names the reader matched by close spelling (stage 2): one short line each; exact matches show nothing.
   const closeLines = result ? closeMatchLines(result.job.requirements, (id) => skills.find((k) => k.id === id)?.name ?? id) : [];
@@ -244,6 +249,8 @@ export default function Home() {
       <AdStatus saved={saved} adKey={adStatusKey(text)} />
       <SavedAdsList saved={saved} onOpen={onOpenAd} profile={profile} skills={skills} />
       <RoadmapView box={roadmap} />
+      {/* Mounted only while a report exists: a report that goes away and comes back starts closed. */}
+      {reportOutcome.kind !== "none" && <RoadmapReportView outcome={reportOutcome} />}
 
       {result && report && (
         <>
