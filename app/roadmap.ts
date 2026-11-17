@@ -1,11 +1,11 @@
-import { engineView } from "@/lib/cv/engineView";
+import { engineView, type EngineView } from "@/lib/cv/engineView";
 import { KIND_WORDS, type BuiltProfile } from "@/lib/cv/profile";
 import { blockedHeader, conflictLine, explainRankedSkill, explainTimelineEntry, jobLabel, YEARS_NOTE } from "@/lib/engine/explain";
-import { gapList, type HeldBack } from "@/lib/engine/gaps";
+import { gapList, type GapList, type HeldBack } from "@/lib/engine/gaps";
 import { match } from "@/lib/engine/match";
 import { listedAlternatives, ROADMAP_FROM_JOBS, roadmapBasis } from "@/lib/engine/roadmapJobs";
-import type { Job, Skill } from "@/lib/engine/types";
-import { classifyJobs, jobsBroughtCloser, rankMissingSkills, unlockTimeline } from "@/lib/engine/unlock";
+import type { Job, Profile, Skill } from "@/lib/engine/types";
+import { classifyJobs, jobsBroughtCloser, rankMissingSkills, unlockTimeline, type JobGroups } from "@/lib/engine/unlock";
 import {
   alreadyStrongLine,
   ALTERNATIVES_NOTE,
@@ -66,15 +66,39 @@ export type RoadmapBox = {
 
 const EMPTY: RoadmapBox = { noProfile: null, partA: [], partB: [], counted: 0, alreadyStrongIds: [], timeline: [] };
 
-// `built` is the profile in use (null = none). `ads` are the saved ads as opened by 6.2 (the same readings the fit levels use).
-export function roadmapBox(
-  built: BuiltProfile | null,
-  ads: { id: string; job: Job }[],
-  skills: Skill[],
-  fromJobs: number = ROADMAP_FROM_JOBS,
-): RoadmapBox {
-  if (ads.length === 0) return EMPTY; // nothing saved: the page does not show the box
-  if (built === null) return { ...EMPTY, noProfile: NO_PROFILE_NOTE };
+// ---- The inputs and the line builders the box and the report share (step 8.1, docs/PLAN-8.1.md D7) ------------------------------
+// Pure code, no AI, no store, no network. `roadmapInputs` does the counting of which ads count and the engine's view of each; the
+// builders write the engine's own sentences. The box and the roadmap report both call them, so they cannot disagree and the P0
+// defect (ads sharing one job id) cannot be fixed in one place and forgotten in the other.
+
+type CountedAd = { ad: { id: string; job: Job }; unjudgedMusts: number };
+
+export type ReadyInputs = {
+  kind: "ready";
+  M: number; // the saved ads that count
+  counted: CountedAd[];
+  notCounted: string | null; // the line naming the ads left out, or null when none is
+  nameOf: (skillId: string) => string;
+  views: EngineView[]; // the engine's view of each counted ad
+  engineProfile: Profile;
+  // Amendment 6 (2): an unlisted alternative is dropped from each requirement before anything is counted or ranked. The numbers of
+  // requirements not judged and the caveats still come from `views` and `counted`, not from these jobs.
+  // Amendment 7: every opened reading carries the job id "pasted-ad", and the engine keys on job id. Each counted ad's job takes the
+  // SAVED-AD id (the store key, unique), so two ads can never collapse into one.
+  engineJobs: Job[];
+  labelOf: (jobId: string) => string; // the name of a counted job, with the page's caveat "(n must-haves not judged)"
+  gaps: GapList;
+};
+
+export type RoadmapInputs =
+  | { kind: "no-ads" } // nothing saved: the page shows no box
+  | { kind: "no-profile" } // no profile in use
+  | { kind: "none-counted"; notCounted: string | null } // saved ads, but none of them counts
+  | ReadyInputs;
+
+export function roadmapInputs(built: BuiltProfile | null, ads: { id: string; job: Job }[], skills: Skill[]): RoadmapInputs {
+  if (ads.length === 0) return { kind: "no-ads" };
+  if (built === null) return { kind: "no-profile" };
 
   const nameOf = (id: string) => skills.find((s) => s.id === id)?.name ?? id;
 
@@ -85,27 +109,83 @@ export function roadmapBox(
   const noMustHave = basis.filter((b) => b.excluded === "no-must-have-judgeable").length;
   const notCounted = notCountedLine(noRequirements, noMustHave);
   const M = counted.length;
-
-  if (M === 0) {
-    return { ...EMPTY, partA: notCounted ? [notCounted] : [], partB: [thresholdLine(0, fromJobs)] };
-  }
+  if (M === 0) return { kind: "none-counted", notCounted };
 
   const views = counted.map((c) => engineView(c.ad.job, built));
   const engineProfile = views[0].engineProfile;
-  // Amendment 6 (2): an unlisted alternative is dropped from each requirement before anything is counted or ranked. The numbers of
-  // requirements not judged and the caveats still come from `views` and `counted`, not from these jobs.
-  // Amendment 7: every opened reading carries the job id "pasted-ad", and the engine keys on job id. Each counted ad's job takes the
-  // SAVED-AD id (the store key, unique), so two ads can never collapse into one.
   const engineJobs = views.map((v, i) => ({ ...listedAlternatives(v.engineJob), id: counted[i].ad.id }));
+  const labelOf = (jobId: string) => {
+    const i = engineJobs.findIndex((j) => j.id === jobId);
+    if (i < 0) return jobId;
+    const n = counted[i].unjudgedMusts;
+    return jobLabel(engineJobs[i]) + (n > 0 ? unjudgedCaveat(n) : "");
+  };
+  const gaps = gapList(engineProfile, engineJobs, nameOf);
+  return { kind: "ready", M, counted, notCounted, nameOf, views, engineProfile, engineJobs, labelOf, gaps };
+}
+
+export type RoadmapParts = {
+  groups: JobGroups;
+  alreadyStrong: string; // the "Already Strong: ..." line
+  ranking: { skillId: string; text: string }[]; // the engine's sentence for each ranked skill, in order, WITHOUT the "1. " marker
+  blocked: string[]; // the blocked-jobs lines (the count line and, per job, its header and conflict lines), or the "none" line
+  timeline: string[]; // the timeline lines (header, framing, one per date), or the "none" line
+};
+
+// The roadmap's lines, from the engine's own functions. The ranking and the timeline get the very same two values (T14 of step 7.3).
+export function roadmapParts(r: ReadyInputs): RoadmapParts {
+  const { engineProfile, engineJobs, nameOf, labelOf } = r;
+  const groups = classifyJobs(engineProfile, engineJobs);
+  const ranked = rankMissingSkills(engineProfile, engineJobs);
+  const ranking = ranked.map((entry, i) => {
+    const closer =
+      entry.newlyUnlocked.length === 0
+        ? jobsBroughtCloser(engineProfile, engineJobs, ranked.slice(0, i).map((x) => x.skillId), entry.skillId)
+        : [];
+    return { skillId: entry.skillId, text: explainRankedSkill(entry, closer, nameOf, labelOf) };
+  });
+  const blocked: string[] = [];
+  if (groups.blocked.length === 0) {
+    blocked.push(BLOCKED_NONE);
+  } else {
+    blocked.push(blockedCountLine(groups.blocked.length));
+    for (const b of groups.blocked) {
+      blocked.push(`- ${labelOf(b.jobId)}: ${blockedHeader(b)}`);
+      for (const c of b.conflicts) blocked.push(conflictLine(c));
+      if (b.conflicts.some((c) => c.kind === "years")) blocked.push(YEARS_NOTE);
+    }
+  }
+  // Step 7.3: the same two values as the ranking above, so the two cannot disagree. Each line is the engine's own sentence.
+  const entries = unlockTimeline(engineProfile, engineJobs);
+  const timeline =
+    entries.length === 0
+      ? [TIMELINE_NONE]
+      : [TIMELINE_HEADER, TIMELINE_FRAMING, ...entries.map((e) => explainTimelineEntry(e, nameOf, labelOf))];
+  return { groups, alreadyStrong: alreadyStrongLine(groups.alreadyStrong.map(labelOf)), ranking, blocked, timeline };
+}
+
+// `built` is the profile in use (null = none). `ads` are the saved ads as opened by 6.2 (the same readings the fit levels use).
+export function roadmapBox(
+  built: BuiltProfile | null,
+  ads: { id: string; job: Job }[],
+  skills: Skill[],
+  fromJobs: number = ROADMAP_FROM_JOBS,
+): RoadmapBox {
+  const r = roadmapInputs(built, ads, skills);
+  if (r.kind === "no-ads") return EMPTY; // nothing saved: the page does not show the box
+  if (r.kind === "no-profile") return { ...EMPTY, noProfile: NO_PROFILE_NOTE };
+  if (r.kind === "none-counted") {
+    return { ...EMPTY, partA: r.notCounted ? [r.notCounted] : [], partB: [thresholdLine(0, fromJobs)] };
+  }
+  const { M, counted, notCounted, views, engineProfile, engineJobs, nameOf, gaps } = r;
 
   // ---- Part A: the gap list ----
-  const gaps = gapList(engineProfile, engineJobs, nameOf);
   const partA: string[] = [];
   if (gaps.rows.length > 0) {
     partA.push(gapTitle(M), GAP_SUBTITLE);
-    for (const r of gaps.rows) {
-      const note = r.learning ? learningNote(r.learning) : r.noCvLine ? NO_CV_LINE_NOTE : "";
-      partA.push(gapRowText(nameOf(r.skillId), note, r.mustAds, r.niceAds));
+    for (const row of gaps.rows) {
+      const note = row.learning ? learningNote(row.learning) : row.noCvLine ? NO_CV_LINE_NOTE : "";
+      partA.push(gapRowText(nameOf(row.skillId), note, row.mustAds, row.niceAds));
     }
     const alternatives = engineJobs.some((job) => {
       const result = match(engineProfile, job); // once per ad
@@ -124,51 +204,23 @@ export function roadmapBox(
   // ---- Part B: the roadmap, from the engine's own functions ----
   if (M < fromJobs) return { noProfile: null, partA, partB: [thresholdLine(M, fromJobs)], counted: M, alreadyStrongIds: [], timeline: [] };
 
-  const labelOf = (jobId: string) => {
-    const i = engineJobs.findIndex((j) => j.id === jobId);
-    if (i < 0) return jobId;
-    const n = counted[i].unjudgedMusts;
-    return jobLabel(engineJobs[i]) + (n > 0 ? unjudgedCaveat(n) : "");
-  };
-  const groups = classifyJobs(engineProfile, engineJobs);
-  const ranking = rankMissingSkills(engineProfile, engineJobs);
-  const partB: string[] = [alreadyStrongLine(groups.alreadyStrong.map(labelOf))];
-  if (ranking.length === 0) {
-    partB.push(rankingNoneLine(groups.alreadyStrong.length > 0));
+  const parts = roadmapParts(r);
+  const partB: string[] = [parts.alreadyStrong];
+  if (parts.ranking.length === 0) {
+    partB.push(rankingNoneLine(parts.groups.alreadyStrong.length > 0));
   } else {
     partB.push(RANKING_HEADER);
-    ranking.forEach((entry, i) => {
-      const closer =
-        entry.newlyUnlocked.length === 0
-          ? jobsBroughtCloser(engineProfile, engineJobs, ranking.slice(0, i).map((r) => r.skillId), entry.skillId)
-          : [];
-      partB.push(`${i + 1}. ${explainRankedSkill(entry, closer, nameOf, labelOf)}`);
-    });
+    parts.ranking.forEach((x, i) => partB.push(`${i + 1}. ${x.text}`));
   }
-  if (groups.blocked.length === 0) {
-    partB.push(BLOCKED_NONE);
-  } else {
-    partB.push(blockedCountLine(groups.blocked.length));
-    for (const b of groups.blocked) {
-      partB.push(`- ${labelOf(b.jobId)}: ${blockedHeader(b)}`);
-      for (const c of b.conflicts) partB.push(conflictLine(c));
-      if (b.conflicts.some((c) => c.kind === "years")) partB.push(YEARS_NOTE);
-    }
-  }
-  // Step 7.3: the same two values as the ranking above, so the two cannot disagree. Each line is the engine's own sentence.
-  const entries = unlockTimeline(engineProfile, engineJobs);
-  const timeline =
-    entries.length === 0
-      ? [TIMELINE_NONE]
-      : [TIMELINE_HEADER, TIMELINE_FRAMING, ...entries.map((e) => explainTimelineEntry(e, nameOf, labelOf))];
-  const strongIds = new Set(groups.alreadyStrong);
+  partB.push(...parts.blocked);
+  const strongIds = new Set(parts.groups.alreadyStrong);
   return {
     noProfile: null,
     partA,
     partB,
     counted: M,
     alreadyStrongIds: counted.filter((_, i) => strongIds.has(engineJobs[i].id)).map((c) => c.ad.id),
-    timeline,
+    timeline: parts.timeline,
   };
 }
 
