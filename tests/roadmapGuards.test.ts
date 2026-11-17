@@ -35,13 +35,38 @@ describe("the box only reads: no save, delete, fetch, storage or effect in app/r
   });
 });
 
+// A string or template literal of four or more words is a sentence. Short labels (a heading, a one-word kind) are allowed.
+const SENTENCE_LITERAL = /(["'`])(?:(?!\1).)*?[A-Za-z]+(?: [A-Za-z'.,:;()-]+){3,}(?:(?!\1).)*?\1/;
+// JSX text: what sits between ">" and "<" (not inside {}, and not the ">" of an arrow "=>"), four or more words.
+const JSX_TEXT = />([^<>{}]*[A-Za-z][^<>{}]*)</g;
+const jsxSentences = (src: string) =>
+  [...src.matchAll(new RegExp(`(?<![=-])${JSX_TEXT.source}`, "g"))]
+    .map((m) => m[1].replace(/\s+/g, " ").trim())
+    .filter((t) => t.split(" ").filter((w) => /[A-Za-z]/.test(w)).length >= 4);
+
 describe("no sentence literal: the words are constants in lib/saved/messages.ts", () => {
-  // A string or template literal of four or more words is a sentence. Short labels (a heading, a one-word kind) are allowed.
-  const SENTENCE = /(["'`])(?:(?!\1).)*?[A-Za-z]+(?: [A-Za-z'.,:;()-]+){3,}(?:(?!\1).)*?\1/;
   for (const f of FILES) {
     it(`${f} has no string literal of four or more words`, () => {
-      const hit = code(read(f)).split("\n").find((l) => SENTENCE.test(l));
+      const hit = code(read(f)).split("\n").find((l) => SENTENCE_LITERAL.test(l));
       expect(hit, `${f} holds a sentence literal: ${hit}`).toBeUndefined();
     });
+    it(`${f} has no JSX text of four or more words (Amendment 4 (5))`, () => {
+      expect(jsxSentences(code(read(f))), `${f} holds a sentence as JSX text`).toEqual([]);
+    });
   }
+});
+
+describe("the guards themselves: both patterns pinned on examples", () => {
+  it("flags a sentence as a string literal and as JSX text; lets short labels and short templates through", () => {
+    // flagged
+    expect(SENTENCE_LITERAL.test('const a = "The roadmap shows from ten saved ads";')).toBe(true);
+    expect(jsxSentences("<p>The roadmap shows from ten saved ads</p>")).toEqual(["The roadmap shows from ten saved ads"]);
+    // not flagged
+    expect(SENTENCE_LITERAL.test('const b = "What to learn";')).toBe(false);
+    expect(SENTENCE_LITERAL.test('const c = ", ";')).toBe(false);
+    expect(SENTENCE_LITERAL.test("const d = `${x} of your ${y}`;")).toBe(false); // fewer than 4 words between the ${} pieces
+    expect(jsxSentences("<h2>What to learn</h2>")).toEqual([]);
+    expect(jsxSentences("<li>{line}</li>")).toEqual([]);
+    expect(jsxSentences("const f = (x) => <li>{x}</li>;")).toEqual([]); // the ">" of an arrow is not JSX text
+  });
 });

@@ -2,6 +2,7 @@ import { describe, expect, it, vi, afterEach } from "vitest";
 import { profileReport } from "@/app/fitReport";
 import { roadmapBox } from "@/app/roadmap";
 import { engineView } from "@/lib/cv/engineView";
+import { YEARS_NOTE } from "@/lib/engine/explain";
 import { renderProfileReport } from "@/lib/engine/report-text";
 import { ROADMAP_FROM_JOBS, roadmapBasis } from "@/lib/engine/roadmapJobs";
 import type { Job } from "@/lib/engine/types";
@@ -66,6 +67,15 @@ describe("Part A: the gap list texts (G1, G3, G6, G7, G8, G9, G10)", () => {
     expect(b.alreadyStrongIds).toEqual([]);
   });
 
+  it("G1c: one counted ad: the title's noun follows M ('across your 1 saved ad')", () => {
+    // hand count: ad 1 only; SQL and Excel are met, only the Tableau must is unmet (Tableau is in progress, so not met).
+    expect(box(person(), [ad1()]).partA).toEqual([
+      "Skills you are missing across your 1 saved ad",
+      SUBTITLE,
+      "Tableau (you are learning it, expected 2027-03-01): must-have in 1 ad",
+    ]);
+  });
+
   it("G3: a requirement with alternatives (Power BI or Tableau, unmet) gives one row for each and the sentence under the list", () => {
     // 2 ads: ad X must 'Power BI or Tableau' (profile has neither, nothing in progress), ad Y must SQL (met). Hand count: Power BI must 1,
     // Tableau must 1 (rows by name: Power BI first); the alternatives sentence appears once.
@@ -117,6 +127,22 @@ describe("Part A: the gap list texts (G1, G3, G6, G7, G8, G9, G10)", () => {
     const b = box(person(), [ad1(), ad("n", "Empty", "Invented Co", []), ad("m", "Odd", "Invented Co", [must(UNLISTED)])]);
     expect(b.counted).toBe(1);
     expect(b.partA).toContain(NOT_COUNTED_2);
+  });
+
+  it("G8d: M = 0 with one saved ad (all excluded): Part A is the not-counted line only, Part B the threshold line with 0 (Amendment 4 (3))", () => {
+    const b = box(person(), [ad("n", "Empty", "Invented Co", [])]);
+    expect(b.counted).toBe(0);
+    expect(b.partA).toEqual([NOT_COUNTED_NOREQ]); // no title, no "You meet every requirement" sentence: nothing was judged
+    expect(b.partB).toEqual([THRESHOLD(0)]);
+    expect(THRESHOLD(0)).toBe("The roadmap shows from 10 saved ads we could judge. You have 0. Save 10 more to see it.");
+  });
+
+  it("G8e: no saved ad at all: empty parts, no note (the page does not show the box; Amendment 4 (4))", () => {
+    const b = box(person(), []);
+    expect(b.counted).toBe(0);
+    expect(b.noProfile).toBeNull();
+    expect(b.partA).toEqual([]);
+    expect(b.partB).toEqual([]);
   });
 
   it("G9: no profile in use: the note, and neither part", () => {
@@ -242,6 +268,43 @@ describe("Part B: who counts (U5 to U9)", () => {
     expect(box(b, [job], 1).alreadyStrongIds).toEqual(["p"]);
   });
 
+  it("U7c: over the 16 subsets of {SQL, Excel, Python, Tableau} and 5 ads, Already Strong exactly when the report's level is strong (20 of 80 pairs)", () => {
+    // Hand rule (only the skills decide; every ad is in Berlin, hybrid, and the person's only set kind is the city Berlin):
+    //  ad 1 (musts SQL, Tableau)                       strong iff SQL and Tableau in S         -> 4 of 16 subsets
+    //  ad 2 (musts SQL, Python)                        strong iff SQL and Python in S          -> 4
+    //  ad 3 (must Excel)                               strong iff Excel in S                   -> 8
+    //  ad 4 (musts SQL, Python, one unlisted)          strong iff SQL and Python in S          -> 4 (the unlisted must does not block)
+    //  ad 2 in Exampleville (city conflict, unclosable) never strong                           -> 0
+    //  total 4 + 4 + 8 + 4 + 0 = 20 of 16 x 5 = 80 pairs.
+    const ALL = ["sql", "excel", "python", "tableau"];
+    const ads: { name: string; job: () => Job; rule: (s: Set<string>) => boolean }[] = [
+      { name: "ad 1", job: () => ad1(), rule: (s) => s.has("sql") && s.has("tableau") },
+      { name: "ad 2", job: () => ad2(), rule: (s) => s.has("sql") && s.has("python") },
+      { name: "ad 3", job: () => ad3(), rule: (s) => s.has("excel") },
+      { name: "ad 4", job: () => ad4(), rule: (s) => s.has("sql") && s.has("python") },
+      { name: "ad 2 in Exampleville", job: () => ad2({ location: "Exampleville" }), rule: () => false },
+    ];
+    let pairs = 0;
+    let strong = 0;
+    for (let mask = 0; mask < 16; mask++) {
+      const keptIds = ALL.filter((_, i) => mask & (1 << i));
+      const S = new Set(keptIds);
+      const built = person({ keptIds, inProgress: [] });
+      for (const a of ads) {
+        const job = a.job();
+        const level = profileReport(job, built, skills, []).level;
+        const inBox = box(built, [job], 1).alreadyStrongIds.includes(job.id);
+        const expected = a.rule(S);
+        expect(level === "strong", `${a.name} with ${keptIds.join(",") || "no skills"}: report level`).toBe(expected);
+        expect(inBox, `${a.name} with ${keptIds.join(",") || "no skills"}: box`).toBe(expected);
+        pairs++;
+        if (expected) strong++;
+      }
+    }
+    expect(pairs).toBe(80);
+    expect(strong).toBe(20);
+  });
+
   it("U8: the person set no language and an ad asks German B2: the report does not judge it and the roadmap does not block the ad", () => {
     const job = ad("g", "Clerk", "Invented Co", [must("sql")], { languages: [{ code: "de", level: "B2" }] });
     const report = profileReport(job, person(), skills, []);
@@ -296,6 +359,8 @@ describe("U12: the page's ranking text equals the engine's text, line by line", 
     const lines = text.split("\n");
     const from = lines.findIndex((l) => l.startsWith("Already Strong:"));
     const to = lines.findIndex((l) => l.startsWith("Timeline from skills in progress"));
+    expect(from).toBeGreaterThanOrEqual(0);
+    expect(to).toBeGreaterThan(from);
     return lines.slice(from, to).map((l) => l.trim()).filter((l) => l !== "");
   }
 
@@ -306,6 +371,36 @@ describe("U12: the page's ranking text equals the engine's text, line by line", 
   it("U12b: an example with a blocked ad", () => {
     const jobs = [ad1(), ad2({ location: "Exampleville" }), ad3(), ad4()];
     expect(box(person(), jobs, 4).partB).toEqual(engineLines(person(), jobs));
+  });
+});
+
+describe("U12c and U12d: a years conflict (the CLI adds the years note)", () => {
+  function engineLines(built: BuiltProfile, jobs: Job[]): string[] {
+    const views = jobs.map((j) => engineView(j, built));
+    const lines = renderProfileReport(views[0].engineProfile, views.map((v) => v.engineJob), skills).split("\n");
+    const from = lines.findIndex((l) => l.startsWith("Already Strong:"));
+    const to = lines.findIndex((l) => l.startsWith("Timeline from skills in progress"));
+    expect(from).toBeGreaterThanOrEqual(0);
+    expect(to).toBeGreaterThan(from);
+    return lines.slice(from, to).map((l) => l.trim()).filter((l) => l !== "");
+  }
+
+  it("U12c: the person has 2 years, the ad asks 5 (3 short: not closable): blocked, with the years note, equal to the CLI's lines", () => {
+    // hand count: the field is the text "2" (ConfirmState.years); short = 5 - 2 = 3 > YEARS_CLOSABLE_SHORTFALL (1) -> unclosable;
+    // SQL is met, so nothing to build and nothing Strong; one blocked job.
+    const built = person({ years: "2" });
+    const jobs = [ad("y", "Senior Analyst", "Invented Co", [must("sql")], { minYears: 5 })];
+    const b = box(built, jobs, 1);
+    expect(b.partB).toEqual(engineLines(built, jobs));
+    expect(b.partB[0]).toBe("Already Strong: none");
+    expect(b.partB).toContain("Blocked jobs (skills alone can't make these Strong): 1");
+    expect(b.partB).toContain(YEARS_NOTE);
+  });
+
+  it("U12d: the person has 2 years, the ad asks 3 (1 short: closable): the box equals the CLI's lines", () => {
+    const built = person({ years: "2" });
+    const jobs = [ad("y", "Senior Analyst", "Invented Co", [must("sql")], { minYears: 3 })];
+    expect(box(built, jobs, 1).partB).toEqual(engineLines(built, jobs));
   });
 });
 
