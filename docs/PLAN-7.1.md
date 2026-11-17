@@ -1,4 +1,4 @@
-STATUS: DRAFT, awaiting reviewer. Careful lane (it tells a person what to learn). Nothing is built. All data below is invented.
+STATUS: APPROVED 2026-11-17; the build waits for the 6.2 merge. Reviewer answers: Q1 to Q14 as proposed, with ONE AMENDMENT (held-back ads in the gap list, below). Careful lane (it tells a person what to learn). Nothing is built. All data below is invented.
 
 # Plan for steps 7.1 and 7.2: the gap list and the unlock ranking
 
@@ -11,6 +11,11 @@ Step text (docs/SPRINT.md, Day 7, read in full):
 What exists on main (read in the code, commit 1149195): the engine functions `classifyJobs`, `rankMissingSkills`, `unlockTimeline` and `jobsBroughtCloser` (lib/engine/unlock.ts), the sentences `explainRankedSkill` and `explainTimelineEntry` (lib/engine/explain.ts:186-221), and a command-line roadmap in `renderProfileReport` (lib/engine/report-text.ts:102-157) that already uses the 10-ad threshold (`ROADMAP_FROM_JOBS = 10`, report-text.ts:27). The page shows none of it. There is no function that counts gaps across jobs: 7.1 needs a new pure one.
 
 Builds on: docs/PLAN-6.2.md (APPROVED, revision 2: the list uses the profile in use and the same `reportFor` path), docs/PLAN-FIT-LEVEL.md (`splitJudgeable`, the no-level reasons), docs/DECISIONS.md 2026-11-14 (unlock rules: "a job counts as unlocked only if it becomes Strong by gaining skills; any conflict blocks it; nice-to-haves play no part").
+
+**Amendment (reviewer, 2026-11-17): the gap list says when ads are held back by something other than skills.** The gap list counts every counted ad (Q1: ads blocked by a conflict still count). Under the list, when at least one counted ad has a conflict that can't be closed soon (for example a city out of reach, a work mode the profile does not accept, a language the profile does not list), the box adds ONE line, written by code from the conflicts the engine already found, and nothing it does not know:
+- one ad: `1 of your 4 counted saved ads is held back by something other than skills (location), so learning the skills above may not open it.`
+- several: `2 of your 4 counted saved ads are held back by something other than skills (location, work mode), so learning the skills above may not open them.`
+The words in brackets are the kinds of conflict found, taken from the engine's conflicts, in the order location, language, work mode, years, start date (the words of `KIND_WORDS`), each once. "N of your M counted saved ads": M is the number of ads counted in the gap list, N the number with at least one conflict that can't be closed soon. A conflict that could be closed (one year short, one language level short, up to 30 days late) does NOT trigger the line: the code does not know that the person cannot close it. The line says only that the ad is held back and that the skills "may not" open it; it does not say which ads, and does not say that any listed skill belongs to a held-back ad. Case G14 and a manual-check line cover it.
 
 ## 1. What the screen shows
 
@@ -110,7 +115,7 @@ Worked rounds for the left column: round 1 Python newly unlocks ad 2 only (ad 4 
 
 | File | Change | Callers affected |
 |---|---|---|
-| lib/engine/gaps.ts (new, pure) | `gapList(profile, jobs)`: for each job, `match()` once; for each unmet requirement (musts and nices apart) add the job to each acceptable skill's count; returns rows `{ skillId, mustAds, niceAds, learning: date or null, noCvLine: boolean }` sorted as in section 1 | the page's roadmap module |
+| lib/engine/gaps.ts (new, pure) | `gapList(profile, jobs)`: for each job, `match()` once; for each unmet requirement (musts and nices apart) add the job to each acceptable skill's count; returns rows `{ skillId, mustAds, niceAds, learning: date or null, noCvLine: boolean }` sorted as in section 1, and `heldBack: { ads: number, of: number, kinds: Kind[] }` for the amendment (ads with a conflict that can't be closed soon, from the same `match()` results) | the page's roadmap module |
 | lib/engine/roadmapJobs.ts (new, pure) | `ROADMAP_FROM_JOBS`; `roadmapBasis(job)`: the judgeable job and the reason it is excluded (`no-requirements` or `no-must-have-judgeable`, from `noLevelReason`), and the number of unjudged musts | page, report-text.ts |
 | lib/cv/engineView.ts (new, pure) | `engineView(job, built)`: the judgeable job with the unset kinds blanked and the profile with the work-modes default, EXACTLY what `profileReport` builds today (app/fitReport.ts:85-99) | `profileReport` (refactored to call it; output unchanged), the roadmap |
 | app/fitReport.ts | refactor only: uses `engineView`. Output identical | all `profileReport` callers; tests/profileReport.test.ts (R1 to R14, G1), tests/fitLevelReport.test.ts, tests/saved.test.ts: must pass unchanged |
@@ -144,6 +149,11 @@ No change to: lib/ai, lib/vocab, lib/schemas, the routes, the reader and its has
 | G11 | a skill asked as a must in one ad and a nice in another | counted in both columns |
 | G12 | an ad that is blocked by a conflict (a city out of reach) | its unmet skills still count (Q1) |
 | G13 | an ad counted once per importance even if two of its requirements name the same skill | one |
+| G14a | the four-ad example, but ad 2 (BI Developer, Harbor Light Stationery) is in Exampleville, hybrid, and the person's city is Berlin (an unclosable location conflict) | the rows are UNCHANGED (Python must 2, nice 1; Tableau must 1, nice 2; Power BI nice 1: ad 2's unmet skills still count), and under the list: `1 of your 4 counted saved ads is held back by something other than skills (location), so learning the skills above may not open it.` |
+| G14b | two counted ads held back, one by location and one by work mode (profile accepts only remote; the ad is on-site in Berlin) | `2 of your 4 counted saved ads are held back by something other than skills (location, work mode), so learning the skills above may not open them.` |
+| G14c | the only conflict is one that could be closed (one year short) | no held-back line |
+| G14d | no counted ad has a conflict (the plain four-ad example, G1) | no held-back line |
+| G14e | one held-back ad is also excluded from the roadmap (no requirements) | not counted in "M" and not in "N" (an excluded ad is not counted at all) |
 
 **Roadmap cases:**
 
@@ -164,7 +174,7 @@ No change to: lib/ai, lib/vocab, lib/schemas, the routes, the reader and its has
 
 **Tests to write first:** tests/gaps.test.ts (G1 to G13), tests/roadmap.test.ts (U1 to U9, U11, U12), tests/engineView.test.ts (the refactor keeps `profileReport` identical: a grid comparing the old construction with `engineView` over the 2,048-input grid of R14), plus a source guard that app/roadmap.ts and app/RoadmapView.tsx contain no save, delete or `fetch` call. Each shown red before code, expectations never changed to fit.
 
-**Deliberate breaks (each must make a named test fail):** the roadmap on the whole job (unlisted counted); the roadmap on the raw profile and job (phantom language conflict, U8); an ad with no requirements counted as Strong; the threshold `>` instead of `>=` (U2); the threshold 9; must and nice counted together; an alternative counted once instead of for each; an unlisted requirement shown in a gap row; a gap row counting an ad twice; the rows sorted by name only; the page sorting the ranking itself instead of using the engine's order (U12); a store write; a `fetch`; a profile of its own instead of the profile in use; the caveat dropped from a job name in the roadmap; `engineView` blanking nothing.
+**Deliberate breaks (each must make a named test fail):** the roadmap on the whole job (unlisted counted); the roadmap on the raw profile and job (phantom language conflict, U8); an ad with no requirements counted as Strong; the threshold `>` instead of `>=` (U2); the threshold 9; must and nice counted together; an alternative counted once instead of for each; an unlisted requirement shown in a gap row; a gap row counting an ad twice; the rows sorted by name only; the page sorting the ranking itself instead of using the engine's order (U12); a store write; a `fetch`; a profile of its own instead of the profile in use; the caveat dropped from a job name in the roadmap; `engineView` blanking nothing; the held-back line shown for a closable-only conflict; the held-back line dropped for an unclosable conflict; the held-back count including an excluded ad; the kinds listed in the wrong order or twice.
 
 ## 8. Privacy
 
@@ -178,6 +188,7 @@ To be turned into `docs/MANUAL-CHECK-7.1.md` when built. It needs 10 saved ads, 
 2. Read and save the four ads of section 1 (written out in the check file). **Expect:** four rows in "Saved ads".
 3. Look at "What to learn". **Expect:** the gap list of section 1 exactly (Python 2/1, Tableau 1/2 with the learning note, Power BI 1 nice, the "1 requirement ... could not judge" line) and the line "The roadmap shows from 10 saved ads we could judge. You have 4. Save 6 more to see it."
 4. Compare with your own hand count of the four ads. **Expect:** the same numbers.
+4b. Read and save a fifth short ad: "Python Developer, Example Docks Ltd, Exampleville, hybrid; you write Python" (a city the profile does not list). **Expect:** the Python row becomes must-have in 3 ads, nice-to-have in 1 ad; the line "You have 5" is shown in the roadmap line; and under the gap list the new line: "1 of your 5 counted saved ads is held back by something other than skills (location), so learning the skills above may not open it." Delete that fifth ad again: the line disappears and the counts return to step 3.
 5. Read and save six more short ads (given in the check file) one at a time; after each, look at the box. **Expect:** the line counts down ("You have 5 ... 9"); at the tenth ad the roadmap appears and the line is gone; the counts in Part A change with each ad as the check file says.
 6. Read the roadmap. **Expect:** the texts the check file lists (Already Strong, the skills in order, blocked jobs), counts only, no percent sign.
 7. Delete one ad (back to 9). **Expect:** the roadmap disappears and the line shows "You have 9".
@@ -192,7 +203,7 @@ Log table: ten rows, all NOT RUN YET.
 
 **The "Later" idea stays NOT built.** Treating a closable conflict (one language level, one year of experience) as an unlock candidate would change `classifyJobs` (a closable conflict now blocks, DECISIONS 2026-11-14) and `unlock.ts`; this plan changes neither. A job blocked by a closable conflict is listed under "Blocked jobs" with "it could be closed", as the command-line report does today.
 
-**Questions for the reviewer, each with the proposed answer**
+**Questions for the reviewer, each with the proposed answer** (all answered as proposed, 2026-11-17; the one amendment is above)
 1. **Gap-list rules.** One row per skill id; each ad counted once per importance; a requirement with alternatives counts for each alternative (one sentence says so); ads blocked by a conflict still count. Proposed: yes (G3, G12).
 2. **In progress and no CV line are gaps** (not met), shown with a short note, so the list agrees with the levels (a skill in progress does not meet a must-have). Proposed: yes.
 3. **A zero-skills profile.** The levels say "No level (no skills on your profile)"; the gap list and the roadmap still work (every skill is a gap). Proposed: allow both, since they say what to learn; the alternative hides them.
