@@ -29,6 +29,19 @@ export function roadmapReportSafe(
   return { kind: "none" };
 }
 
+export type CopyStatus = "idle" | "copied" | "failed";
+export type CopyRecord = { status: "copied" | "failed"; text: string };
+
+// STUB: stage 3 replaces this.
+export async function copyReport(_text: string, _write: (text: string) => Promise<void>): Promise<CopyStatus> {
+  return "idle";
+}
+
+// STUB: stage 3 replaces this.
+export function shownCopyStatus(_record: CopyRecord | null, _currentText: string): CopyStatus {
+  return "idle";
+}
+
 // STUB: stage 3 replaces this.
 export function reportAsText(_report: RoadmapReport): string {
   return "";

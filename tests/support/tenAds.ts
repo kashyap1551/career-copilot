@@ -3,7 +3,8 @@ import type { Job } from "@/lib/engine/types";
 import type { ExtractedAd } from "@/lib/schemas/job";
 import { skills } from "./roadmapFixtures";
 
-// Not a test file. The ten invented ads of docs/MANUAL-CHECK-TEN-ADS.md, built by the REAL `buildJob` with the id the page's reader gives
+// Not a test file. The same ten titles and companies as the ten invented ads of docs/MANUAL-CHECK-TEN-ADS.md (the duty lines below are this
+// helper's own and affect no count), built by the REAL `buildJob` with the id the page's reader gives
 // ("pasted-ad"), as the P0c test of tests/roadmapIds.test.ts does. Berlin, hybrid, must SQL only.
 export const TEN: [string, string, string][] = [
   ["Report Clerk", "Alder Works Ltd", "You build the weekly report for the sales team."],
