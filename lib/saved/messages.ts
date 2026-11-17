@@ -130,3 +130,5 @@ export const BLOCKED_NONE = "Blocked jobs: none";
 export const blockedCountLine = (n: number) => `Blocked jobs (skills alone can't make these Strong): ${n}`;
 
 export const WHAT_TO_LEARN = "What to learn";
+
+export const ROADMAP_FAILED_LINE = "What to learn could not be worked out.";

@@ -3,7 +3,7 @@ import { KIND_WORDS, type BuiltProfile } from "@/lib/cv/profile";
 import { blockedHeader, conflictLine, explainRankedSkill, jobLabel, YEARS_NOTE } from "@/lib/engine/explain";
 import { gapList, type HeldBack } from "@/lib/engine/gaps";
 import { match } from "@/lib/engine/match";
-import { ROADMAP_FROM_JOBS, roadmapBasis } from "@/lib/engine/roadmapJobs";
+import { listedAlternatives, ROADMAP_FROM_JOBS, roadmapBasis } from "@/lib/engine/roadmapJobs";
 import type { Job, Skill } from "@/lib/engine/types";
 import { classifyJobs, jobsBroughtCloser, rankMissingSkills } from "@/lib/engine/unlock";
 import {
@@ -25,6 +25,7 @@ import {
   meetEveryLine,
   NO_CV_LINE_NOTE,
   NO_PROFILE_NOTE,
+  ROADMAP_FAILED_LINE,
   notCountedLine,
   RANKING_HEADER,
   rankingNoneLine,
@@ -87,7 +88,9 @@ export function roadmapBox(
 
   const views = counted.map((c) => engineView(c.ad.job, built));
   const engineProfile = views[0].engineProfile;
-  const engineJobs = views.map((v) => v.engineJob);
+  // Amendment 6 (2): an unlisted alternative is dropped from each requirement before anything is counted or ranked. The numbers of
+  // requirements not judged and the caveats still come from `views` and `counted`, not from these jobs.
+  const engineJobs = views.map((v) => listedAlternatives(v.engineJob));
 
   // ---- Part A: the gap list ----
   const gaps = gapList(engineProfile, engineJobs, nameOf);
@@ -166,4 +169,19 @@ export function roadmapAds(opened: OpenedAd[]): { id: string; job: Job }[] {
     ads.push({ id: a.id, job: o.reading.job });
   }
   return ads;
+}
+
+// What the page calls (Amendment 6 (3)): a throw while working out the box (a damaged record, say) gives one line instead of an
+// error page. The box stays text only; nothing is written.
+export function roadmapBoxSafe(
+  built: BuiltProfile | null,
+  ads: { id: string; job: Job }[],
+  skills: Skill[],
+  fromJobs: number = ROADMAP_FROM_JOBS,
+): RoadmapBox {
+  try {
+    return roadmapBox(built, ads, skills, fromJobs);
+  } catch {
+    return { noProfile: null, partA: [ROADMAP_FAILED_LINE], partB: [], counted: 0, alreadyStrongIds: [] };
+  }
 }
