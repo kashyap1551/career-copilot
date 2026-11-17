@@ -25,6 +25,11 @@ The words in brackets are the kinds of conflict found, taken from the engine's c
 5. When no gap row exists (G10, nothing unmet) and at least one counted ad is held back, the line is still shown WITHOUT the words after the brackets (there are no skills above): `1 of your 4 counted saved ads is held back by something other than skills (location).` and, for several: `2 of your 4 counted saved ads are held back by something other than skills (location, work mode).`
 6. The G14 rows test the DATA (`gapList(...).heldBack`: ads, of, kinds) in tests/gaps.test.ts and the SENTENCE (a pure function `heldBackLine(heldBack, hasRows)` in app/roadmap.ts, constant words in lib/saved/messages.ts) in tests/heldBackLine.test.ts. Each row is written once for each file.
 
+**Amendment 3 (reviewer, 2026-11-17 evening: stage A review).** It fixes what Amendment 2 and section 6 left open; where they differ, this one rules.
+1. `gapList(profile, jobs, nameOf)` is given the profile and the ads AFTER `engineView` (the judgeable job with unset kinds blanked), exactly what the page passes. It calls `match()` once per ad. `of` is the number of ads handed in. Which ads COUNT (an ad with no requirements, or with no must-have we could judge, is left out) is decided upstream by `roadmapBasis`, before `gapList`.
+2. Rows with equal counts are ordered by the skill's display name (`nameOf(skillId)`, compared in lower case), then by skill id. `nameOf` is the third parameter, the same `NameOf` type as in lib/engine/explain.ts.
+3. The texts "1 requirement ... could not judge it", "N saved ads are not counted ...", the no-profile note, the G10 sentence, the sentence of G3, and the exclusion of G14e are tested in tests/roadmap.test.ts and tests/roadmapJobs.test.ts, not in tests/gaps.test.ts.
+
 ## 1. What the screen shows
 
 A new box on the page, below the "Saved ads" list, called **"What to learn"**, with two parts. It uses the saved ads and the profile in use (section 2); it has no button that saves, deletes or calls the AI.
@@ -167,6 +172,7 @@ No change to: lib/ai, lib/vocab, lib/schemas, the routes, the reader and its has
 | G14h | nothing unmet in any ad, one of 4 held back by location | the G10 sentence `You meet every requirement we could judge in your 4 saved ads.` and then `1 of your 4 counted saved ads is held back by something other than skills (location).` |
 | G14i | one ad has an unclosable location conflict AND a closable one-year-short conflict | kinds `(location)` only, N counts the ad once: `1 of your 4 counted saved ads is held back by something other than skills (location), so learning the skills above may not open it.` |
 | G14j | two ads, both held back by location | `2 of your 4 counted saved ads are held back by something other than skills (location), so learning the skills above may not open them.` |
+| G14k | one ad with three unclosable conflicts at once (Exampleville, on-site with a hybrid-only profile, French with German B2 set) | kinds in the order of `KINDS`: location, language, work mode |
 
 **Roadmap cases:**
 
