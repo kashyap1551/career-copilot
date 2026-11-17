@@ -1,4 +1,4 @@
-STATUS: APPROVED 2026-11-17: the reviewer answered Q1 to Q9 as recommended (section 10); P0 is fixed on `step-7.1` (c794df6) and merged into this branch. Careful lane (it tells a person when jobs open up). Nothing of the timeline is built. Branch `step-7.3`, cut from `step-7.1` (eb52036). All data below is invented. The hand tables in section 6 were worked out from the engine's rules (docs/DECISIONS.md 2026-11-14) before any code was run.
+STATUS: BUILT 2026-11-17: feature cc94645, tests 1,614 in 93 files, manual check document written, manual check NOT RUN YET.
 
 # Plan for step 7.3: the dated timeline in the "What to learn" box
 
@@ -270,24 +270,29 @@ New file **tests/timeline.test.ts** (the box's timeline field), a new `describe`
 
 Counts: 19 named tests; the number of `it` blocks will be reported when they are written.
 
-## 8. Deliberate breaks (each must make the NAMED test fail; restored after)
+## 8. Deliberate breaks: what was planned, and what the runs showed (2026-11-17)
 
-| # | Break | Must fail |
-|---|---|---|
-| B1 | give `unlockTimeline` all the ads' jobs, including ads not counted, instead of the counted ones | T9 |
-| B2 | give it the unfiltered profile (`built.profile`) instead of `engineProfile` (the hybrid ads then conflict with the empty work-mode list) | T1 |
-| B3 | give it a different job list from the ranking (the jobs before `listedAlternatives`) | T14 (and nothing else: the numbers happen to agree, which is why the guard exists) |
-| B4 | drop the framing line | T1, T19 |
-| B5 | show the framing line also when the timeline is empty | T4 |
-| B6 | append the timeline lines to `partB` instead of their own field | T8, T3 (and the existing U3) |
-| B7 | show the timeline below the threshold | T7 |
-| B8 | reverse the order of the entries | T5, T2 |
-| B9 | drop entries whose date is before a fixed "today" (a clock) | T3, T15 |
-| B10 | give the timeline's `labelOf` the old ids (look labels up by `pasted-ad`) | T16 |
-| B11 | in lib/engine/unlock.ts, let a job with only closable conflicts count as reachable (restored at once; the engine is not changed by this step) | T6 (and the existing unlock tests) |
-| B12 | a sentence typed into RoadmapView.tsx | the existing sentence guards (the JSX text scan) |
-| B13 | label timeline jobs without the caveat | T2 (hand text has it) and U12e's removal count (H2: 2) |
-| B14 | print `box.timeline` keyed by the line text alone | the existing key guard (T15) |
+Each break was applied alone, the whole suite run alone, the file restored and the tree checked clean. "Red" is the number of tests that went red in the whole suite.
+
+| # | Break | Named test (plan) | Red | Named test red? | What the run showed |
+|---|---|---|---|---|---|
+| B1 | give `unlockTimeline` the engine jobs of ALL ads, counted or not, built exactly like `engineJobs` (faithful run) | T9 | 1 | **no** | only the source guard T14 (the arguments differ). Behaviourally equivalent: an ad with no must-have we could judge has nothing missing, so it can never be reachable. (A first, unfaithful run gave the ads' raw jobs and went red in 4: T10b, T14, T2, T12b.) |
+| B2 | the unfiltered profile (`built.profile`) instead of `engineProfile` | T1 | 11 | yes | T1, T2, T5, T9, T12b, T13, T16a, T16b, T10a, T10b, T14 |
+| B3 | the ranking's jobs BEFORE `listedAlternatives`, WITH the saved-ad ids (faithful run) | T14 | 1 | yes | T14 only. (A first, unfaithful run also dropped the saved-ad ids: 14 red, T14 plus 13 behavioural tests, 3 of them the P0b tests; the report of that run said 12 behavioural tests, 13 is right.) |
+| B4 | drop the framing line | T1, T19 | 9 | T1 yes, T19 **no** | T1, T2, T3, T5, T6, T9, T13, T16a, T16b. T19 pins the constants, which this break leaves alone; the timeline tests catch it. |
+| B5 | the framing line also when the timeline is empty | T4 | 4 | yes | T4, T11b, T17b, T17c |
+| B6 | append the timeline lines to `partB` | T8, T3 | 15 | yes | T8, T3 and 13 existing tests that pin `partB` (U3, U5, U9, U11, U12a to U12d, P0a to P0c, G15) |
+| B7 | show the timeline below the threshold | T7 | 2 | yes | T7 and T14 (the break adds a second `unlockTimeline` call) |
+| B8 | reverse the order of the entries | T5, T2 | 6 | yes | T2, T3, T5, T10b, T12b, T16b |
+| B9 | drop entries before a fixed date string | T3, T15 | 1 | T3 yes, T15 **no** | T3. A fixed date string is not a clock, so T15 stays green by design. |
+| B9b | the same with a real `new Date()` | T3, T15 | 2 | yes | T15a and T3 |
+| B10 | the timeline's labels looked up by the old ids | T16 | 5 | yes | T16b, T2, T5, T10b, T12b |
+| B11 | in `lib/engine/unlock.ts`, a job with only closable conflicts counts as reachable (restored at once) | T6 | 10 | yes | T6 and 9 existing engine tests (blockedHeader, Set 1) |
+| B12 | a sentence typed into RoadmapView.tsx | the sentence guards | 1 | yes | the JSX-text guard |
+| B13 | timeline labels without the caveat | T2, T10b | 2 | yes | T2, T10b |
+| B14 | the timeline keyed by the line text alone | T15 | 3 | yes | T15b and the existing key guard; the third is X5 (below), the known timeout flake |
+
+X5 in tests/closeSpelling.test.ts takes about 2.8 s alone and about 5 s under load and can trip the 5 s default; a longer timeout for that one test is proposed at merge time; no expectation changes.
 
 ## 9. Manual check (outline, for docs/MANUAL-CHECK-7.3.md when built; every step NOT RUN YET)
 
@@ -328,3 +333,9 @@ Log table: nine rows, all NOT RUN YET. (This also gives 7.2's "Part B seen on a 
 - 2026-11-17: A date in the past is shown and counted like any other (the engine does not know today). Reason: determinism (no `Date.now` in the engine, the box or the tests).
 - 2026-11-17: The box result has a separate field `timeline`; `partB` keeps its exact lines. Reason: the existing tests pin `partB`.
 - 2026-11-17: (landed on `step-7.1`, commit c794df6, not in this step) In the box, every counted ad's engine job takes the SAVED-AD id (all opened readings share the id `pasted-ad`, which collapsed ads in the ranking, the labels and the totals). Reason: the engine keys on job id.
+- 2026-11-17: docs/MANUAL-CHECK-TEN-ADS.md is the one source of the ten ads, for step 10 of MANUAL-CHECK-7.1 and step 1 of MANUAL-CHECK-7.3. Reason: the owner needs one list of ten different names to compare with the Already Strong line, and two copies would drift.
+- 2026-11-17: no test renders RoadmapView, so the view is covered by the source guards and the manual check. Reason: a renderer test would need no new dependency (react-dom is installed) but nothing in the suite does it yet; the guards pin what matters (no handler, no sentence, keys by position).
+- 2026-11-17: X5 in tests/closeSpelling.test.ts gets a longer timeout at merge time; no expectation changes. Reason: it takes about 2.8 s alone and about 5 s under load, so it trips the 5 s default for no reason related to any step.
+- 2026-11-17: the break table of PLAN-7.3 was corrected after the faithful runs (B1, B3, B4, B9). Reason: the first runs were not faithful to the plan (B1, B3) or the plan named a test that does not pin the break (B4, B9); the table records what each run really showed.
+- 2026-11-17: the SPRINT 7.3 tick happens at merge time, after the 7.3 manual check passes. Reason: a step is ticked only when its check has been run and passed.
+- 2026-11-17: OPEN POINT (not decided): a skill added under "Skills you are learning" WITHOUT a date is dropped from the profile (the confirm screen shows a red line, "Add a valid expected date for SQL.") and the box then shows no "(in progress ...)" on the ranking and `Timeline from skills in progress: none.` Reason: the person may read "none" as "the page ignored my skill"; the red line on the confirm screen is the only explanation.

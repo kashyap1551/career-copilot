@@ -8,7 +8,7 @@ Every text and number under **Expect** was worked out by hand from the invented 
 
 - Use **only the invented text**: the CV of `docs/MANUAL-CHECK-7.1.md` and the ten ads of `docs/MANUAL-CHECK-TEN-ADS.md` (their texts are not copied here). No real CV, name, email or phone.
 - Where: the Vercel preview of the branch `step-7.3` (find its address in the Vercel dashboard, under Deployments, the row for the commit `cc94645` or a later one; it sits behind the Vercel sign-in). Use a **new private (Incognito) window** and Chrome. The first read asks for the access code: type it into the app's **code box only**, press **Use this code**, then press the button again. Do not write the code anywhere else and do not send it to anyone, including the reviewer. Never send a screenshot of Request headers.
-- **AI reads this check needs: 11.** The CV once and the ten ads once each (the same reads as the optional step 10 of `docs/MANUAL-CHECK-7.1.md`; if you already did that step in this window, nothing is read again). Every later step changes only the profile on the confirm screen and needs **no** AI read. The free tier allows about one large read a minute: wait about a minute between reads.
+- **AI reads this check needs: 11.** The CV once and the ten ads once each (a preview address has its own empty storage, so the 11 reads are needed on this address. This step 1 also covers everything that step 10 of `docs/MANUAL-CHECK-7.1.md` expects (the roadmap with ten usable ads), so do that batch once, here). Every later step changes only the profile on the confirm screen and needs **no** AI read. The free tier allows about one large read a minute: wait about a minute between reads.
 - Developer tools: Cmd+Option+I, the **Network** tab (the list of every request the page sends). It is used in step 7.
 - The box is called **What to learn** and sits under the "Saved ads" list. In this check the profile has the city Berlin. The ten ads are all in Berlin and hybrid, so no ad is held back by anything but skills.
 - The timeline is the **last list of the box**, after "Blocked jobs". It appears only when ten saved ads we could judge are there, like the roadmap.
@@ -19,7 +19,7 @@ Every text and number under **Expect** was worked out by hand from the invented 
    **Expect:** ten rows in "Saved ads". In the box: the line `Already Strong: 10 jobs (...)` with the ten names of the list at the top of `docs/MANUAL-CHECK-TEN-ADS.md`, **ten different titles with ten different companies, each once**; then `Skills to build, in order: none. No other saved job can become a Strong match by skills alone.`; then `Blocked jobs: none`; and last the one line `Timeline from skills in progress: none.` (no skill is in progress). The sentence "These counts assume you learn each skill by its expected date." is NOT shown. If one name appears twice, stop: that is the P0 defect.
    **Report:** "passed", or the exact lines the box shows.
 
-2. **Do:** on the confirm screen (still showing), **untick SQL**. Under "Skills you are learning" type `SQL` in "Skill name", pick the date **1 March 2027** (2027-03-01) in "Expected date", and press **Add**. Do NOT press "Save on this device". Open the **Network** tab, type `api` in its filter box, and press the clear button so the list is empty, before you untick.
+2. **Do:** on the confirm screen (still showing), **untick SQL**. Under "Skills you are learning" type `SQL` in "Skill name", pick the date **1 March 2027** (2027-03-01) in "Expected date", and press **Add**. Do NOT press "Save on this device". Before you untick, open the **Network** tab, tick **Preserve log** at its top (step 6 reloads the page, and a reload empties the list otherwise), type `api` in its filter box, and press the clear button so the list is empty.
    **Expect:** the box shows, in this order:
    - `Already Strong: none`
    - `Skills to build, in order:`
@@ -53,7 +53,7 @@ Every text and number under **Expect** was worked out by hand from the invented 
    **Report:** "passed", or what you see.
 
 7. **Do:** look at the **Network** tab (filter `api`).
-   **Expect, answer yes or no:** after the clear in step 2, did any `/api/` request appear for steps 2 to 6? **Expected: no.** (The box only reads. The only `/api/` requests of the whole check are the 11 reads of step 1.) Does the box contain a button, a link or an input of its own? **Expected: no.**
+   **Expect, answer yes or no:** after the clear in step 2, did any `/api/` request appear for steps 2 to 6? (The list covers steps 2 to 6 only if **Preserve log** was ticked in step 2.) **Expected: no.** (The box only reads. The only `/api/` requests of the whole check are the 11 reads of step 1.) Does the box contain a button, a link or an input of its own? **Expected: no.**
    **Report:** the two answers.
 
 8. **Do:** press **Delete** on any one saved ad (nine are left).
