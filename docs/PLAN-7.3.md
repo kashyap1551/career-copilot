@@ -1,4 +1,4 @@
-STATUS: BUILT 2026-11-17: feature cc94645, tests 1,614 in 93 files, manual check document written, manual check NOT RUN YET.
+STATUS: BUILT 2026-11-17: feature cc94645, tests 1,618 in 94 files, manual check document written, manual check NOT RUN YET.
 
 # Plan for step 7.3: the dated timeline in the "What to learn" box
 
@@ -267,8 +267,9 @@ New file **tests/timeline.test.ts** (the box's timeline field), a new `describe`
 | T17 | in-progress ids: the vocabulary has no id that starts with `new:`; `buildProfile` with an in-progress name not in our list ("Kombucha brewing", a real date) puts no `inProgress` skill on the profile (it goes to `unmatchable`, `where: "progress"`); `builtFromSaved` drops a stored in-progress skill with id `new:kombucha-brewing`; the box for such a profile says `Timeline from skills in progress: none.` | hand count: 0 in-progress skills each time |
 | T18 | `roadmapBoxSafe` after a throw (the existing way of forcing one) | `timeline` is `[]` and the ROADMAP_FAILED_LINE is unchanged |
 | T19 | the message constants | `TIMELINE_HEADER`, `TIMELINE_FRAMING`, `TIMELINE_NONE` are exactly the three texts of section 1 |
+| T20 | the view draws what the box holds (tests/roadmapView.test.ts, react-dom/server, no new dependency): T20a three lists in one section, in the order Part A, Part B, timeline, items equal to the box's lines; T20b an empty timeline draws two lists and no framing sentence; T20c an apostrophe line is drawn as the same text; T20d nothing to show draws nothing, only a timeline draws one list | hand-written from the shape of the view (section 1) |
 
-Counts: 19 named tests; the number of `it` blocks will be reported when they are written.
+Counts: 20 named tests; 26 `it` blocks written in stage 2 (19 in tests/timeline.test.ts, 4 in tests/roadmap.test.ts, 3 in tests/roadmapGuards.test.ts) plus 4 `it` blocks of T20 in tests/roadmapView.test.ts: 30 new `it` blocks, 1,588 to 1,618 tests, 92 to 94 files.
 
 ## 8. Deliberate breaks: what was planned, and what the runs showed (2026-11-17)
 
@@ -291,6 +292,9 @@ Each break was applied alone, the whole suite run alone, the file restored and t
 | B12 | a sentence typed into RoadmapView.tsx | the sentence guards | 1 | yes | the JSX-text guard |
 | B13 | timeline labels without the caveat | T2, T10b | 2 | yes | T2, T10b |
 | B14 | the timeline keyed by the line text alone | T15 | 3 | yes | T15b and the existing key guard; the third is X5 (below), the known timeout flake |
+| B15 | remove the timeline list from app/RoadmapView.tsx | T20a (and T15b) | 4 | yes | T20a, T20c, T20d and T15b |
+| B16 | draw the timeline list BEFORE the Part B list | T20a | 2 | yes | T20a and T20c |
+| B17 | draw the timeline list also when `box.timeline` is empty (an empty list) | T20b | 1 | yes | T20b |
 
 X5 in tests/closeSpelling.test.ts takes about 2.8 s alone and about 5 s under load and can trip the 5 s default; a longer timeout for that one test is proposed at merge time; no expectation changes.
 
@@ -334,8 +338,9 @@ Log table: nine rows, all NOT RUN YET. (This also gives 7.2's "Part B seen on a 
 - 2026-11-17: The box result has a separate field `timeline`; `partB` keeps its exact lines. Reason: the existing tests pin `partB`.
 - 2026-11-17: (landed on `step-7.1`, commit c794df6, not in this step) In the box, every counted ad's engine job takes the SAVED-AD id (all opened readings share the id `pasted-ad`, which collapsed ads in the ranking, the labels and the totals). Reason: the engine keys on job id.
 - 2026-11-17: docs/MANUAL-CHECK-TEN-ADS.md is the one source of the ten ads, for step 10 of MANUAL-CHECK-7.1 and step 1 of MANUAL-CHECK-7.3. Reason: the owner needs one list of ten different names to compare with the Already Strong line, and two copies would drift.
-- 2026-11-17: no test renders RoadmapView, so the view is covered by the source guards and the manual check. Reason: a renderer test would need no new dependency (react-dom is installed) but nothing in the suite does it yet; the guards pin what matters (no handler, no sentence, keys by position).
+- 2026-11-17: a render test (tests/roadmapView.test.ts, react-dom/server, no new dependency) pins that the view draws three lists in order and draws the timeline only when the box has one. Reason: the source guards read the file as text and cannot see what is drawn.
 - 2026-11-17: X5 in tests/closeSpelling.test.ts gets a longer timeout at merge time; no expectation changes. Reason: it takes about 2.8 s alone and about 5 s under load, so it trips the 5 s default for no reason related to any step.
 - 2026-11-17: the break table of PLAN-7.3 was corrected after the faithful runs (B1, B3, B4, B9). Reason: the first runs were not faithful to the plan (B1, B3) or the plan named a test that does not pin the break (B4, B9); the table records what each run really showed.
+- 2026-11-17: the manual check of 7.3 uses Docker, not Excel, for the 0-date line, because a skill already on the profile ignores 'in progress' (the dry run against the real builder found it). Reason: an Expect line that cannot appear sends the owner on a false alarm.
 - 2026-11-17: the SPRINT 7.3 tick happens at merge time, after the 7.3 manual check passes. Reason: a step is ticked only when its check has been run and passed.
 - 2026-11-17: OPEN POINT (not decided): a skill added under "Skills you are learning" WITHOUT a date is dropped from the profile (the confirm screen shows a red line, "Add a valid expected date for SQL.") and the box then shows no "(in progress ...)" on the ranking and `Timeline from skills in progress: none.` Reason: the person may read "none" as "the page ignored my skill"; the red line on the confirm screen is the only explanation.
