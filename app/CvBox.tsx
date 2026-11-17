@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import AccessBox from "./AccessBox";
+import { postJson } from "./accessFetch";
 import { fileToText, MAX_CV_CHARS } from "@/lib/cv/fileToText";
 import { MAX_CV_LINES, MAX_LINE_CHARS } from "@/lib/cv/limits";
 import { numberLines } from "@/lib/cv/numberLines";
@@ -74,11 +76,10 @@ export default function CvBox({ onRead }: { onRead: (lines: string[], result: Cv
     setMessage(null);
     setResult(null);
     try {
-      const res = await fetch("/api/cv", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lines }),
-      });
+      // One helper sends it (app/accessFetch.ts): it adds the access code header; a 401 shows the Access code box instead.
+      const sent = await postJson("/api/cv", { lines }, { source: "cv" });
+      if (sent.kind === "access") return;
+      const res = sent.res;
       const data = await res.json().catch(() => null);
       if (!res.ok) setError(data?.error ?? `The server returned an error (${res.status}).`);
       else {
@@ -167,6 +168,8 @@ export default function CvBox({ onRead }: { onRead: (lines: string[], result: Cv
         </button>
         {problem && lines.length > 0 && <span className="ml-3 text-sm text-red-600 dark:text-red-400">{problem}</span>}
       </div>
+
+      <AccessBox source="cv" />
 
       {error && (
         <p role="alert" className="rounded border border-red-400 p-3 text-sm text-red-600 dark:text-red-400">
