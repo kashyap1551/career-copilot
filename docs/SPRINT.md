@@ -9,7 +9,7 @@ About 4 to 5 focused hours a day. Every day ends with a deploy. Start the next s
 - **Stretch:** two gaps. A gap is a missing must-have or a conflict that could be closed soon; one such conflict alone is also Stretch.
 - **Long shot:** three or more gaps, or any conflict that can't be closed soon.
 
-Notes (they match the code, lib/engine/fit.ts, match.ts, rules.ts, judgeable.ts):
+Notes (they match the code on the branch step-6.2: lib/engine/fit.ts, match.ts, rules.ts, judgeable.ts; the fit-level changes were built on step-fit-levels and are in step-6.2, merge into main pending, so main still has the older rules):
 - A conflict can be closed soon if: a language is one level short (a language missing from the profile can't); total years are one year short; the start is up to 30 days late. A city that is not on the profile, and a work mode the profile does not accept, can't be closed soon; a hybrid job counts as on-site for the city.
 - Nice-to-haves are shown and counted but never change the level.
 - A must-have that is not in our skill list yet is shown as "could not judge" and is not counted; the label says "; N must-have(s) not judged". If the AI found no requirements at all in the ad, if none of the ad's must-haves can be judged, or if the profile or list has no skills, no level is shown (in that order). An ad with only nice-to-haves is Strong.
@@ -72,7 +72,7 @@ Goal: paste an ad, get a fit report on the live link. Rough is fine; working end
   2026-11-16: closed, target not met: 75 and 76 of 100 found on the tuning set against the target of 94 (116 of 128 on all ten ads), see docs/PLAN-3.3.md 'What was learned'; the reading gate is to be written afresh, before the holdout is read, with the coverage view (HANDOFF open item 1).
 - [x] **3.4** A rough page: paste an ad and a list of skills, see the fit report from the rules engine.
   Check: it works on the live link.
-  Note: a requirement whose skills are all unlisted (provisional `new:` ids from step 3.1) counts as not met. The report must say so on its verdict line ("X: not in our skill list yet, so it can't be matched with your CV") and show how many requirements are in that state. The skills a person pastes go through the same name-to-id function as the ad's skills (see docs/PLAN-3.1.md).
+  Note: a requirement whose skills are all unlisted (provisional `new:` ids from step 3.1) counts as not met. The report must say so on its verdict line ("X: not in our skill list yet, so it can't be matched with your CV") and show how many requirements are in that state. The skills a person pastes go through the same name-to-id function as the ad's skills (see docs/PLAN-3.1.md). (Changed 2026-11-17 on the branch step-6.2, merge into main pending: such a requirement is now shown as "could not judge" and is not counted; see DECISIONS 2026-11-17.)
   Note: live check done on the live link: Northwind ad + 6-line list gave Good (skills only), 2 of 3 musts; removing SQL gave Stretch (skills only), 2 of 3 missing, updated at once with no new AI call
 
 ## Day 4: The CV comes in
@@ -111,10 +111,13 @@ Goal: a person builds up a list of jobs, each with a clear report.
 
 - [ ] **6.1** Keep the profile and saved jobs in the browser's own database (IndexedDB); no accounts yet.
   Check: 15 saved ads survive a reload.
+  Note: built on main (docs/PLAN-6.1.md). Manual check passed 25 of 25 on the live site, 2026-11-17 (steps 18 and 20 at page level only; log in docs/MANUAL-CHECK-6.1.md). NOT ticked here: the tick is made together with the merge of step-6.2.
 - [ ] **6.1b** Access code on the two AI routes (docs/PLAN-ACCESS-CODE.md).
   Check: section 6 of that plan passes on the live site.
+  Note: built on the branch step-6.1b-access-code and merged into step-6.2; its check (docs/MANUAL-CHECK-6.1b.md, 13 steps) is pending on the step-6.2 preview; merge into main pending. ACCESS_CODE is set in Vercel (the value is private).
 - [ ] **6.2** Jobs page: paste an ad, check its requirements, save.
   Check: a saved ad shows in the list with its fit level.
+  Note: built on the branch step-6.2 (docs/PLAN-6.2.md, revision 2); its check (docs/MANUAL-CHECK-6.2.md, 10 steps) is pending on the step-6.2 preview; merge into main pending. The remove-only "check its requirements" list is not built (HANDOFF item 20).
 - [ ] **6.3** Fit report page: the level first, then each must-have with its evidence, conflicts in plain sentences, then nice-to-haves.
   Check: the report matches the day 2 printout for the same data.
 
