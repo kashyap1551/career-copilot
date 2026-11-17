@@ -36,17 +36,21 @@ Every text and number under **Expect** was worked out by hand from the invented 
    **Expect:** the same ten names, under the new date: the timeline line is `By 2027-06-01 (SQL): 10 more Strong matches (...)`, and the ranking line says `(in progress, expected 2027-06-01)`. The count stays 10.
    **Report:** "passed", or the exact lines.
 
-4. **Do:** add a second skill the same way: `Excel`, date **10 January 2027** (2027-01-10), press **Add**. No ad asks for Excel.
+4. **Do:** add a second skill the same way: `Docker`, date **10 January 2027** (2027-01-10), press **Add**. No ad asks for Docker.
    **Expect:** the timeline has two lines after the framing sentence, **in date order**:
-   - `By 2027-01-10 (Excel): 0 more Strong matches. Excel doesn't unlock a job yet.`
+   - `By 2027-01-10 (Docker): 0 more Strong matches. Docker doesn't unlock a job yet.`
    - `By 2027-06-01 (SQL): 10 more Strong matches (...)` with the ten names.
 
-   (Hand count: at 2027-01-10 only Excel is learned; no ad needs it, so 0. At 2027-06-01 SQL joins it and all ten are covered. The line with 0 stays in the list.)
+   (Hand count: at 2027-01-10 only Docker is learned; no ad needs it, so 0. At 2027-06-01 SQL joins it and all ten are covered. The line with 0 stays in the list.)
    **Report:** "passed", or the exact lines.
 
-5. **Do:** press **remove** next to both `Excel` and `SQL`.
+5. **Do:** press **remove** next to both `Docker` and `SQL`.
    **Expect:** the timeline is the one line `Timeline from skills in progress: none.` and the sentence "These counts assume ..." is gone.
    **Report:** "passed", or what you see.
+
+5b. **Do (optional, a product question):** on the confirm screen, in **Skill name** type `Python`, leave the date empty, press **Add**.
+   **Expect:** a red line on the confirm screen: `Add a valid expected date for Python.` Python does not count as a skill you are learning (the page ignores it until it has a date). The box still shows the one line `Timeline from skills in progress: none.` Then press **remove** next to `Python` if it is listed.
+   **Report:** the red line's words, and ONE sentence: does "none" read as wrong or confusing to you as a product manager, when you have just added a skill and the page ignored it? (The reviewer needs your opinion, not a test result.)
 
 6. **Do:** add `SQL` in progress again with the date **1 June 2027**. Press **Save on this device**. Reload the page (Cmd+R). **Do NOT press "Use this profile" yet**; look at the box; then press **Use this profile**.
    **Expect:** after the reload, before "Use this profile", the box holds the one line `What to learn needs a profile in use. Read and confirm a CV, or press "Use this profile" if one is saved on this device.` After pressing it, the timeline shows `By 2027-06-01 (SQL): 10 more Strong matches (...)` with the ten names (the date is stored, not worked out again).
@@ -66,7 +70,7 @@ Every text and number under **Expect** was worked out by hand from the invented 
 
 ## What to send back
 
-For each step: "passed", or the step number and what you saw instead. For steps 1 to 6 and 8 also write down the exact lines of the timeline (the ten names may be left out if they are right), even if they passed. Never send the access code, and never send a screenshot of request headers.
+For each step: "passed", or the step number and what you saw instead. For steps 1 to 6 and 8 also write down the exact lines of the timeline (the ten names may be left out if they are right), even if they passed. For step 5b write down the red line's words and your one sentence. Never send the access code, and never send a screenshot of request headers.
 
 ## Manual check log
 
@@ -77,6 +81,7 @@ For each step: "passed", or the step number and what you saw instead. For steps 
 | 3 | NOT RUN YET | |
 | 4 | NOT RUN YET | |
 | 5 | NOT RUN YET | |
+| 5b | NOT RUN YET (optional) | |
 | 6 | NOT RUN YET | |
 | 7 | NOT RUN YET | |
 | 8 | NOT RUN YET | |
