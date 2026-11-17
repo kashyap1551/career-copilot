@@ -6,6 +6,7 @@ One preview, three checks. Use only the invented text in each file; no real CV; 
 
 - **The 6.1 live check is DONE:** 25 of 25 steps passed on 2026-11-17 (the log is at the end of `docs/MANUAL-CHECK-6.1.md`). Nothing more to do there.
 - **`ACCESS_CODE` is set in Vercel for Production and for Preview** (by the owner; the value is never written anywhere). If you change it, redeploy the branch before you start.
+- **6.1b step 1 is already satisfied** (the variable set in Vercel, then the code deployed): `ACCESS_CODE` was set for Production and Preview on 2026-11-17, before the preview of the latest `step-6.2` commit was built. Nothing to do; it is not repeated below. (If you change the code in Vercel, redeploy the branch before you start; then step 1 is to be done again.)
 - **One preview:** the Vercel preview of the branch `step-6.2` (open the project's Deployments and use the address of the branch `step-6.2`, not the live address). It contains the access code (6.1b), the fit levels and 6.2, so all three checks run on it. The branch `integration-check` is superseded by it.
 
 ## The three checks, in this order
@@ -17,6 +18,18 @@ One preview, three checks. Use only the invented text in each file; no real CV; 
 | 3 | `docs/MANUAL-CHECK-6.2.md` | 10 | the level on each saved ad, the order, no profile in use |
 
 **AI calls, each check on its own:** 6.1b 3 to 4; fit levels 5 to 8; 6.2 about 5 (the CV twice, three ads). Total if run separately: 13 to 17. **Run as below, in one window, the total is about 12 to 13** (the CV is sent 4 times, the ads about 8 to 9; a repeat of the same ad text may come from the reading cache and cost nothing). The free tier allows about one large read a minute, so wait about a minute between reads.
+
+**Where each of the 13 steps of `MANUAL-CHECK-6.1b.md` is run:**
+
+| 6.1b step | Where | When |
+|---|---|---|
+| 1 (order followed) | already satisfied, see above | before you start |
+| 2 to 8 | Part A, item 1 | first, in the new Incognito window |
+| 9, first sentence (enter the right code again) | Part A, item 2 | straight after step 8 |
+| 12 (delete everything forgets the code) | Part A, item 4 | inside `MANUAL-CHECK-6.2.md` step 9 |
+| 9, rest (close the window, new window, asked again) | Part A, item 5 | last in Part A |
+| 10 and 11 (terminal; Vercel Logs) | Part B, item 6 | after Part A |
+| 13 (rate-limit rule) | Part B, item 7 | last, after Part A |
 
 ## How to run them: one private window, one invented CV
 
