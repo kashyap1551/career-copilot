@@ -97,9 +97,10 @@ export function roadmapBox(
       const note = r.learning ? learningNote(r.learning) : r.noCvLine ? NO_CV_LINE_NOTE : "";
       partA.push(gapRowText(nameOf(r.skillId), note, r.mustAds, r.niceAds));
     }
-    const alternatives = engineJobs.some((job) =>
-      [...match(engineProfile, job).musts, ...match(engineProfile, job).nices].some((q) => !q.met && q.requirement.skillIds.length > 1),
-    );
+    const alternatives = engineJobs.some((job) => {
+      const result = match(engineProfile, job); // once per ad
+      return [...result.musts, ...result.nices].some((q) => !q.met && q.requirement.skillIds.length > 1);
+    });
     if (alternatives) partA.push(ALTERNATIVES_NOTE);
   } else {
     partA.push(meetEveryLine(M));
