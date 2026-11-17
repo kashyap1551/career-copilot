@@ -43,8 +43,26 @@ describe("P8: every route checks access", () => {
   });
 });
 
-describe("P6 (wiring): the delete-everything click forgets the code", () => {
-  it("app/SavedControls.tsx calls afterDeleteAll(", () => {
-    expect(read("app/SavedControls.tsx")).toContain("afterDeleteAll(");
+describe("P6 (wiring): 'Yes, delete everything' forgets the code first, and Cancel does not", () => {
+  const src = read("app/SavedControls.tsx");
+  const start = src.indexOf("async function onDeleteAll()");
+  const body = src.slice(start, src.indexOf("\n  }\n", start));
+
+  it("onDeleteAll calls forgetCodeOnDeleteAll( BEFORE await deleteAll(", () => {
+    expect(start).toBeGreaterThan(-1);
+    const forget = body.indexOf("forgetCodeOnDeleteAll(");
+    const del = body.indexOf("await deleteAll(");
+    expect(forget).toBeGreaterThan(-1);
+    expect(del).toBeGreaterThan(-1);
+    expect(forget).toBeLessThan(del);
+  });
+
+  it("it is called nowhere else in the file (so not in the Cancel handler), and Cancel only closes the question", () => {
+    expect(src.split("forgetCodeOnDeleteAll(").length - 1).toBe(1);
+    expect(src).toMatch(/onClick=\{\(\) => setConfirming\(false\)\}>\s*Cancel/);
+  });
+
+  it("the old 'after a successful delete' function is gone", () => {
+    expect(src).not.toContain("afterDeleteAll");
   });
 });

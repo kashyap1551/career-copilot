@@ -2,7 +2,7 @@
 
 For the owner. Plain words, one small action per step. Each step has **Do** and **Expect**. If what you see is not what is written under Expect, stop, write down the step number and what you saw, and send it to the reviewer. Do not try to fix anything. The design is in `docs/PLAN-ACCESS-CODE.md` (section 6 is this check).
 
-6.1b is ticked in `docs/SPRINT.md` only after all 12 steps pass.
+6.1b is ticked in `docs/SPRINT.md` only after all 13 steps pass.
 
 ## Before you start
 
@@ -36,7 +36,9 @@ For the owner. Plain words, one small action per step. Each step has **Do** and 
     **Expect:** `HTTP/2 401`, `cache-control: no-store`, and the one-line message.
 11. **Do:** in the Vercel dashboard open the project's **Logs** for those requests.
     **Expect (to be confirmed by looking, not assumed):** paths and statuses, no header values and no code.
-12. **Do (the Firewall rule, plan section 4; no AI call is made, because every request is refused before the AI).** First set the rule if it is not set (Firewall tab, rate limit on `/api/`, 10 requests per 60 seconds per address; when the "Rate Limiting Pricing" dialog appears, STOP and send me its words before pressing Continue). Then, in a terminal, replacing the placeholder with the site address:
+12. **Do:** with a code kept and a profile saved (save one as in `docs/MANUAL-CHECK-6.1.md`, steps 2 to 4), press **Delete everything saved on this device**, then **Yes, delete everything**.
+    **Expect:** "Everything saved on this device was deleted." and the next send (**Send for reading** or **Read this ad**) asks for the access code again. (The code is forgotten as soon as you press "Yes, delete everything", even if the delete itself fails; pressing **Cancel** instead forgets nothing.)
+13. **Do (the Firewall rule, plan section 4; no AI call is made, because every request is refused before the AI).** First set the rule if it is not set (Firewall tab, rate limit on `/api/`, 10 requests per 60 seconds per address; when the "Rate Limiting Pricing" dialog appears, STOP and send me its words before pressing Continue). Then, in a terminal, replacing the placeholder with the site address:
     `for i in $(seq 1 12); do curl -s -o /dev/null -w "%{http_code}\n" -X POST <the live site>/api/read -H 'content-type: application/json' -d '{"text":"x"}'; done`
     It sends 12 requests WITHOUT a code and prints only the status codes, one per line.
     **Expect:** 401 first, then 429 once the rule bites (about the 11th line; the exact switch point may differ by a request or two: the window is fixed and the counters are per region). **Also expect:** normal use (one CV and three ads in a minute, four requests) never gets 429. If the rule does not bite, report what the rule list offered and what the pricing dialog said.
@@ -61,3 +63,4 @@ For the owner. Plain words, one small action per step. Each step has **Do** and 
 | 10 | NOT RUN YET | |
 | 11 | NOT RUN YET | |
 | 12 | NOT RUN YET | |
+| 13 | NOT RUN YET | |

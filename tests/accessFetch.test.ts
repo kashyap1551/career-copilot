@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
   accessAnswerMessage,
   accessHeaders,
-  afterDeleteAll,
+  forgetCodeOnDeleteAll,
   forgetAccessCode,
   getAccessUi,
   keepAccessCode,
@@ -150,12 +150,25 @@ describe("P5: a 401", () => {
   });
 });
 
-describe("P6: delete everything also forgets the code", () => {
-  it("a successful delete forgets it; a failed one does not", () => {
+describe("P6: pressing 'Yes, delete everything' forgets the access code (before the delete, whether or not it works)", () => {
+  it("it forgets the code from the tab storage and from memory", () => {
     keepAccessCode("kept-code-1234", store);
-    expect(afterDeleteAll({ ok: false }, store)).toBe(false);
-    expect(readAccessCode(store)).toBe("kept-code-1234");
-    expect(afterDeleteAll({ ok: true }, store)).toBe(true);
+    expect(store.m.size).toBe(1);
+    forgetCodeOnDeleteAll(store);
+    expect(readAccessCode(store)).toBeNull();
+    expect(store.m.size).toBe(0);
+    expect(readAccessCode(blocked)).toBeNull(); // the memory copy is gone too (a blocked storage reads memory)
+  });
+
+  it("a blocked storage still clears the memory copy, and never throws", () => {
+    keepAccessCode("memory-code-12", blocked);
+    expect(readAccessCode(blocked)).toBe("memory-code-12");
+    expect(() => forgetCodeOnDeleteAll(blocked)).not.toThrow();
+    expect(readAccessCode(blocked)).toBeNull();
+  });
+
+  it("with no code kept it does nothing and does not throw", () => {
+    expect(() => forgetCodeOnDeleteAll(store)).not.toThrow();
     expect(readAccessCode(store)).toBeNull();
   });
 });

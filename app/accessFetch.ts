@@ -72,11 +72,10 @@ export function forgetAccessCode(store: TabStore | null = tabStore()): void {
   notify();
 }
 
-// "Delete everything saved on this device" also forgets the code, after a delete that worked.
-export function afterDeleteAll(result: { ok: boolean }, store: TabStore | null = tabStore()): boolean {
-  if (!result.ok) return false;
+// "Delete everything saved on this device": the code is forgotten the moment the person confirms ("Yes, delete everything"),
+// BEFORE the delete is attempted and whether or not the delete works. Never on Cancel (the Cancel handler does not call this).
+export function forgetCodeOnDeleteAll(store: TabStore | null = tabStore()): void {
   forgetAccessCode(store);
-  return true;
 }
 
 // ---- the request ----------------------------------------------------------------------------------------------------
