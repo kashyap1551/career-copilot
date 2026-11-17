@@ -81,9 +81,12 @@ const ad4 = (o: Over = {}) => ad("a4", "Analytics Lead", "Imaginary Pages Ltd", 
 const FOUR = () => [ad1(), ad2(), ad3(), ad4()];
 
 // What the page does: engineView for each ad, then the gap list over the judgeable jobs.
-function gaps(built: BuiltProfile, jobs: Job[]) {
+// `nameOf` (docs/PLAN-7.1.md Amendment 3 (2)) turns a skill id into its display name; the default looks the id up in the
+// skill list and falls back to the id.
+const defaultNameOf = (id: string) => skills.find((s) => s.id === id)?.name ?? id;
+function gaps(built: BuiltProfile, jobs: Job[], nameOf: (id: string) => string = defaultNameOf) {
   const views = jobs.map((j) => engineView(j, built));
-  return gapList(views[0].engineProfile, views.map((v) => v.engineJob));
+  return gapList(views[0].engineProfile, views.map((v) => v.engineJob), nameOf);
 }
 
 // Hand count of section 1 (also the expected rows of G1, G12, G14a, G14b and G14e..j wherever the skills are unchanged):
@@ -120,6 +123,15 @@ describe("the gap list: counts, order and notes (G1 to G13)", () => {
       ["power-bi", 1, 0],
       ["python", 1, 0],
     ]);
+  });
+
+  it("G2b: equal counts are ordered by the display name from nameOf, not by skill id", () => {
+    // Same ad as G2 (must Python, must Power BI) with an INJECTED nameOf: python -> "Alpha", power-bi -> "Zulu".
+    // Hand count: both rows must 1, nice 0 (a tie). By name: Alpha (python) before Zulu (power-bi). By id it would be
+    // power-bi before python, so only an order by name passes.
+    const nameOf = (id: string) => ({ python: "Alpha", "power-bi": "Zulu" })[id] ?? id;
+    const g = gaps(person({ inProgress: [] }), [ad("x", "Analyst", "Invented Co", [must("python"), must("power-bi")])], nameOf);
+    expect(g.rows.map((r) => r.skillId)).toEqual(["python", "power-bi"]);
   });
 
   it("G3: a requirement with alternatives (Power BI or Tableau, must, unmet) counts for each alternative, one ad each", () => {
