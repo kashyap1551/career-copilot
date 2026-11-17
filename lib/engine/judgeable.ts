@@ -19,12 +19,21 @@ export function splitJudgeable(job: Job): { judged: Job; couldNotJudge: Requirem
   };
 }
 
-export type NoLevelReason = "no-must-have-judgeable" | "no-skills";
+export type NoLevelReason = "no-requirements" | "no-must-have-judgeable" | "no-skills";
 
-// null = a level is shown. "No must-have could be judged" (the ad has must-haves, and every one is unlisted) comes first:
-// adding skills would not fix it. "No skills" means no entry at all on the profile or the typed list. An ad with no
-// must-haves at all is not "none could be judged".
-export function noLevelReason(input: { judgedMusts: number; unjudgedMusts: number; skillCount: number }): NoLevelReason | null {
+// null = a level is shown. Checked in this order (docs/PLAN-FIT-LEVEL.md, Amendment 4):
+//  1. "no-requirements": the AI found no requirement at all in the ad (`requirements` counts the ad's requirements as read,
+//     before the unlisted ones are set aside; a level on nothing is not information);
+//  2. "no-must-have-judgeable": the ad has must-haves, and every one is unlisted;
+//  3. "no-skills": no entry at all on the profile or the typed list.
+// 1 and 2 come before 3 because adding skills fixes neither. An ad with only nice-to-haves is none of these (it is Strong).
+export function noLevelReason(input: {
+  requirements: number;
+  judgedMusts: number;
+  unjudgedMusts: number;
+  skillCount: number;
+}): NoLevelReason | null {
+  if (input.requirements === 0) return "no-requirements";
   if (input.unjudgedMusts > 0 && input.judgedMusts === 0) return "no-must-have-judgeable";
   if (input.skillCount === 0) return "no-skills";
   return null;

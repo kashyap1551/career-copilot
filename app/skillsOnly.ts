@@ -1,6 +1,6 @@
 import { levelName } from "@/lib/engine/explain";
 import { languageName, match, MODE_NAMES } from "@/lib/engine/match";
-import { noLevelReason, splitJudgeable } from "@/lib/engine/judgeable";
+import { noLevelReason, splitJudgeable, type NoLevelReason } from "@/lib/engine/judgeable";
 import { skillIdFor } from "@/lib/engine/skillIds";
 import type { Job, Profile, Requirement, RequirementResult, Skill } from "@/lib/engine/types";
 
@@ -142,6 +142,8 @@ export function skillsOnlyExplanation(total: number, missing: string[], couldNot
 // ---- no level, and the label (docs/PLAN-FIT-LEVEL.md W5, W6, W9) -----------------------------------------------------
 
 export const NO_SKILLS_PROFILE_SENTENCE = "No level yet: there are no skills on your profile. Add skills first.";
+// The AI found no requirement at all in the ad (Amendment 4).
+export const NO_REQUIREMENTS_SENTENCE = "No level can be shown: no requirements were found in this ad, so check that the whole ad was pasted.";
 export const NO_SKILLS_LIST_SENTENCE = "No level yet: your list has no skills we can match. Add skills first.";
 
 // Every must-have of the ad is not in our skill list yet, so none could be judged (n is how many the ad has).
@@ -156,11 +158,12 @@ export function noMustHaveJudgeableSentence(n: number): string {
 // label does not carry it. `inner` is "skills only" or "judged: skills, ...".
 export function fitLabelText(
   levelName: string,
-  noLevel: "no-must-have-judgeable" | "no-skills" | null,
+  noLevel: NoLevelReason | null,
   inner: string,
   unjudgedMusts: number,
   where: "profile" | "list",
 ): string {
+  if (noLevel === "no-requirements") return "No level (no requirements found in this ad)";
   if (noLevel === "no-must-have-judgeable") return "No level (no must-have we could judge)";
   if (noLevel === "no-skills") return `No level (no skills on your ${where})`;
   const caveat = unjudgedMusts > 0 ? `; ${unjudgedMusts} ${unjudgedMusts === 1 ? "must-have" : "must-haves"} not judged` : "";
@@ -210,15 +213,22 @@ export function skillsOnlyReport(
     return { ...base, status: "missing" as const, detail: `${label}: not on your list` };
   });
 
-  const noLevel = noLevelReason({ judgedMusts: result.counts.mustsTotal, unjudgedMusts, skillCount: profile.skills.length });
+  const noLevel = noLevelReason({
+    requirements: job.requirements.length,
+    judgedMusts: result.counts.mustsTotal,
+    unjudgedMusts,
+    skillCount: profile.skills.length,
+  });
   const missing = result.musts.filter((m) => !m.met).map((m) => labelOf(m.requirement.skillIds));
   const usual = skillsOnlyExplanation(result.counts.mustsTotal, missing, unjudgedMusts);
   const explanation =
-    noLevel === "no-must-have-judgeable"
-      ? noMustHaveJudgeableSentence(unjudgedMusts)
-      : noLevel === "no-skills"
-        ? `${NO_SKILLS_LIST_SENTENCE} ${usual}`
-        : usual;
+    noLevel === "no-requirements"
+      ? NO_REQUIREMENTS_SENTENCE
+      : noLevel === "no-must-have-judgeable"
+        ? noMustHaveJudgeableSentence(unjudgedMusts)
+        : noLevel === "no-skills"
+          ? `${NO_SKILLS_LIST_SENTENCE} ${usual}`
+          : usual;
 
   return {
     fitLabel: fitLabelText(levelName(result.level), noLevel, "skills only", unjudgedMusts, "list"),

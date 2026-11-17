@@ -393,3 +393,75 @@ describe("(d) empty skills", () => {
     expect(r.explanation).toBe(`No level yet: your list has no skills we can match. Add skills first. 2 of 2 must-haves are missing: SQL, Tableau. ${TAIL}`);
   });
 });
+
+describe("(e) Amendment 4: an ad with no requirements at all shows no level", () => {
+  const W10 = "No level can be shown: no requirements were found in this ad, so check that the whole ad was pasted.";
+  const NO_REQ = "No level (no requirements found in this ad)";
+  const EMPTY = job({ reqs: [] });
+
+  it("Z1: profile path, skills present: no level, the sentence, nothing counted, no rows", () => {
+    const r = rep(EMPTY);
+    expect(r.fitLabel).toBe(NO_REQ);
+    expect(r.explanation).toBe(W10);
+    expect(r.counts).toEqual({ mustsMet: 0, mustsTotal: 0, nicesMet: 0, nicesTotal: 0 });
+    expect(r.rows).toEqual([]);
+  });
+
+  it("Z2: profile path, no skills either: the same (no requirements wins; no 'add skills first')", () => {
+    const r = rep(EMPTY, []);
+    expect(r.fitLabel).toBe(NO_REQ);
+    expect(r.explanation).toBe(W10);
+    expect(r.explanation).not.toContain("Add skills first");
+  });
+
+  it("Z3: profile path, a conflict that can't be closed: still listed, and no 'Long shot because of' lead", () => {
+    const r = rep(job({ reqs: [], location: "Exampleville", remote: "hybrid" }), ALL, { cities: "Berlin" });
+    expect(r.fitLabel).toBe(NO_REQ);
+    expect(r.explanation).toBe(W10);
+    expect(r.explanation).not.toContain("Long shot because");
+    expect(r.conflicts).toEqual(["(can't be closed soon) The job is in Exampleville; the cities on your profile are: Berlin."]);
+  });
+
+  it("Z3b: profile path, a satisfied city: the 'fine' line is still printed", () => {
+    const r = rep(job({ reqs: [], location: "Berlin", remote: "hybrid" }), ALL, { cities: "Berlin" });
+    expect(r.fitLabel).toBe(NO_REQ);
+    expect(r.satisfied).toEqual(["Location: fine. The job is in Berlin, and Berlin is on your profile."]);
+  });
+
+  it("Z4: list path, the list has a skill: no level, the same sentence, no rows", () => {
+    const r = listRep("SQL", EMPTY);
+    expect(r.fitLabel).toBe(NO_REQ);
+    expect(r.explanation).toBe(W10);
+    expect(r.rows).toEqual([]);
+  });
+
+  it("Z5: list path, an empty list: the same (no requirements wins over 'no skills on your list')", () => {
+    const r = listRep("", EMPTY);
+    expect(r.fitLabel).toBe(NO_REQ);
+    expect(r.explanation).toBe(W10);
+  });
+
+  it("Z6: list path, only a nice-to-have: unchanged, Strong", () => {
+    const r = listRep("SQL", job({ reqs: [XLS] }));
+    expect(r.fitLabel).toBe("Strong (skills only)");
+    expect(r.explanation).toBe(`The ad lists no must-haves. ${TAIL}`);
+  });
+
+  it("Z7: only an unlisted nice-to-have, skills present: a requirement WAS read, so a level is shown (both paths)", () => {
+    const only = job({ reqs: [KOM_NICE] });
+    for (const r of [rep(only), listRep("SQL", only)]) {
+      expect(r.fitLabel).toBe("Strong (skills only)");
+      expect(r.explanation).toBe(`The ad lists no must-haves. ${TAIL}`);
+      expect(r.counts).toEqual({ mustsMet: 0, mustsTotal: 0, nicesMet: 0, nicesTotal: 0 });
+      expect(r.unlistedRequirements).toBe(1);
+      expect(r.couldNotJudge).toEqual({ musts: 0, nices: 1 });
+      expect(rows(r)).toEqual(["nice | unlisted | Kombucha brewing: not in our skill list yet, so we could not judge it."]);
+    }
+  });
+
+  it("Z8: only an unlisted nice-to-have and no skills: 'no skills' applies", () => {
+    const r = rep(job({ reqs: [KOM_NICE] }), []);
+    expect(r.fitLabel).toBe("No level (no skills on your profile)");
+    expect(r.explanation).toBe(`No level yet: there are no skills on your profile. Add skills first. The ad lists no must-haves. ${TAIL}`);
+  });
+});

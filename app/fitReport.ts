@@ -6,6 +6,7 @@ import { KINDS, KIND_WORDS, type BuiltProfile, type Kind } from "@/lib/cv/profil
 import {
   countsSentence,
   fitLabelText,
+  NO_REQUIREMENTS_SENTENCE,
   NO_SKILLS_PROFILE_SENTENCE,
   noMustHaveJudgeableSentence,
   NOT_JUDGED_SENTENCE,
@@ -184,7 +185,12 @@ export function profileReport(job: Job, built: BuiltProfile, skills: Skill[], un
 
   const unjudgedMusts = couldNotJudge.filter((r) => r.importance === "must").length;
   const unjudgedNices = couldNotJudge.length - unjudgedMusts;
-  const noLevel = noLevelReason({ judgedMusts: result.counts.mustsTotal, unjudgedMusts, skillCount: profile.skills.length });
+  const noLevel = noLevelReason({
+    requirements: job.requirements.length,
+    judgedMusts: result.counts.mustsTotal,
+    unjudgedMusts,
+    skillCount: profile.skills.length,
+  });
 
   const missing = result.musts.filter((m) => !m.met).map((m) => labelOf(m.requirement.skillIds));
   const counts = countsSentence(result.counts.mustsTotal, missing, "on your profile", unjudgedMusts);
@@ -204,7 +210,9 @@ export function profileReport(job: Job, built: BuiltProfile, skills: Skill[], un
 
   // (b) A Long shot decided by a conflict that can't be closed soon says which one (the first, the one fitLevel names).
   let explanation = usual;
-  if (noLevel === "no-must-have-judgeable") {
+  if (noLevel === "no-requirements") {
+    explanation = NO_REQUIREMENTS_SENTENCE;
+  } else if (noLevel === "no-must-have-judgeable") {
     explanation = noMustHaveJudgeableSentence(unjudgedMusts);
   } else if (noLevel === "no-skills") {
     explanation = `${NO_SKILLS_PROFILE_SENTENCE} ${usual}`;

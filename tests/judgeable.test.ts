@@ -59,20 +59,23 @@ describe("splitJudgeable", () => {
   });
 });
 
-describe("noLevelReason(judgedMusts, unjudgedMusts, skillCount)", () => {
-  const cases: [number, number, number, ReturnType<typeof noLevelReason>][] = [
-    [2, 1, 3, null], // case 7: a level, with the caveat
-    [0, 1, 3, "no-must-have-judgeable"], // A3b
-    [0, 2, 3, "no-must-have-judgeable"], // A3
-    [0, 2, 0, "no-must-have-judgeable"], // D4: this reason wins over "no skills"
-    [2, 0, 0, "no-skills"], // case 5
-    [0, 0, 0, "no-skills"], // D1: an ad with no must-haves and a profile with no skills
-    [0, 0, 2, null], // A7: an ad with no must-haves is not "none could be judged"
-    [1, 0, 1, null],
+describe("noLevelReason(requirements, judgedMusts, unjudgedMusts, skillCount)", () => {
+  // Re-worked by hand for docs/PLAN-FIT-LEVEL.md Amendment 4: the first number is how many requirements the ad has.
+  const cases: [number, number, number, number, ReturnType<typeof noLevelReason>][] = [
+    [3, 2, 1, 3, null], // case 7: a level, with the caveat
+    [1, 0, 1, 3, "no-must-have-judgeable"], // A3b
+    [2, 0, 2, 3, "no-must-have-judgeable"], // A3
+    [2, 0, 2, 0, "no-must-have-judgeable"], // D4: this reason wins over "no skills"
+    [3, 2, 0, 0, "no-skills"], // case 5
+    [1, 0, 0, 0, "no-skills"], // D1: an ad with only a nice-to-have and a profile with no skills
+    [1, 0, 0, 2, null], // A7: an ad with only a nice-to-have is not "none could be judged"
+    [1, 1, 0, 1, null],
+    [0, 0, 0, 0, "no-requirements"], // Z2: no requirements and no skills: no requirements wins
+    [0, 0, 0, 3, "no-requirements"], // Z1
   ];
-  for (const [judged, unjudged, skills, expected] of cases) {
-    it(`J5: judged ${judged}, unjudged ${unjudged}, skills ${skills} gives ${expected}`, () => {
-      expect(noLevelReason({ judgedMusts: judged, unjudgedMusts: unjudged, skillCount: skills })).toBe(expected);
+  for (const [requirements, judged, unjudged, skills, expected] of cases) {
+    it(`J5: ${requirements} requirements, judged ${judged}, unjudged ${unjudged}, skills ${skills} gives ${expected}`, () => {
+      expect(noLevelReason({ requirements, judgedMusts: judged, unjudgedMusts: unjudged, skillCount: skills })).toBe(expected);
     });
   }
 });
