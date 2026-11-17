@@ -465,3 +465,30 @@ describe("(e) Amendment 4: an ad with no requirements at all shows no level", ()
     expect(r.explanation).toBe(`No level yet: there are no skills on your profile. Add skills first. The ad lists no must-haves. ${TAIL}`);
   });
 });
+
+describe("6.2: the report's `level` and `namedReason` (docs/PLAN-6.2.md section 5)", () => {
+  it("N1: level is null exactly when the label starts 'No level', and otherwise the level the label names", () => {
+    const cases: [ReturnType<typeof rep>, string | null][] = [
+      [rep(job()), "strong"],
+      [rep(job(), ["sql", "excel"]), "good"],
+      [rep(job({ minYears: 3 }), ALL, { years: "2" }), "stretch"],
+      [rep(job({ location: "Exampleville", remote: "hybrid" }), ALL, { cities: "Berlin" }), "longShot"],
+      [rep(job(), []), null],
+      [rep(job({ reqs: [KOM, WELD] })), null],
+      [rep(job({ reqs: [] })), null],
+    ];
+    for (const [r, level] of cases) {
+      expect(r.level).toBe(level);
+      expect(r.fitLabel.startsWith("No level")).toBe(level === null);
+    }
+  });
+
+  it("N2: namedReason is the lead sentence for a Long shot set by a conflict that can't be closed, and null otherwise", () => {
+    const longShot = rep(job({ location: "Exampleville", remote: "hybrid" }), ALL, { cities: "Berlin" });
+    expect(longShot.namedReason).toBe(LEAD_LOC);
+    expect(longShot.explanation.startsWith(`${LEAD_LOC} `)).toBe(true);
+    expect(rep(job({ minYears: 3 }), ["excel"], { years: "2" }).namedReason).toBeNull(); // Long shot by three gaps
+    expect(rep(job()).namedReason).toBeNull();
+    expect(rep(job(), []).namedReason).toBeNull(); // no level: nothing to explain
+  });
+});

@@ -15,7 +15,7 @@ import ConfirmBox from "./ConfirmBox";
 import AccessBox from "./AccessBox";
 import { postJson } from "./accessFetch";
 import CvBox from "./CvBox";
-import { profileReport } from "./fitReport";
+import { reportFor } from "./savedAdRows";
 import ReportView from "./ReportView";
 import { adStatusKey, openView, profileKey } from "@/lib/saved/ui";
 import { AdStatus, SaveAdButton, SaveProfileButton, SavedAdsList, SavedDeleteAll, SavedOffer, SavedStatus } from "./SavedControls";
@@ -138,7 +138,7 @@ export default function Home() {
     if (profile) {
       return {
         kind: "cv" as const,
-        view: profileReport(result.job, profile, skills, [...result.unlisted, ...(cvRead?.result.unlisted ?? [])]),
+        view: reportFor(result, profile, skills, cvRead?.result.unlisted ?? []),
       };
     }
     return {
@@ -231,7 +231,7 @@ export default function Home() {
       )}
 
       <AdStatus saved={saved} adKey={adStatusKey(text)} />
-      <SavedAdsList saved={saved} onOpen={onOpenAd} />
+      <SavedAdsList saved={saved} onOpen={onOpenAd} profile={profile} skills={skills} />
 
       {result && report && (
         <>

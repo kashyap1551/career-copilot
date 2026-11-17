@@ -54,3 +54,10 @@ const OPEN_MESSAGES: Record<OpenKind, string | null> = {
 export function openMessage(kind: OpenKind): string | null {
   return OPEN_MESSAGES[kind];
 }
+
+// 6.2 (docs/PLAN-6.2.md): what the list of saved ads says besides the level. The level text itself is never written here:
+// it is the label the report returns (app/fitReport.ts).
+export const NO_PROFILE_IN_USE_NOTE =
+  'No fit levels yet: no profile is in use. Read and confirm a CV, or press "Use this profile" if one is saved on this device.';
+export const OLD_READING_LINE = "Old reading: open it to read it again.";
+export const LEVEL_FAILED_LINE = "A level could not be worked out for this ad.";

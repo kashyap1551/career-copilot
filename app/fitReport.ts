@@ -1,7 +1,7 @@
 import { conflictLine, levelName } from "@/lib/engine/explain";
 import { noLevelReason, splitJudgeable } from "@/lib/engine/judgeable";
 import { languageName, match, MODE_NAMES } from "@/lib/engine/match";
-import type { ConflictKind, Job, Requirement, RequirementResult, Skill } from "@/lib/engine/types";
+import type { ConflictKind, FitLevel, Job, Requirement, RequirementResult, Skill } from "@/lib/engine/types";
 import { KINDS, KIND_WORDS, type BuiltProfile, type Kind } from "@/lib/cv/profile";
 import {
   countsSentence,
@@ -21,6 +21,8 @@ import {
 
 export type ProfileReport = {
   fitLabel: string; // "Good (skills only)" or "Stretch (judged: skills, years)"
+  level: FitLevel | null; // the level the label names; null when no level is shown (the list of saved ads sorts on it)
+  namedReason: string | null; // the lead sentence of the explanation for a Long shot set by a conflict that can't be closed, else null
   explanation: string;
   counts: { mustsMet: number; mustsTotal: number; nicesMet: number; nicesTotal: number };
   rows: RequirementRow[];
@@ -210,6 +212,7 @@ export function profileReport(job: Job, built: BuiltProfile, skills: Skill[], un
 
   // (b) A Long shot decided by a conflict that can't be closed soon says which one (the first, the one fitLevel names).
   let explanation = usual;
+  let namedReason: string | null = null;
   if (noLevel === "no-requirements") {
     explanation = NO_REQUIREMENTS_SENTENCE;
   } else if (noLevel === "no-must-have-judgeable") {
@@ -219,7 +222,8 @@ export function profileReport(job: Job, built: BuiltProfile, skills: Skill[], un
   } else if (result.decidedBy.startsWith("unclosable-conflict:")) {
     const decider = result.conflicts.find((c) => !c.closable);
     if (decider) {
-      explanation = `Long shot because of ${KIND_WORDS[CONFLICT_KIND[decider.kind]]}: ${decider.message} That can't be closed soon. ${usual}`;
+      namedReason = `Long shot because of ${KIND_WORDS[CONFLICT_KIND[decider.kind]]}: ${decider.message} That can't be closed soon.`;
+      explanation = `${namedReason} ${usual}`;
     }
   }
 
@@ -252,6 +256,8 @@ export function profileReport(job: Job, built: BuiltProfile, skills: Skill[], un
   const inner = judged.length === 0 ? "skills only" : `judged: skills, ${judged.map((k) => KIND_WORDS[k]).join(", ")}`;
   return {
     fitLabel: fitLabelText(levelName(result.level), noLevel, inner, unjudgedMusts, "profile"),
+    level: noLevel === null ? result.level : null,
+    namedReason,
     explanation,
     counts: result.counts,
     rows,
