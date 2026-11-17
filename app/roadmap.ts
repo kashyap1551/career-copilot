@@ -90,7 +90,9 @@ export function roadmapBox(
   const engineProfile = views[0].engineProfile;
   // Amendment 6 (2): an unlisted alternative is dropped from each requirement before anything is counted or ranked. The numbers of
   // requirements not judged and the caveats still come from `views` and `counted`, not from these jobs.
-  const engineJobs = views.map((v) => listedAlternatives(v.engineJob));
+  // Amendment 7: every opened reading carries the job id "pasted-ad", and the engine keys on job id. Each counted ad's job takes the
+  // SAVED-AD id (the store key, unique), so two ads can never collapse into one.
+  const engineJobs = views.map((v, i) => ({ ...listedAlternatives(v.engineJob), id: counted[i].ad.id }));
 
   // ---- Part A: the gap list ----
   const gaps = gapList(engineProfile, engineJobs, nameOf);

@@ -60,6 +60,9 @@ const ALL_STRONG = () => [
 ];
 // Two ads with IDENTICAL content (same title, company and requirement), saved under two ids.
 const IDENTICAL_PAIR = () => [strongAd("p1", "Data Clerk", "Example Wharf Ltd"), strongAd("p2", "Data Clerk", "Example Wharf Ltd")];
+// Two identical ads that are NOT Strong (each needs Python), and a third ad that needs Tableau. Hand count: Python unlocks 2 jobs (the pair),
+// Tableau (in progress) unlocks 1; so the totals are 2 and then 3. If the pair shared one id, the second total would be 2.
+const IDENTICAL_REACHABLE = () => [ad2(), { ...ad2(), id: "q2" }, ad1()];
 const BLOCKED_SET = () => [ad1(), ad2({ location: "Exampleville" }), ad3(), ad4()];
 
 describe("P0b: the box's whole output does not depend on the job ids (distinct versus all 'pasted-ad')", () => {
@@ -68,6 +71,7 @@ describe("P0b: the box's whole output does not depend on the job ids (distinct v
     ["four ads that are all Already Strong", ALL_STRONG, ["saved-1", "saved-2", "saved-3", "saved-4"], 4],
     ["the four-ad example with ad 2 blocked by a city out of reach", BLOCKED_SET, FOUR_SAVED, 4],
     ["two ads with identical content under different saved ids", IDENTICAL_PAIR, ["saved-a", "saved-b"], 2],
+    ["two identical ads that need Python, and a third that needs Tableau", IDENTICAL_REACHABLE, ["saved-a", "saved-b", "saved-c"], 3],
   ];
   it.each(sets)("%s", (_name, jobs, savedIds, from) => {
     const distinct = viaPage(person(), jobs(), savedIds, (i) => savedIds[i], from);
@@ -107,6 +111,22 @@ describe("P0b: the box's whole output does not depend on the job ids (distinct v
       expect(b.partB[0]).toBe("Already Strong: 2 jobs (Data Clerk, Example Wharf Ltd; Data Clerk, Example Wharf Ltd)");
       expect(b.alreadyStrongIds).toEqual(["saved-a", "saved-b"]);
       expect(b.counted).toBe(2);
+    }
+  });
+});
+
+describe("P0b: identical content that is not Already Strong keeps its own count", () => {
+  it("the pair counts as 2 jobs for Python and the total after Tableau is 3 (hand count), whatever the job ids", () => {
+    for (const jobIdOf of [shared, (i: number) => ["saved-a", "saved-b", "saved-c"][i]]) {
+      const b = viaPage(person(), IDENTICAL_REACHABLE(), ["saved-a", "saved-b", "saved-c"], jobIdOf, 3);
+      expect(b.partB).toEqual([
+        "Already Strong: none",
+        "Skills to build, in order:",
+        "1. Python: unlocks 2 jobs (BI Developer, Harbor Light Stationery; BI Developer, Harbor Light Stationery). Total so far: 2 jobs.",
+        "2. Tableau (in progress, expected 2027-03-01): unlocks 1 job (Reporting Analyst, Northlake Foods Ltd). Total so far: 3 jobs.",
+        "Blocked jobs: none",
+      ]);
+      expect(b.alreadyStrongIds).toEqual([]);
     }
   });
 });
