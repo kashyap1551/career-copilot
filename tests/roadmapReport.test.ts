@@ -14,8 +14,8 @@ import { N10, tenJobs, TEN_LABELS } from "./support/tenAds";
 import { openedAd, pastedId, savedIdsFor } from "./support/viaPage";
 
 // Step 8.1, tests first (docs/PLAN-8.1.md sections 6 and 7). EVERY expected line and number list below is a literal written from the hand
-// tables of section 6 BEFORE the code existed; none is imported from the code or copied from running it. The report code is a STUB, so
-// the tests that need a report fail on an assertion. Every test that builds ads builds them the way the page does: job id "pasted-ad",
+// tables of section 6 BEFORE the code existed; none is imported from the code or copied from running it. The report code was a stub when these were written, so
+// the tests that need a report failed on an assertion. Every test that builds ads builds them the way the page does: job id "pasted-ad",
 // distinct saved ids, through roadmapAds (tests/support/viaPage.ts). Exceptions are named in their tests (helper-only, ENGINE).
 
 const TITLE = "Your roadmap report";

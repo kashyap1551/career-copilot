@@ -1,4 +1,4 @@
-STATUS: DRAFT v3 for the reviewer, 2026-11-18 (v2 of 2026-11-17 plus the copy helpers, T25 and B23 to B26). The reviewer's decisions D1 to D8 are applied (section 2). Careful lane (section 12, paragraph (b)). Nothing of 8.1 is built; stage 2 writes the red tests and stubs only. Branch `step-8.1`, cut from `step-7.3` (e8b8748). All data below is invented. The expected texts and number lists of section 6 were worked out by hand first; the engine was asked only to confirm counts (end of section 6).
+STATUS: BUILT 2026-11-18 (stage 3, tip 3ec2029); breaks run; manual check NOT RUN YET.
 
 # Plan for step 8.1: the roadmap report on request
 
@@ -371,38 +371,45 @@ Expected texts and number lists are literal strings from section 6, never import
 | T25 | the copy helpers (tests/roadmapCopy.test.ts, imports from `@/app/roadmapReport`): **T25a** `write` resolves: `copyReport` returns `"copied"`, `write` called exactly once with exactly the text given (`"alpha\n    beta"`); **T25b** `write` returns a rejected promise: `"failed"`; **T25c** `write` throws a TypeError synchronously (a missing clipboard): the returned promise RESOLVES to `"failed"` (it does not reject); **T25d** `shownCopyStatus({ status: "copied", text: "A" }, "A")` is `"copied"` and with `"failed"` is `"failed"`; **T25e** `shownCopyStatus({ status: "copied", text: "A" }, "B")` is `"idle"` and `shownCopyStatus(null, "A")` is `"idle"` (green on the stub; it bites through B24) | tests/roadmapCopy.test.ts | pure |
 | T24 | guard (SOURCE): the clipboard is written in exactly one place, `navigator.clipboard.writeText`, inside the function `onCopy` of RoadmapReportView.tsx, which an `onClick={onCopy}` calls; never in app/roadmapReport.ts; no `Blob`, no `createObjectURL`, no `download` attribute, no `document.execCommand` anywhere in the two new files | tests/roadmapGuards.test.ts | source |
 
-## 8. Deliberate breaks (each must make the NAMED test fail)
+## 8. Deliberate breaks, and what the runs showed (stage 4, 2026-11-18)
 
-| # | Break | Named test |
-|---|---|---|
-| B1 | `roadmapInputs` keeps the jobs BEFORE `listedAlternatives` | the existing Amendment 6 tests (G15, U4; to be named after the break has been RUN in stage 4) |
-| B2 | remove the saved-ad id line from `roadmapInputs` (P0 again) | T19, T1, T4 |
-| B3 | swap `mustAds` and `niceAds` in the asked line | T1 |
-| B4 | the asked numbers ignore blocked ads | T2 |
-| B5 | the report built below the threshold | T6 |
-| B6 | `reportNumbers` does not remove labels first | T7 |
-| B7 | the checker accepts any list | T8 |
-| B8 | **withdrawn** (the runtime self-check, D4) | |
-| B9 | import `@/lib/ai/...` into the report file | T14 |
-| B10 | `new Date()` in the report | T14 |
-| B11 | the plural wrong ("1 saved ads", "1 of your 1 saved ads") | T5 |
-| B12 | the footnote dropped when the ranking is not empty | T1 |
-| B13 | the footnote shown when the ranking is empty | T4 |
-| B14 | a sentence typed into RoadmapReportView.tsx | T15 |
-| B15 | the report lines keyed by their text alone | T15 |
-| B16 | `roadmapBox` changed by the extraction (a field dropped) | the existing U3 and P0a (to be named after the run) |
-| B17 | a `fetch(` in the view | T14 |
-| B18 | a skill's date read from the clock instead of the profile | T14 |
-| B19 | the asked numbers looked up by position in the gap list instead of by skill id | T2 |
-| B20 | the copy text without the indent of the sub lines | T22 |
-| B21 | the clipboard written at render, or outside a click handler | T24 |
-| B22 | the not-counted line dropped from the report | T21 |
-| B23 | the status line drawn while idle | T23b |
-| B24 | `shownCopyStatus` ignores the text | T25e |
-| B25 | `copyReport` lets a rejection or a synchronous throw escape | T25b and T25c |
-| B26 | `copyReport` calls `write` twice, or with another text | T25a |
+Each break was applied alone to the committed tip `3ec2029`, the WHOLE suite run once, the file restored with `git checkout`, and `git status` checked empty before the next. "Red" is the number of tests that went red, X5 (tests/closeSpelling.test.ts, a known timeout under load) not counted. Test ids are the ids of section 7; "existing" means a test written before step 8.1.
 
-**Guards that are green on the stubs.** T14, the sentence guards of T15, T16 and the second test of T24 are green on the stubs by nature ("must not contain"); they prove themselves only through their break (B9, B10, B14, B17, B18 and the Blob/download breaks), run in stage 4. T25e is green on the stub for the same reason and bites through B24.
+| # | Break | Named test | Red | Named test red? | Run result |
+|---|---|---|---|---|---|
+| B1 | `roadmapInputs` keeps the jobs BEFORE `listedAlternatives` | the existing Amendment 6 tests | 1 | yes | only G15 (a requirement with a listed and an unlisted alternative). No test of step 8.1 sees it: no report case has an unlisted ALTERNATIVE (R1's ad 4 has an unlisted MUST-HAVE, which `splitJudgeable` removes earlier) |
+| B2 | each counted job keeps `ad.job.id` instead of the saved-ad id | T19, T1, T4 (and the P0 tests) | 34 | yes | T1, T2, T3a, T3b, T3c, T4, T19, T20, T21, T22, T7b, T11 (8), the existing P0a, P0b (7), P0c, and the 7.3 tests T2, T3, T5, T12b, T16b and U12e T10b |
+| B3 | `mustAds` and `niceAds` swapped in the asked line | T1 | 20 | yes | T1, T2, T3a to c, T5, T7b, T7c, T11 (8), T19, T20, T21, T22 |
+| B4 | the asked numbers from a gap list without the blocked ads (needs one extra import line in the same file) | T2 | 6 | yes | T2, T7b, T11 (4) |
+| B5 | the "fewer counted ads than the threshold" check dropped | T6 | 1 | yes | T6 |
+| B6 | `reportNumbers` does not remove labels | T7 (R8), T8b | 13 | T7 yes, **T8b no** | T7 (R1, R2, R8), T7b, T7c, T11 (8). T8b stays green: it compares a list made WITHOUT the label in `labels` with the hand list, and a checker that removes no label returns that same list; so T8b cannot tell B6 from the correct checker. T7 (R8) is the test that pins it |
+| B7 | `reportNumbers` reads only the first line | T7, T8a | 22 | yes | T7 (10 cases), T7b, T7c, T8a, T8b, T11 (8) |
+| B9 | an import from `@/lib/ai/readJob` in app/roadmapReport.ts | T14 | 1 | yes | T14 |
+| B10 | `new Date()` in app/roadmapReport.ts | T14 | 1 | yes | T14 |
+| B11 | the plural wrong ("1 saved ads", "1 of your 1 saved ads"; two phrases in messages.ts) | T5, T17 | 4 | yes | T5, T7c, T17 (2) |
+| B12 | the footnote not added when the ranking is not empty | T1 | 11 | yes | T1, T2, T3a to c, T5, T7c, T19, T20, T21, T22. T4 stays green (no footnote is correct there) |
+| B13 | the footnote added when the ranking is empty | T4 | 1 | yes | T4 |
+| B14 | a five-word sentence as JSX text in app/RoadmapReportView.tsx | T15 | 1 | yes | T15 (the view guard) |
+| B15 | list items keyed by `key={line.text}` | T15 | 1 | yes | T15 (the view guard) |
+| B16 | `roadmapBox` loses its `timeline` field after the extraction | the existing tests | 21 | yes | the 7.3 timeline tests (T1 to T6, T8, T9, T12b, T13, T16a, T16b, T17b, T17c of tests/timeline.test.ts), U12e T10a and T10b, U12f T11b, and the report's own T13 (4 cases) |
+| B17 | a `fetch(` call in app/RoadmapReportView.tsx | T14 | 1 | yes | T14 |
+| B18 | `Date.now()` in app/roadmapReport.ts | T14 | 1 | yes | T14 |
+| B19 | the asked line looked up by position (`rows[i]`) instead of by skill id | T2 | 5 | yes | T2, T7b, T11 (3) |
+| B20 | `reportAsText` without the four-space indent | T22 | 1 | yes | T22 |
+| B21 | a second clipboard write in the view's render body | T24 | 2 | yes | T24 (the "exactly one clipboard write" test) and T12a (the static render has no clipboard) |
+| B22 | the not-counted line dropped from the report | T21 | 2 | yes | T21, T7b |
+| B23 | the "Copied." paragraph drawn whatever the status | T23b | 2 | yes | T23b, T23d |
+| B24 | `shownCopyStatus` ignores the text | T25e | 1 | yes | T25e |
+| B25 | `copyReport` without its try/catch | T25b, T25c | 2 | yes | T25b, T25c |
+| B26 | `copyReport` calls `write` twice | T25a | 1 | yes | T25a |
+| B27 | a `new Blob([text])` in the view | T24 (second test) | 1 | yes | T24 (second test) |
+| B28 | a `download="report.txt"` attribute on the copy button | T24 (second test) | 1 | yes | T24 (second test) |
+| B29 | the shell starts open (`useState(true)`) | T12a | 1 | yes | T12a |
+| B30 | the catch of `roadmapReportSafe` returns `{ kind: "none" }` | T9 | 1 | yes | T9 |
+| B31 | the ranking numbered from 0 (`${i}.`) | T13 (T1 too) | 14 | yes | T1, T2, T3a to c, T5, T7c, T19, T20, T21, T22 and T13 in 3 of its 4 cases (R4 has no ranking) |
+| B8 | withdrawn (the runtime self-check, D4) | | | | |
+
+**Notes.** Every named test was red except T8b under B6. X5 timed out under load in 11 of the 30 runs (B11, B15, B18, B20, B23, B26, B27, B28, B29, B30, B31) and passed alone; it is not counted as a red of any break. B10 and B18 are two ways of putting a clock into the file. T14, the sentence guards of T15, T16 and the second test of T24 were green on the stubs by nature; B9, B10, B14, B17, B18, B27 and B28 show that they bite.
 
 ## 9. Manual-check outline (for docs/MANUAL-CHECK-8.1.md; every step NOT RUN YET)
 
@@ -450,6 +457,8 @@ None open from v1 (all answered, section 2). New in v2:
 - 2026-11-17: No runtime self-check of the report's numbers; the number checker is a test helper (tests/support/reportNumbers.ts) and moves into app/ only when AI-written words arrive. Reason: both sides come from the same engine calls, it would not have caught P0, and it could only show a false failure.
 - 2026-11-17: `roadmapBox` and `roadmapReport` share one function for the counted ads, the engine views, the engine jobs (with the saved-ad id) and the label function. Reason: two copies of that code is how the P0 defect could have happened twice.
 - 2026-11-17: The report has no date line. Reason: a date needs a clock, which the engine, the box and the tests keep out.
+- 2026-11-18: T13 compares the report with the BOX, not with the command-line report. Reason: the CLI prints an unlisted alternative by its raw `new:` id (a known difference since 7.1 Amendment 6), the box does not.
+- 2026-11-18: the page calls `roadmapInputs` twice per change (once for the box, once for the report); accepted for now, to be computed once in a later tidy. Reason: the work is a few `match` calls per ad, and sharing the result would change the box's signature.
 
 ## 14. Engine confirmation of the counts (stage 2)
 
@@ -459,3 +468,12 @@ A temporary script (deleted; no AI call; no code of 8.1 exists) ran the engine's
 - **R6**: M 3, strong 0; Python first, unlocks Alpha Analyst and Beta Analyst (total 2); then SQL, unlocks Gamma Analyst only (total 3); asked: Python must 2, SQL must 2 (so SQL is asked in 2 and unlocks 1: p1 already unlocked higher up); timeline none.
 - **R7**: three saved ads, M 2 (the ad with no requirements is not counted); strong 1; Python unlocks Data Assistant (total 1); asked must 1; timeline none.
 R1, R2, R3, R4, R5 and R8 were confirmed in the stage-1 run (same counts).
+
+## 15. For HANDOFF at merge time (a later list, the owner's idea of 2026-11-18)
+
+Ideas to decide after the Day 10 tester sessions; none is built or planned yet.
+1. **What the fit level does not see.** One plain line saying that a fit level reads skills, years, languages, cities, work mode and start date, and does not see projects, seniority, soft skills, the summary or the cover letter. Careful lane: it is wording about a person's chances.
+2. **Soft skills in an ad.** Show them as "check this yourself" with a prompt for the person's own example, and no score. (The ad reader already moves lines it cannot check to "check this yourself".)
+3. **Years per skill** ("at least 2 years in growth"). Needs a schema change (one years field per job today, HANDOFF.md:150), so careful lane.
+4. **A summary and cover-letter helper**, under the rule of step 8.3: only from cited CV lines, and the code rejects any new employer, title, number or tool.
+Order to be decided after the Day 10 tester sessions.

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { copyReport, shownCopyStatus } from "@/app/roadmapReport";
 
-// Step 8.1, T25 (docs/PLAN-8.1.md section 7): the two pure copy helpers. Hand-worked expectations; the helpers are STUBS now.
+// Step 8.1, T25 (docs/PLAN-8.1.md section 7): the two pure copy helpers. Hand-worked expectations; the helpers were stubs when these were written.
 // copyReport(text, write) calls write(text) exactly once and ALWAYS resolves: "copied" when the write resolves, "failed" when it rejects or
 // throws synchronously (a missing navigator.clipboard throws before any promise exists). shownCopyStatus(record, currentText) shows the
 // record's status only while the text it described is the text now on screen.

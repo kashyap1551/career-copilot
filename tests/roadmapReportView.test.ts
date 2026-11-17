@@ -7,7 +7,7 @@ import RoadmapReportView, { RoadmapReportOpen, type CopyStatus } from "@/app/Roa
 // Step 8.1, T12 and T23 (docs/PLAN-8.1.md sections 1 and 7): what the view DRAWS. react-dom/server, createElement, no JSX, no config
 // change. The shapes below are the plan's markup spec (section 1, "How it is drawn"): the closed shell draws one button and nothing else;
 // the open body is one <section aria-label="Your roadmap report"> with the title, one <ul> of <li>, a sub line as <li data-sub="true">,
-// the Copy button, and, when the status is not "idle", one <p> with the status line. The view is a STUB, so these fail on assertions.
+// the Copy button, and, when the status is not "idle", one <p> with the status line. The view was a stub when these were written, so they failed on assertions.
 
 const TITLE = "Your roadmap report";
 const REPORT: RoadmapReport = {

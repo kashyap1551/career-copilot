@@ -116,7 +116,7 @@ describe("T15: no clock, and the view draws the timeline by position", () => {
 });
 
 // ---- Step 8.1 (docs/PLAN-8.1.md section 7, T14, T15, T16 and T24): source guards for the roadmap report. Appended; no existing case is
-// touched. The two new files are STUBS now: the "must not contain" guards are green on a stub by nature, the "must contain" ones are red.
+// touched. The two new files were stubs when these were written: the "must not contain" guards were green on a stub by nature, the "must contain" ones were red.
 
 const REPORT_FILES = ["app/roadmapReport.ts", "app/RoadmapReportView.tsx"] as const;
 
