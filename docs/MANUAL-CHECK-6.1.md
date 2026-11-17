@@ -1,5 +1,7 @@
 # Manual check for step 6.1 (saving on this device)
 
+STATUS: manual check complete, 25 of 25 steps passed (steps 18 and 20 at page level only), 2026-11-17. The tick in docs/SPRINT.md is done together with the merge of integration-check.
+
 For the owner. Plain words, one small action per step. Each step has **Do** and **Expect**. If what you see is not what is written under Expect, stop, write down the step number and what you saw, and send it to the reviewer. Do not try to fix anything.
 
 6.1 is ticked in `docs/SPRINT.md` only after this check passes.
@@ -136,7 +138,7 @@ The plan asks that 15 saved ads survive a reload. The check by hand uses **3 ads
 
 - Tester: owner. Live site, Chrome, normal window, browser extensions on.
 - App code under test: commit 93f79b4 (Vercel: Production, Ready, 2026-11-16 22:00). Later commits are docs-only and do not change these results.
-- Steps 1 to 9 run on 2026-11-16, 22:25 to 23:54 Berlin time; steps 10 to 17 run on 2026-11-17, between about 01:20 and 01:40 Berlin time (same app code, commit 93f79b4; the commits since are docs-only).
+- Steps 1 to 9 run on 2026-11-16, 22:25 to 23:54 Berlin time; steps 10 to 17 run on 2026-11-17, between about 01:20 and 01:40 Berlin time (same app code, commit 93f79b4; the commits since are docs-only); steps 18 to 25 run on 2026-11-17, 03:14 to 03:36 Berlin time, on the live site, with the invented material only.
 
 | Step | Result | What was seen |
 |---|---|---|
@@ -157,14 +159,16 @@ The plan asks that 15 saved ads survive a reload. The check by hand uses **3 ads
 | 15 | PASSED | Reload: 3 rows still listed (the owner confirmed in words, no screenshot). |
 | 16 | PASSED | Open on the oldest row: its report shows, its ad text is put back in the ad box, there is NO "Save this ad" button; jobs still 3 entries; the entry's savedAt is still 2026-11-17T00:21:57Z, so opening wrote nothing back. |
 | 17 | PASSED | Delete on the top row: "The saved ad was deleted."; 2 rows; jobs shows 2 entries (keys 58ef... and 7d9d...). |
-| 18 | NOT RUN YET | |
-| 19 | NOT RUN YET | |
-| 20 | NOT RUN YET | |
-| 21 | NOT RUN YET | |
-| 22 | NOT RUN YET | |
-| 23 | NOT RUN YET | |
-| 24 | NOT RUN YET | |
-| 25 | NOT RUN YET | |
+| 18 | PASSED (page level): invented CV read, skills confirmed, "Save on this device" pressed, line "Saved on this device." shown. The IndexedDB counts (profile 1, jobs 2) were NOT inspected. |
+| 19 | PASSED: the page asked "Delete the saved profile and everything else saved on this device?" with "Yes, delete everything" and "Cancel"; nothing was deleted yet. |
+| 20 | PASSED (page level): after Cancel the page still showed "Saved on this device." and the Delete button. The IndexedDB counts were NOT inspected. |
+| 21 | PASSED: after "Yes, delete everything" the page said "Everything saved on this device was deleted."; the "Saved on this device." line was gone. After a reload the page looked like a first visit (no saved-profile box, no Saved ads). IndexedDB checked afterwards in the same normal window: profile 0 entries, jobs 0 entries. |
+| 22 | PASSED: new private window, Console open, page reloaded with the tools open: no red errors and no amber warnings. |
+| 23 | PASSED: in the private window "Saved on this device." after saving the profile and again after "Save this ad"; a Saved ads box with 1 row, "Reporting Analyst, Northlake Foods Ltd (2026-11-17)". Note: by a guidance mistake the CV box held the invented ad 1 text (6 lines, 231 characters) instead of the 8-line CV, so the saved profile had 3 skills (SQL and Tableau from line 4, Excel from line 5) with ad-text evidence, and the report read "Fit: Strong (skills only)". Invented text only; no effect on what the step proves. |
+| 24 | PASSED: reload in the same private window: top box "A profile is saved on this device (2026-11-17)", counts "3 skills, 0 in progress; constraints set: none", buttons Use this profile / Delete this profile / Read a CV again; Saved ads list with 1 row. |
+| 25 | PASSED: after closing the private window, a new private window showed nothing saved (no profile box, no Saved ads) and the Console had no red errors. |
+
+Extra checks, not in the document: the normal window showed nothing saved after the private window was closed. Steps 18 and 20: the IndexedDB counts were not inspected; the deletion end state (both boxes empty) was.
 
 Console: the only red error seen was "Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received" (3 repeats, no file of ours named), together with Grammarly warnings: browser-extension noise. The clean Console test is steps 22 and 25 in a private window.
 
