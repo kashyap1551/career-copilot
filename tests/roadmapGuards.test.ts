@@ -114,3 +114,63 @@ describe("T15: no clock, and the view draws the timeline by position", () => {
     expect(src).not.toContain("onClick");
   });
 });
+
+// ---- Step 8.1 (docs/PLAN-8.1.md section 7, T14, T15, T16 and T24): source guards for the roadmap report. Appended; no existing case is
+// touched. The two new files are STUBS now: the "must not contain" guards are green on a stub by nature, the "must contain" ones are red.
+
+const REPORT_FILES = ["app/roadmapReport.ts", "app/RoadmapReportView.tsx"] as const;
+
+describe("T14: the report only reads, makes no call, uses no clock and no AI", () => {
+  for (const f of REPORT_FILES) {
+    it(`T14: ${f} has no fetch, storage, save or delete call, no effect, no @/lib/ai import, no clock`, () => {
+      const src = read(f);
+      for (const w of ["fetch(", "localStorage", "sessionStorage", "indexedDB", "saveJob", "saveProfile", "deleteJob", "deleteProfile", "deleteAll", "useEffect", "@/lib/ai", "Date.now", "new Date", "performance.now"]) {
+        expect(code(src), `${f} must not contain "${w}"`).not.toContain(w);
+      }
+      expect(src, `${f} must not import @/lib/ai`).not.toMatch(/from\s+["']@\/lib\/ai/);
+    });
+  }
+});
+
+describe("T15: no sentence in the new files; the view keys each line by position", () => {
+  for (const f of REPORT_FILES) {
+    it(`T15: ${f} has no string literal of four or more words`, () => {
+      const hit = code(read(f)).split("\n").find((l) => SENTENCE_LITERAL.test(l));
+      expect(hit, `${f} holds a sentence literal: ${hit}`).toBeUndefined();
+    });
+  }
+
+  it("T15: app/RoadmapReportView.tsx has no JSX text of four or more words, no <form, and keys its lines by an index", () => {
+    const src = code(read("app/RoadmapReportView.tsx"));
+    expect(jsxSentences(src), "the view holds a sentence as JSX text").toEqual([]);
+    expect(src).not.toContain("<form");
+    const keyLines = src.split("\n").filter((l) => l.includes("key="));
+    expect(keyLines.length, "the view must key its list items").toBeGreaterThanOrEqual(1);
+    for (const l of keyLines) expect(l, `key without an index: ${l}`).toMatch(/\b(i|index|idx)\b/);
+    expect(src).not.toContain("key={line}");
+  });
+});
+
+describe("T16: the box's own view still has no button", () => {
+  it("T16: app/RoadmapView.tsx has no onClick (the report's button is in its own file)", () => {
+    expect(code(read("app/RoadmapView.tsx"))).not.toContain("onClick");
+  });
+});
+
+describe("T24: the clipboard is written in one place, in a click handler, and nothing else leaves the page", () => {
+  it("T24: navigator.clipboard.writeText appears once, inside the function onCopy of RoadmapReportView.tsx, which an onClick calls", () => {
+    const view = code(read("app/RoadmapReportView.tsx"));
+    expect((view.match(/navigator\.clipboard\.writeText/g) ?? []).length, "exactly one clipboard write in the view").toBe(1);
+    expect(view).toMatch(/(async\s+function\s+onCopy|const\s+onCopy\s*=)[\s\S]*?navigator\.clipboard\.writeText/);
+    expect(view).toMatch(/onClick=\{onCopy\}/);
+  });
+
+  it("T24: no clipboard write in app/roadmapReport.ts, and no file, Blob, object URL, download attribute or execCommand in either new file", () => {
+    expect(code(read("app/roadmapReport.ts"))).not.toContain("clipboard");
+    for (const f of REPORT_FILES) {
+      for (const w of ["Blob", "createObjectURL", "download=", "download:", "execCommand", "FileReader", "showSaveFilePicker"]) {
+        expect(code(read(f)), `${f} must not contain "${w}"`).not.toContain(w);
+      }
+    }
+  });
+});

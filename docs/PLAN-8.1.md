@@ -361,7 +361,7 @@ Expected texts and number lists are literal strings from section 6, never import
 | T21 | R7 (the not-counted line after the basis line; the number inside it is in the numbers list) | same | page's way |
 | T22 | `reportAsText` of R1 equals R1c exactly (indent of four spaces, `\n`, no trailing newline) | same | page's way |
 | T23 | the pure open-state component `RoadmapReportOpen`: shows the title, the lines, the Copy button `Copy report as text`; with status "copied" the line `Copied.`; with "failed" the line `Could not copy. Select the text and copy it by hand.`; with "idle" neither | tests/roadmapReportView.test.ts | markup only |
-| T24 | guard (SOURCE): the clipboard is written in exactly one place, `navigator.clipboard.writeText`, inside a click handler of RoadmapReportView.tsx; never in app/roadmapReport.ts; no `Blob`, no `createObjectURL`, no `download` attribute, no `document.execCommand` anywhere in the two new files | tests/roadmapGuards.test.ts | source |
+| T24 | guard (SOURCE): the clipboard is written in exactly one place, `navigator.clipboard.writeText`, inside the function `onCopy` of RoadmapReportView.tsx, which an `onClick={onCopy}` calls; never in app/roadmapReport.ts; no `Blob`, no `createObjectURL`, no `download` attribute, no `document.execCommand` anywhere in the two new files | tests/roadmapGuards.test.ts | source |
 
 ## 8. Deliberate breaks (each must make the NAMED test fail)
 

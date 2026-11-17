@@ -138,3 +138,18 @@ export const TIMELINE_NONE = "Timeline from skills in progress: none.";
 export const WHAT_TO_LEARN = "What to learn";
 
 export const ROADMAP_FAILED_LINE = "What to learn could not be worked out.";
+
+// STUB: stage 3 replaces this. Step 8.1 (docs/PLAN-8.1.md section 1): the words of the roadmap report. Empty for now so the red tests
+// fail on an assertion and not on a missing import.
+export const REPORT_BUTTON_OPEN = "";
+export const REPORT_BUTTON_CLOSE = "";
+export const REPORT_TITLE = "";
+/* eslint-disable @typescript-eslint/no-unused-vars -- STUB: stage 3 replaces these two */
+export const reportBasisLine = (_counted: number): string => "";
+export const reportAskedLine = (_must: number, _nice: number, _counted: number): string | null => "";
+/* eslint-enable @typescript-eslint/no-unused-vars */
+export const REPORT_FOOTNOTE = "";
+export const REPORT_COPY = "";
+export const REPORT_COPIED = "";
+export const REPORT_COPY_FAILED = "";
+export const REPORT_FAILED_LINE = "";
