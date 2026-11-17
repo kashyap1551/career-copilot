@@ -61,3 +61,16 @@ export const NO_PROFILE_IN_USE_NOTE =
   'No fit levels yet: no profile is in use. Read and confirm a CV, or press "Use this profile" if one is saved on this device.';
 export const OLD_READING_LINE = "Old reading: open it to read it again.";
 export const LEVEL_FAILED_LINE = "A level could not be worked out for this ad.";
+
+// The held-back line of the "What to learn" box (docs/PLAN-7.1.md, Amendments 1 and 2). Only the WORDS live here;
+// `heldBackLine` in app/roadmap.ts chooses singular or plural and puts them together. Example, for one ad of four:
+// "1 of your 4 counted saved ads is held back by something other than skills (location), so learning the skills above may not open it."
+export const HELD_BACK_OF = "of your";
+export const HELD_BACK_COUNTED = "counted saved";
+export const HELD_BACK_AD = { one: "ad", many: "ads" };
+export const HELD_BACK_IS = { one: "is", many: "are" };
+export const HELD_BACK_REASON = "held back by something other than skills";
+export const HELD_BACK_TAIL = {
+  one: "so learning the skills above may not open it",
+  many: "so learning the skills above may not open them",
+};
