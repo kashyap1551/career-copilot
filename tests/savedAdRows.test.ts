@@ -132,11 +132,12 @@ describe("L4 to L6: no profile in use", () => {
   it("L6: a saved profile from a newer app: the same as L4; the record is not changed", async () => {
     const newer = { schemaVersion: 99, savedAt: "2030-01-01T00:00:00.000Z", skills: [], constraints: {}, set: {}, stamps: {}, future: true };
     const { store, ctx } = await storeWithProfile(newer);
+    const before = store.writes; // taken right after the set-up
     const listed = await listJobs(ctx);
     const x = rows(listed.ok ? listed.jobs : [], null);
     expect(x.note).toBe(NOTE);
     expect(await store.get("profile", "current")).toEqual(newer);
-    expect(store.writes).toBe(4); // only the four puts of this test's set-up (three ads and the profile): the list wrote nothing
+    expect(store.writes).toBe(before); // building the rows wrote nothing
   });
 });
 
