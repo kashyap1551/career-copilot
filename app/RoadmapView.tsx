@@ -18,15 +18,15 @@ export default function RoadmapView({ box }: { box: RoadmapBox }) {
       {hasNote && <p className={quiet}>{box.noProfile}</p>}
       {hasPartA && (
         <ul className="flex flex-col gap-1">
-          {box.partA.map((line) => (
-            <li key={line}>{line}</li>
+          {box.partA.map((line, i) => (
+            <li key={`${i}-${line}`}>{line}</li>
           ))}
         </ul>
       )}
       {hasPartB && (
         <ul className="flex flex-col gap-1">
-          {box.partB.map((line) => (
-            <li key={line}>{line}</li>
+          {box.partB.map((line, i) => (
+            <li key={`${i}-${line}`}>{line}</li>
           ))}
         </ul>
       )}

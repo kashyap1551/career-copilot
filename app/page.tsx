@@ -15,7 +15,7 @@ import ConfirmBox from "./ConfirmBox";
 import AccessBox from "./AccessBox";
 import { postJson } from "./accessFetch";
 import CvBox from "./CvBox";
-import { roadmapAds, roadmapBox } from "./roadmap";
+import { roadmapAds, roadmapBoxSafe } from "./roadmap";
 import RoadmapView from "./RoadmapView";
 import { openedReadings, reportFor } from "./savedAdRows";
 import ReportView from "./ReportView";
@@ -154,7 +154,7 @@ export default function Home() {
   const adList = saved.state.phase === "ready" ? saved.state.ads.list : NO_ADS.list;
   const adStamps = saved.state.phase === "ready" && saved.state.ctx ? saved.state.ctx.stamps : null;
   const roadmap = useMemo(
-    () => roadmapBox(profile, roadmapAds(adStamps ? openedReadings(adList, { stamps: adStamps, skills }) : []), skills),
+    () => roadmapBoxSafe(profile, roadmapAds(adStamps ? openedReadings(adList, { stamps: adStamps, skills }) : []), skills),
     [adList, adStamps, profile],
   );
 
