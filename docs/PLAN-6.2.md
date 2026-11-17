@@ -1,4 +1,4 @@
-STATUS: DRAFT, awaiting reviewer. Careful lane (it shows a level the person will act on). Nothing is built. All data below is invented.
+STATUS: APPROVED 2026-11-17 (revision 2); the build waits for the merges in section 5. Careful lane (it shows a level the person will act on). Nothing is built. All data below is invented.
 
 REVISION 2 (2026-11-17, reviewer decision): the list uses exactly the profile the report uses on that page, never a profile of its own (section 2). The first draft read the stored profile on its own; that was a FAULT, shown by the fact below.
 
@@ -208,3 +208,4 @@ Log table: ten rows, all NOT RUN YET.
 10. **No cap.** All saved ads are computed (the report of one ad is a few thousand operations, section 2); no limit and no paging. Proposed: yes; the readings are computed once per change of ads or stamps, the reports once per change of profile, not per render.
 11. **The `Fit:` prefix and the quiet lines** use the same wording as the report page ("Fit: ..."). Proposed: yes.
 13. **A gap in "always equal" when no profile is in use (new, flagged).** With no profile in use, the opened report is the typed-list report (app/page.tsx:143-146), which can show its own level ("... (skills only)") for the skills the person typed, while the rows show no level. So "the row text equals the opened report text" holds whenever a profile is in use, and cannot hold on route R1 unless the rows also followed the typed-list path. Proposed: keep the reviewer's rule as decided (rows without a level when no profile is in use) and state the limit in the manual check (step 4 asks for the report's first line); the alternative is that the rows use the same selector as the report, including the typed list, which would make the rule hold on every route at the cost of showing a provisional "skills only" level on every row. The reviewer decides.
+    **Answered (reviewer, 2026-11-17): keep the rule as decided.** With no profile in use the rows show no level and one note; the opened report is the typed-list report; manual step 4 notes it. Q1, Q3, Q4, Q5, Q6, Q7, Q10 and Q11 are answered as proposed.
