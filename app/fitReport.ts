@@ -1,8 +1,9 @@
 import { conflictLine, levelName } from "@/lib/engine/explain";
-import { noLevelReason, splitJudgeable } from "@/lib/engine/judgeable";
+import { noLevelReason } from "@/lib/engine/judgeable";
 import { languageName, match, MODE_NAMES } from "@/lib/engine/match";
-import type { ConflictKind, FitLevel, Job, Requirement, RequirementResult, Skill } from "@/lib/engine/types";
-import { KINDS, KIND_WORDS, type BuiltProfile, type Kind } from "@/lib/cv/profile";
+import type { FitLevel, Job, Requirement, RequirementResult, Skill } from "@/lib/engine/types";
+import { engineView } from "@/lib/cv/engineView";
+import { CONFLICT_KIND, KINDS, KIND_WORDS, type BuiltProfile, type Kind } from "@/lib/cv/profile";
 import {
   countsSentence,
   fitLabelText,
@@ -44,14 +45,6 @@ const CAP: Record<Kind, string> = {
   startDate: "Start date",
 };
 
-const CONFLICT_KIND: Record<ConflictKind, Kind> = {
-  language: "language",
-  years: "years",
-  city: "location",
-  workMode: "workMode",
-  startDate: "startDate",
-};
-
 // Does the ad state this kind in a way the engine can judge?
 function statedByAd(kind: Kind, job: Job): boolean {
   const c = job.constraints;
@@ -91,27 +84,9 @@ function adSays(kind: Kind, job: Job): string | null {
 export function profileReport(job: Job, built: BuiltProfile, skills: Skill[], unlisted: Skill[]): ProfileReport {
   const { profile, set } = built;
 
-  // The engine only sees the kinds the person set: languages and the city are
-  // blanked when unset. The work mode is always passed on: an unset work mode
-  // means "all three accepted" (below), so it can cause no conflict, and the
-  // city check still runs when only a city is set.
-  // docs/PLAN-FIT-LEVEL.md (a): the level is decided from the requirements in our skill list only.
-  const { judged: judgedJob, couldNotJudge } = splitJudgeable(job);
-  const engineJob: Job = {
-    ...judgedJob,
-    constraints: {
-      ...job.constraints,
-      languages: set.language ? job.constraints.languages : [],
-      location: set.location ? job.constraints.location : null,
-    },
-  };
-  const engineProfile = {
-    ...profile,
-    constraints: {
-      ...profile.constraints,
-      workModes: set.workMode ? profile.constraints.workModes : (["onsite", "hybrid", "remote"] as const).slice(),
-    },
-  };
+  // The engine only sees the kinds the person set and the requirements in our skill list: lib/cv/engineView.ts (the
+  // same construction the roadmap uses; docs/PLAN-7.1.md section 5).
+  const { engineJob, engineProfile, couldNotJudge } = engineView(job, built);
   const result = match(engineProfile, engineJob);
 
   const judged = KINDS.filter((k) => set[k] && statedByAd(k, job));

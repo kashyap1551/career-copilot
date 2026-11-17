@@ -1,6 +1,6 @@
 import type { CvSkill } from "../engine/fromCv";
 import { skillIdFor } from "../engine/skillIds";
-import type { LanguageLevel, Profile, ProfileSkill, Skill, WorkMode } from "../engine/types";
+import type { ConflictKind, LanguageLevel, Profile, ProfileSkill, Skill, WorkMode } from "../engine/types";
 
 // Step 4.3: what the person confirms on the confirm screen becomes the Profile
 // the rules engine uses. Pure code: no AI, no network, nothing stored. The
@@ -15,6 +15,16 @@ export const KIND_WORDS: Record<Kind, string> = {
   workMode: "work mode",
   years: "years",
   startDate: "start date",
+};
+
+// Which kind of constraint the person sets each kind of engine conflict belongs to (the engine says "city", the page
+// says "location"). The ONE table; the report and the gap list both use it (docs/PLAN-7.1.md, Amendment 2 (3)).
+export const CONFLICT_KIND: Record<ConflictKind, Kind> = {
+  language: "language",
+  years: "years",
+  city: "location",
+  workMode: "workMode",
+  startDate: "startDate",
 };
 
 // Everything the person can change on the confirm screen, as typed.
