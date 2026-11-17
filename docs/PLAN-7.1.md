@@ -37,6 +37,10 @@ The words in brackets are the kinds of conflict found, taken from the engine's c
 4. No saved ad at all: `roadmapBox` returns empty parts and the page does not show the box. No profile in use: the no-profile note and empty parts.
 5. The sentence guard also reads JSX text between tags.
 
+**Amendment 5 (reviewer, 2026-11-17 evening: stage C stop).** It settles a contradiction between U3 and U12; where it differs from section 7, this one rules.
+1. U12 compares the box's Part B with the command-line report's lines AFTER removing the caveat ` (n must-have(s) not judged)`, which only the page shows (section 5, Q10, U3, U6, U6b keep it on the page). The number of removals is asserted: 1 for the four-ad example (ad 4 appears once, in the Python line) and 0 where no ad has an unlisted must-have.
+2. The framing lines (`Already Strong...`, `Skills to build, in order...`, `Blocked jobs...`) are copied into lib/saved/messages.ts, because `renderProfileReport` holds them as literals and lib/engine/report-text.ts is not edited. U12 guards that they cannot drift.
+
 ## 1. What the screen shows
 
 A new box on the page, below the "Saved ads" list, called **"What to learn"**, with two parts. It uses the saved ads and the profile in use (section 2); it has no button that saves, deletes or calls the AI.
