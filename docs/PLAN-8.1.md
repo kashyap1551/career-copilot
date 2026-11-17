@@ -1,4 +1,4 @@
-STATUS: DRAFT v2 for the reviewer, 2026-11-17. The reviewer's decisions D1 to D8 are applied (section 2). Careful lane (section 12, paragraph (b)). Nothing of 8.1 is built; stage 2 writes the red tests and stubs only. Branch `step-8.1`, cut from `step-7.3` (e8b8748). All data below is invented. The expected texts and number lists of section 6 were worked out by hand first; the engine was asked only to confirm counts (end of section 6).
+STATUS: DRAFT v3 for the reviewer, 2026-11-18 (v2 of 2026-11-17 plus the copy helpers, T25 and B23 to B26). The reviewer's decisions D1 to D8 are applied (section 2). Careful lane (section 12, paragraph (b)). Nothing of 8.1 is built; stage 2 writes the red tests and stubs only. Branch `step-8.1`, cut from `step-7.3` (e8b8748). All data below is invented. The expected texts and number lists of section 6 were worked out by hand first; the engine was asked only to confirm counts (end of section 6).
 
 # Plan for step 8.1: the roadmap report on request
 
@@ -75,6 +75,10 @@ By 2027-03-01 (Tableau): 1 more Strong match (Reporting Analyst, Northlake Foods
 - `RoadmapReport = { title: string; lines: ReportLine[] }`, `ReportLine = { text: string; sub: boolean }`. The title is not among the lines.
 - `reportAsText(report)`: the title first, then every line, a sub line indented four spaces, joined with `\n`, no trailing newline. It is the text the Copy button writes to the clipboard.
 - `roadmapReportSafe(...)` returns `{ kind: "none" } | { kind: "ready"; report } | { kind: "failed"; line }`.
+- **The copy logic is two pure helpers in app/roadmapReport.ts, and that file must not contain the word "clipboard", not even in a comment** (the guard of T24 reads code only; this plan is stricter on purpose, so the only place the word can appear is the view). `type CopyStatus = "idle" | "copied" | "failed"` is defined in app/roadmapReport.ts and RE-EXPORTED by app/RoadmapReportView.tsx (the view test imports it from the view).
+  - `copyReport(text, write)`: calls `write(text)` exactly once with exactly that text, inside a try; returns a promise that ALWAYS resolves: `"copied"` when the write resolves, `"failed"` when it rejects or throws synchronously (a missing `navigator.clipboard` throws before any promise exists).
+  - `shownCopyStatus(record, currentText)`: `record` is `{ status: "copied" | "failed"; text: string } | null`, the last copy attempt. Returns `record.status` only when `record.text === currentText`, else `"idle"` (also `"idle"` for `null`). So "Copied." never describes an older text.
+- **The shell** keeps one record `{ status, text }` of the last attempt (null at start). `async function onCopy()` builds `text = reportAsText(report)`, calls `copyReport(text, (t) => navigator.clipboard.writeText(t))` (the only place the clipboard is named) and stores `{ status, text }`. Hiding the report resets the record to null. The status passed down is `shownCopyStatus(record, reportAsText(report))`. The status line is drawn with `role="status"`.
 - Markup of the open report (tests read it with react-dom/server): one `<section aria-label="Your roadmap report">`; a `<p>` with the title; one `<ul>` of `<li>` per line, a sub line as `<li data-sub="true">`; the Copy `<button>`; and, when the status is not "idle", one `<p>` with S14 or S15. The closed shell draws one `<button>` with S1 and nothing else. The button text is the only place a sentence appears besides the lines, and it is a constant.
 
 ## 2. Decisions (reviewer, 2026-11-17), each with its reason
@@ -124,7 +128,10 @@ By 2027-03-01 (Tableau): 1 more Strong match (Reporting Analyst, Northlake Foods
 | a skill in progress with no date | dropped from the profile with a red line on the confirm screen; the ranking line has no "(in progress ...)", the timeline says none | R3c / T3c |
 | a date in the past | shown and counted as stored; no clock | R3b / T3b |
 | a ranked skill with no gap row | no sub line, no crash (`reportAskedLine(0, 0, M)` is null; tested as a function) | T17 |
-| the clipboard refused | the line S15; nothing else changes | T23 |
+| the clipboard refused (a rejected write) | the line S15; nothing else changes | T23, T25b |
+| the clipboard is missing (an insecure page or an old browser: `navigator.clipboard` is undefined, so `.writeText` throws before any promise exists) | treated as refused: the line S15, no crash, no unhandled rejection | T25c |
+| the numbers change while the report is open (a date edited on the confirm screen) | "Copied." is not shown, because it described an older text; the copy button copies the new text | T25d, T25e |
+| the report is hidden and opened again | the status is reset; no old "Copied." | manual step 5 and 6 |
 | the report disappears and returns | it comes back closed (the page unmounts the view) | manual step 7 |
 | a very long title or company | the line wraps (`break-words`); no truncation | T12 |
 | characters that need escaping (`<`, `&`, `'`) | React escapes text; the copy text is plain | T12 |
@@ -137,8 +144,8 @@ By 2027-03-01 (Tableau): 1 more Strong match (Reporting Analyst, Northlake Foods
 | File | Change |
 |---|---|
 | `app/roadmap.ts` | stage 3, first commit alone: extract `roadmapInputs(built, ads, skills)` from `roadmapBox`; `roadmapBox` calls it; no text and no field changes; all existing tests unedited |
-| `app/roadmapReport.ts` (new) | `roadmapReport(built, ads, skills, fromJobs)` -> `RoadmapReport \| null`; `roadmapReportSafe`; `reportAsText` |
-| `app/RoadmapReportView.tsx` (new, client) | default export: the shell with `useState` (open, copy status) and the only clipboard call, inside a click handler; named export `RoadmapReportOpen`: the pure open-state component |
+| `app/roadmapReport.ts` (new) | `roadmapReport(built, ads, skills, fromJobs)` -> `RoadmapReport \| null`; `roadmapReportSafe`; `reportAsText`; the type `CopyStatus`; the pure helpers `copyReport(text, write)` and `shownCopyStatus(record, currentText)`; the file never contains the word "clipboard" |
+| `app/RoadmapReportView.tsx` (new, client) | default export: the shell with `useState` (open, and the record `{ status, text }` of the last copy attempt) and the only clipboard call, inside `async function onCopy`, which `onClick={onCopy}` calls; re-exports `CopyStatus`; named export `RoadmapReportOpen`: the pure open-state component |
 | `app/page.tsx` | one `useMemo` for the report next to the box's; the ads list computed once and given to both; the view mounted only while a report exists |
 | `lib/saved/messages.ts` | the new constants and functions (section 1) |
 | `tests/support/reportNumbers.ts` (new) | the checker (D4) |
@@ -361,6 +368,7 @@ Expected texts and number lists are literal strings from section 6, never import
 | T21 | R7 (the not-counted line after the basis line; the number inside it is in the numbers list) | same | page's way |
 | T22 | `reportAsText` of R1 equals R1c exactly (indent of four spaces, `\n`, no trailing newline) | same | page's way |
 | T23 | the pure open-state component `RoadmapReportOpen`: shows the title, the lines, the Copy button `Copy report as text`; with status "copied" the line `Copied.`; with "failed" the line `Could not copy. Select the text and copy it by hand.`; with "idle" neither | tests/roadmapReportView.test.ts | markup only |
+| T25 | the copy helpers (tests/roadmapCopy.test.ts, imports from `@/app/roadmapReport`): **T25a** `write` resolves: `copyReport` returns `"copied"`, `write` called exactly once with exactly the text given (`"alpha\n    beta"`); **T25b** `write` returns a rejected promise: `"failed"`; **T25c** `write` throws a TypeError synchronously (a missing clipboard): the returned promise RESOLVES to `"failed"` (it does not reject); **T25d** `shownCopyStatus({ status: "copied", text: "A" }, "A")` is `"copied"` and with `"failed"` is `"failed"`; **T25e** `shownCopyStatus({ status: "copied", text: "A" }, "B")` is `"idle"` and `shownCopyStatus(null, "A")` is `"idle"` (green on the stub; it bites through B24) | tests/roadmapCopy.test.ts | pure |
 | T24 | guard (SOURCE): the clipboard is written in exactly one place, `navigator.clipboard.writeText`, inside the function `onCopy` of RoadmapReportView.tsx, which an `onClick={onCopy}` calls; never in app/roadmapReport.ts; no `Blob`, no `createObjectURL`, no `download` attribute, no `document.execCommand` anywhere in the two new files | tests/roadmapGuards.test.ts | source |
 
 ## 8. Deliberate breaks (each must make the NAMED test fail)
@@ -389,6 +397,12 @@ Expected texts and number lists are literal strings from section 6, never import
 | B20 | the copy text without the indent of the sub lines | T22 |
 | B21 | the clipboard written at render, or outside a click handler | T24 |
 | B22 | the not-counted line dropped from the report | T21 |
+| B23 | the status line drawn while idle | T23b |
+| B24 | `shownCopyStatus` ignores the text | T25e |
+| B25 | `copyReport` lets a rejection or a synchronous throw escape | T25b and T25c |
+| B26 | `copyReport` calls `write` twice, or with another text | T25a |
+
+**Guards that are green on the stubs.** T14, the sentence guards of T15, T16 and the second test of T24 are green on the stubs by nature ("must not contain"); they prove themselves only through their break (B9, B10, B14, B17, B18 and the Blob/download breaks), run in stage 4. T25e is green on the stub for the same reason and bites through B24.
 
 ## 9. Manual-check outline (for docs/MANUAL-CHECK-8.1.md; every step NOT RUN YET)
 
@@ -397,8 +411,8 @@ Needs **11 AI reads** on the new preview address (the CV once, the ten ads of do
 2. Look under the box. **Expect:** one button `Make my roadmap report`, and no report text yet.
 3. On the confirm screen untick SQL and add SQL in progress with the date 2027-06-01. Press the button. **Expect:** the lines of R3, exactly, with the ten different names, each once, the asked line under SQL, the footnote.
 4. Press `Hide the roadmap report`. **Expect:** the lines vanish; the button reads `Make my roadmap report`.
-5. Open it again and press `Copy report as text`. **Expect:** `Copied.` Paste into any notes app. **Expect:** the same text as on the screen: the title first, the asked line indented four spaces, no extra empty line at the end.
-6. Change the date to 2027-03-01 (remove and add). **Expect:** the report shows `(in progress, expected 2027-03-01)` and `By 2027-03-01 (SQL): 10 ...`, the same ten.
+5. Open it again and press `Copy report as text`. **Expect:** `Copied.` is visible under the button. Paste into any notes app. **Expect:** the same text as on the screen: the title first, the asked line indented four spaces, no extra empty line at the end.
+6. Change the date to 2027-03-01 (remove and add), with the report still open. **Expect:** the status line `Copied.` is gone (the text changed), and the report shows `(in progress, expected 2027-03-01)` and `By 2027-03-01 (SQL): 10 ...`, the same ten.
 7. Delete one saved ad (nine left). **Expect:** the button and the report are gone; the box shows the threshold line. Save the ad again by reading it (or skip). **Expect** (if done): the button is back and the report is closed.
 8. Network tab, filter `api`, cleared before step 3, Preserve log ticked. **Expect:** no `/api/` request for steps 3 to 7.
 9. Console: no red errors of ours.
@@ -417,7 +431,7 @@ The not-counted line is not exercised by hand (covered by R7 / T21). Log table: 
 
 None open from v1 (all answered, section 2). New in v2:
 1. **Copy of an open report only.** The Copy button exists only while the report is open. *Recommend* yes: the text on screen is the text copied.
-2. **Does `Copied.` need to go away?** *Recommend* no: it stays until the report is closed or the page reloaded; a timer needs a clock or an effect, which the new files forbid (T14).
+2. **Does `Copied.` need to go away?** *Recommend* it stays until the report text changes or the report is hidden (refined in v3); a timer needs a clock or an effect, which the new files forbid (T14).
 
 ## 12. Two paragraphs
 
