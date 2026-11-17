@@ -41,6 +41,13 @@ The words in brackets are the kinds of conflict found, taken from the engine's c
 1. U12 compares the box's Part B with the command-line report's lines AFTER removing the caveat ` (n must-have(s) not judged)`, which only the page shows (section 5, Q10, U3, U6, U6b keep it on the page). The number of removals is asserted: 1 for the four-ad example (ad 4 appears once, in the Python line) and 0 where no ad has an unlisted must-have.
 2. The framing lines (`Already Strong...`, `Skills to build, in order...`, `Blocked jobs...`) are copied into lib/saved/messages.ts, because `renderProfileReport` holds them as literals and lib/engine/report-text.ts is not edited. U12 guards that they cannot drift.
 
+**Amendment 6 (reviewer, 2026-11-17 evening: stage C review).** It fixes four defects found in stage C; where it differs from the text above, this one rules.
+1. The could-not-judge number counts requirements, in COUNTED ads only. An excluded ad is named in the not-counted line instead.
+2. Unlisted alternatives: in the box only, each requirement keeps its listed skill ids and loses the unlisted ones (a requirement whose ids are all unlisted was already set aside by `splitJudgeable`). The command-line report is not changed and still prints an unlisted alternative by its raw id (a DECISIONS line at merge time).
+3. The page calls `roadmapBoxSafe`: any throw while working out the box gives one line, `ROADMAP_FAILED_LINE`, instead of an error page.
+4. The box's lines are keyed by position, not by their text (identical lines are possible).
+5. MANUAL-CHECK-7.1 gets a step that shows the gap rows.
+
 ## 1. What the screen shows
 
 A new box on the page, below the "Saved ads" list, called **"What to learn"**, with two parts. It uses the saved ads and the profile in use (section 2); it has no button that saves, deletes or calls the AI.
