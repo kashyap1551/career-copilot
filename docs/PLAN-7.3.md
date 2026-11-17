@@ -1,4 +1,4 @@
-STATUS: DRAFT for the reviewer, 2026-11-17. Careful lane (it tells a person when jobs open up). Nothing is built. Branch `step-7.3`, cut from `step-7.1` (eb52036). All data below is invented. The hand tables in section 6 were worked out from the engine's rules (docs/DECISIONS.md 2026-11-14) before any code was run.
+STATUS: APPROVED 2026-11-17: the reviewer answered Q1 to Q9 as recommended (section 10); P0 is fixed on `step-7.1` (c794df6) and merged into this branch. Careful lane (it tells a person when jobs open up). Nothing of the timeline is built. Branch `step-7.3`, cut from `step-7.1` (eb52036). All data below is invented. The hand tables in section 6 were worked out from the engine's rules (docs/DECISIONS.md 2026-11-14) before any code was run.
 
 # Plan for step 7.3: the dated timeline in the "What to learn" box
 
@@ -6,7 +6,11 @@ Step text (docs/SPRINT.md line 134): "7.3 Dated timeline from skills in progress
 
 Builds on: docs/PLAN-7.1.md (the box, Amendments 1 to 6), docs/DECISIONS.md 2026-11-14 (the timeline is cumulative; dates that unlock nothing stay with 0; the engine does not know today's date). The reviewer's seven design decisions for this step are taken as given (section 2).
 
-## 0. A defect found while reading the code (affects 7.1 as well; needs the reviewer first)
+## 0. A defect found while reading the code (affects 7.1 as well): FIXED on `step-7.1`, out of this step's scope
+
+**Status (reviewer, 2026-11-17, Q1):** P0 is fixed on `step-7.1` in commit **c794df6** ("fix: the roadmap gives each counted ad its saved-ad id (P0)"; its tests are in tests/roadmapIds.test.ts on that branch; PLAN-7.1.md Amendment 7), and merged into `step-7.3` (merge commit 9532be4). This step does NOT change the id line and does not re-test P0. The text below is the record of the finding.
+
+**The lesson of P0 for this step:** every test that calls `roadmapBox` builds its ads the way the page does: jobs whose id is `pasted-ad`, opened as saved ads with distinct saved ids, through `roadmapAds` (the helper `viaPage` in tests/support/viaPage.ts). A hand-made fixture with distinct ids hides the defect.
 
 Every saved ad, once opened, has `job.id = "pasted-ad"`: `lib/ai/readJob.ts:65` and `lib/saved/openJob.ts:29` both build the job with `{ id: "pasted-ad" }`, and `roadmapAds` (`app/roadmap.ts:164-172`) passes that job on unchanged. The engine keys on `job.id`: `unlockedIds` and `classifyJobs` return ids, `rankMissingSkills` keeps its running total in a `Set` of ids (`lib/engine/unlock.ts:124`), `unlockTimeline` removes earlier ids with `before.includes(id)` (`unlock.ts:244`), and the box's `labelOf` finds a job by id (`app/roadmap.ts:121-126`). The 7.1 tests use distinct ids (`a1` to `a4`), so none of them can see it.
 
@@ -22,7 +26,7 @@ strong ids: [ 'saved-0', 'saved-1', 'saved-2', 'saved-3' ]             <- all fo
 
 So on the live page, from 10 saved ads, "Already Strong", the ranking and its totals are wrong whenever two ads share the id, which is every real ad. The gap list (Part A) does not use ids (lib/engine/gaps.ts has no `.id`), so the required steps of MANUAL-CHECK-7.1 are unaffected; its OPTIONAL step 10 would show it (ten identical labels). `alreadyStrongIds` is not read by the page yet.
 
-The timeline would inherit the defect (its `jobs` and `newlyUnlocked` are lists of ids). The plan therefore makes the fix a prerequisite, **P0**: in `roadmapBox`, each counted ad's engine job gets the SAVED-AD id (`{ ...engineJob, id: counted[i].ad.id }`, applied where `listedAlternatives` is applied). Saved-ad ids are unique (they are the store keys). With distinct ids the texts of 7.1 do not change (tests with ids `a1` to `a4` stay as they are: `asSaved` uses `job.id`). Open question Q1 asks where P0 lands.
+The timeline would inherit the defect (its `jobs` and `newlyUnlocked` are lists of ids). The fix, **P0** (done, c794df6): in `roadmapBox`, each counted ad's engine job gets the SAVED-AD id (`{ ...engineJob, id: counted[i].ad.id }`, applied where `listedAlternatives` is applied). Saved-ad ids are unique (they are the store keys). With distinct ids the texts of 7.1 do not change (tests with ids `a1` to `a4` stay as they are: `asSaved` uses `job.id`). P0 landed on `step-7.1` (see the status above).
 
 ## 1. What the screen shows
 
@@ -92,7 +96,7 @@ I do not think any decision is wrong. One thing to know: "N more Strong matches"
 - Not checked anywhere after the build: a stored `expectedDate` that is not a real date (a damaged record) would sort and print as text. Q7.
 
 **c. What `rankMissingSkills` receives in `roadmapBox` today** (app/roadmap.ts:89-128):
-`counted` = the saved ads for which `roadmapBasis(job).excluded === null` (78-79); `views = counted.map(engineView)` (89); `engineProfile = views[0].engineProfile` (90); `engineJobs = views.map(v => listedAlternatives(v.engineJob))` (93). `classifyJobs(engineProfile, engineJobs)` (127) and `rankMissingSkills(engineProfile, engineJobs)` (128) get exactly that: the judgeable jobs of the counted ads, with the person's unset kinds blanked and unlisted alternatives dropped, ads blocked by a conflict included (they land in `blocked`). The timeline gets the same pair. After P0 the jobs carry saved-ad ids.
+`counted` = the saved ads for which `roadmapBasis(job).excluded === null` (78-79); `views = counted.map(engineView)` (89); `engineProfile = views[0].engineProfile` (90); `engineJobs = views.map(v => listedAlternatives(v.engineJob))` (93). `classifyJobs(engineProfile, engineJobs)` (127) and `rankMissingSkills(engineProfile, engineJobs)` (128) get exactly that: the judgeable jobs of the counted ads, with the person's unset kinds blanked and unlisted alternatives dropped, ads blocked by a conflict included (they land in `blocked`). The timeline gets the same pair. After P0 (c794df6) the jobs carry saved-ad ids.
 
 ## 4. Edge cases (each has a hand case in section 6 or a named test)
 
@@ -109,7 +113,7 @@ I do not think any decision is wrong. One thing to know: "N more Strong matches"
 | no profile in use; no saved ad; zero counted ads | timeline `[]` | T7 |
 | a date in the past | shown and counted as gained; the page does not know today | H3 (2026-01-15) / T3; Q6 |
 | dates entered in reverse order | entries are in date order, not entry order | H6 / T5 |
-| ads that share an id | P0: each counted ad gets its saved-ad id | T16 |
+| ads that share an id | fixed by P0 on `step-7.1`; here every box test builds its ads the page's way (all `pasted-ad`) | all box tests; T16 |
 | an in-progress skill not in our skill list | never on the profile (b above) | T17 |
 | a stored profile with a `new:` in-progress id | dropped by `builtFromSaved` | T17 |
 | a throw while working out the box | `roadmapBoxSafe`: one line, timeline `[]` | T18 |
@@ -118,7 +122,7 @@ I do not think any decision is wrong. One thing to know: "N more Strong matches"
 
 | File | Change |
 |---|---|
-| `app/roadmap.ts` | P0 id line; `RoadmapBox` gets a field `timeline: string[]` (in `EMPTY`, in every early return, and in `roadmapBoxSafe`'s failure value); after the ranking and blocked lists, `unlockTimeline(engineProfile, engineJobs)` and the lines from S1 to S4 |
+| `app/roadmap.ts` | `RoadmapBox` gets a field `timeline: string[]` (in `EMPTY`, in every early return, and in `roadmapBoxSafe`'s failure value); after the ranking and blocked lists, `unlockTimeline(engineProfile, engineJobs)` and the lines from S1 to S4 |
 | `app/RoadmapView.tsx` | a third `<ul>` mapping `box.timeline`, keyed `${i}-${line}`; no sentence in the view |
 | `lib/saved/messages.ts` | `TIMELINE_HEADER`, `TIMELINE_FRAMING`, `TIMELINE_NONE` |
 | `lib/engine/*` | **not changed** (unlock.ts, explain.ts, report-text.ts stay as they are; the CLI output and the golden files do not change) |
@@ -259,7 +263,7 @@ New file **tests/timeline.test.ts** (the box's timeline field), a new `describe`
 | T13 | the box makes no call: `fetch` not called, frozen inputs untouched | H1 with deep-frozen inputs gives the T1 lines (the 7.1 test pattern) |
 | T14 | guard (source): in app/roadmap.ts the call `unlockTimeline(...)` has the same two arguments as `rankMissingSkills(...)` | the two argument lists are equal text |
 | T15 | guard (source): no clock | app/roadmap.ts, app/RoadmapView.tsx and lib/engine/unlock.ts contain no `Date.now`, `new Date`, `performance.now` (code only, comments removed). And the view maps `box.timeline` with an index in its key and has no `onClick`, no sentence literal (the existing guards also run on it) |
-| T16 | P0: four ads that all carry the id `pasted-ad`, with four distinct saved ids (the fixtures of H1) | `partB` equals SECTION_4 (Data Clerk is the one Already Strong; Python unlocks BI Developer and Analytics Lead; Tableau unlocks Reporting Analyst); `alreadyStrongIds` is exactly the saved id of ad 3; `timeline` equals T1's |
+| T16 | the timeline part only, ads built the page's way: H1's four ads all with the id `pasted-ad`, four distinct saved ids; and H2's two entries with two ads of identical content under different saved ids that unlock on the same date (hand count: `2 more Strong matches`, both names listed) | `timeline` equals T1's lines; for the identical pair the entry lists the name twice (the P0 tests proper live on `step-7.1`: tests/roadmapIds.test.ts) |
 | T17 | in-progress ids: the vocabulary has no id that starts with `new:`; `buildProfile` with an in-progress name not in our list ("Kombucha brewing", a real date) puts no `inProgress` skill on the profile (it goes to `unmatchable`, `where: "progress"`); `builtFromSaved` drops a stored in-progress skill with id `new:kombucha-brewing`; the box for such a profile says `Timeline from skills in progress: none.` | hand count: 0 in-progress skills each time |
 | T18 | `roadmapBoxSafe` after a throw (the existing way of forcing one) | `timeline` is `[]` and the ROADMAP_FAILED_LINE is unchanged |
 | T19 | the message constants | `TIMELINE_HEADER`, `TIMELINE_FRAMING`, `TIMELINE_NONE` are exactly the three texts of section 1 |
@@ -279,7 +283,7 @@ Counts: 19 named tests; the number of `it` blocks will be reported when they are
 | B7 | show the timeline below the threshold | T7 |
 | B8 | reverse the order of the entries | T5, T2 |
 | B9 | drop entries whose date is before a fixed "today" (a clock) | T3, T15 |
-| B10 | remove the P0 id line | T16 |
+| B10 | give the timeline's `labelOf` the old ids (look labels up by `pasted-ad`) | T16 |
 | B11 | in lib/engine/unlock.ts, let a job with only closable conflicts count as reachable (restored at once; the engine is not changed by this step) | T6 (and the existing unlock tests) |
 | B12 | a sentence typed into RoadmapView.tsx | the existing sentence guards (the JSX text scan) |
 | B13 | label timeline jobs without the caveat | T2 (hand text has it) and U12e's removal count (H2: 2) |
@@ -300,7 +304,9 @@ Reuses the OPTIONAL step 10 batch of MANUAL-CHECK-7.1 (ten short invented ads, e
 9. Delete one ad (9 left). **Expect** the ranking and the timeline vanish and the threshold line shows `You have 9. Save 1 more to see it.`
 Log table: nine rows, all NOT RUN YET. (This also gives 7.2's "Part B seen on a real page with 10 usable ads".)
 
-## 10. Open questions for the reviewer, each with my recommendation
+## 10. Questions for the reviewer, each with my recommendation, and the ANSWERS (reviewer, 2026-11-17)
+
+**Answers.** Q1: P0 is fixed on `step-7.1` (c794df6); it is out of this step's scope (section 0); T16 keeps only its timeline part. Q2: yes, the timeline after "Blocked jobs". Q3: the short framing sentence. Q4: keep `Timeline from skills in progress: none.` Q5: yes, a separate field `timeline`. Q6: a date in the past is shown and counted as stored; no clock in this step. Q7: no change now. Q8: yes, reuse the 7.1 step 10 batch. Q9: go (stage 2). The questions as asked follow.
 
 1. **P0, where does the id fix land?** It changes what 7.1 shows from 10 ads (it fixes labels and totals; no text of any existing test changes). Options: (a) a separate careful-lane commit on `step-7.1` BEFORE the merge, then `step-7.3` takes it by `git merge step-7.1` (b) the first commit of `step-7.3`, so main carries the defect from the 7.1 merge until 7.3 merges. **Recommend (a):** the defect is in 7.1's code, and a live page with wrong "Already Strong" labels from the tenth ad should not ship. The owner's sitting on the pinned preview (b5beb0e) stays valid for its required steps (the gap list uses no ids; only the optional step 10 of MANUAL-CHECK-7.1 shows the defect); I would not repeat the sitting for P0 alone, only run 7.3's check on the merged live address. Your call: this run does not touch `step-7.1`.
 2. **Order in the box.** After "Blocked jobs" (the CLI's order) or right after the ranking and before "Blocked jobs"? **Recommend after Blocked jobs:** it is "after the ranking" and equals the CLI line order, so U12 can compare one block.
@@ -321,4 +327,4 @@ Log table: nine rows, all NOT RUN YET. (This also gives 7.2's "Part B seen on a 
 - 2026-11-17: The page shows one framing line of its own, `These counts assume you learn each skill by its expected date.`, and no date arithmetic; dates are shown as stored. Reason: the count is a promise about the person's plan, and the page has no clock.
 - 2026-11-17: A date in the past is shown and counted like any other (the engine does not know today). Reason: determinism (no `Date.now` in the engine, the box or the tests).
 - 2026-11-17: The box result has a separate field `timeline`; `partB` keeps its exact lines. Reason: the existing tests pin `partB`.
-- 2026-11-17: In the box, every counted ad's engine job takes the SAVED-AD id (all opened readings share the id `pasted-ad`, which collapsed ads in the ranking, the labels and the totals). Reason: the engine keys on job id.
+- 2026-11-17: (landed on `step-7.1`, commit c794df6, not in this step) In the box, every counted ad's engine job takes the SAVED-AD id (all opened readings share the id `pasted-ad`, which collapsed ads in the ranking, the labels and the totals). Reason: the engine keys on job id.
