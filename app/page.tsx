@@ -12,6 +12,8 @@ import { openJob } from "@/lib/saved/openJob";
 import { loadJob } from "@/lib/saved/saved";
 import type { CvBuildResult } from "@/lib/engine/fromCv";
 import ConfirmBox from "./ConfirmBox";
+import AccessBox from "./AccessBox";
+import { postJson } from "./accessFetch";
 import CvBox from "./CvBox";
 import { profileReport } from "./fitReport";
 import ReportView from "./ReportView";
@@ -69,11 +71,10 @@ export default function Home() {
     setFresh(null);
     setRereadOffered(false);
     try {
-      const res = await fetch("/api/read", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
-      });
+      // One helper sends it (app/accessFetch.ts): it adds the access code header; a 401 shows the Access code box instead.
+      const sent = await postJson("/api/read", { text }, { source: "ad" });
+      if (sent.kind === "access") return;
+      const res = sent.res;
       // If the server's answer is not JSON (for example a timeout page),
       // fall back to a plain message instead of crashing.
       const data = await res.json().catch(() => null);
@@ -220,6 +221,8 @@ export default function Home() {
           {loading ? "Reading…" : "Read this ad"}
         </button>
       </div>
+
+      <AccessBox source="ad" />
 
       {error && (
         <p role="alert" className="rounded border border-red-400 p-3 text-red-600 dark:text-red-400">

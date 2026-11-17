@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { BuiltProfile } from "@/lib/cv/profile";
 import { KINDS, KIND_WORDS } from "@/lib/cv/profile";
 import { skills } from "@/fixtures/skills";
+import { forgetCodeOnDeleteAll } from "./accessFetch";
 import { deleteStatus, SAVE_NOTICE, saveStatus } from "@/lib/saved/messages";
 import { summarizeProfile } from "@/lib/saved/profile";
 import type { SavedReading } from "@/lib/saved/types";
@@ -203,6 +204,7 @@ export function SavedDeleteAll({ saved, onForget }: { saved: Saved; onForget: ()
   // Click handler (the second step, "Yes, delete everything"): the ONLY place everything is deleted.
   async function onDeleteAll() {
     setConfirming(false);
+    forgetCodeOnDeleteAll(); // the access code kept in this tab goes first, whether or not the delete works (PLAN-ACCESS-CODE section 3)
     setStatus("Deleting…");
     const result = await deleteAll(ctx);
     setStatus(deleteStatus(result, "everything"));

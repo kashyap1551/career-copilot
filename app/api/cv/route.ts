@@ -1,3 +1,4 @@
+import { checkAccess } from "@/lib/ai/accessCode";
 import { aiPaused, PAUSED_MESSAGE, PAUSED_STATUS } from "@/lib/ai/enabled";
 import { jsonNoStore } from "@/lib/ai/noStore";
 import { ReadAdError } from "@/lib/ai/errors";
@@ -13,6 +14,11 @@ export async function POST(request: Request) {
   if (aiPaused()) {
     return jsonNoStore({ error: PAUSED_MESSAGE }, { status: PAUSED_STATUS });
   }
+
+  // The access code (docs/PLAN-ACCESS-CODE.md): after the kill switch, before the body is parsed and before the reading
+  // cache, so a cache hit cannot be probed without the code.
+  const denied = checkAccess(request);
+  if (denied) return denied;
 
   let body: unknown;
   try {
