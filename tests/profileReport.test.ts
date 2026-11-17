@@ -66,9 +66,12 @@ describe("profileReport", () => {
     const r = report({ cities: "Berlin", workModes: ["hybrid"] });
     expect(r.fitLabel).toBe("Long shot (judged: skills, location, work mode)");
     expect(r.conflicts).toEqual(["(can't be closed soon) The job is in Manchester; the cities on your profile are: Berlin."]);
+    // docs/PLAN-FIT-LEVEL.md (b): a Long shot decided by a conflict that can't be closed soon names it, first.
     expect(r.explanation).toBe(
-      "One must-have is missing: Communication. 1 conflict was found in what you set (listed below). Not judged here: language, years, start date.",
+      "Long shot because of location: The job is in Manchester; the cities on your profile are: Berlin. That can't be closed soon. One must-have is missing: Communication. 1 conflict was found in what you set (listed below). Not judged here: language, years, start date.",
     );
+    // (c): the work mode (hybrid, accepted) was judged and is fine; the location has a conflict, so no line for it.
+    expect(r.satisfied).toEqual(["Work mode: fine. The job is hybrid, and your profile accepts hybrid."]);
   });
 
   it("R4: only 'manchester' set (case differs): no conflict; Good; work mode stays not judged", () => {
@@ -127,12 +130,15 @@ describe("profileReport", () => {
     expect(r.rows.find((x) => x.label === "Communication")!.detail).toBe("Communication: in progress, expected 2026-12-20");
   });
 
-  it("R10: a requirement whose skills are all unlisted is 'not in our skill list yet' and counted", () => {
+  it("R10: the only must-have is unlisted: it is shown as 'could not judge', not counted, and no level is printed", () => {
     const docker: Job = { ...northwind, requirements: [{ skillIds: ["new:welding"], importance: "must", quote: "Welding experience." }] };
     const r = profileReport(docker, buildProfile(LINES, P, confirm(), skills), skills, [{ id: "new:welding", name: "Welding" }]);
     expect(r.rows[0].status).toBe("unlisted");
-    expect(r.rows[0].detail).toBe("Welding: not in our skill list yet, so it can't be matched with your CV");
+    expect(r.rows[0].detail).toBe("Welding: not in our skill list yet, so we could not judge it.");
     expect(r.unlistedRequirements).toBe(1);
+    expect(r.counts).toEqual({ mustsMet: 0, mustsTotal: 0, nicesMet: 0, nicesTotal: 0 });
+    expect(r.fitLabel).toBe("No level (no must-have we could judge)");
+    expect(r.explanation).toBe("No level can be shown: the ad's only must-have is not in our skill list yet, so it could not be judged.");
   });
 
   it("R11: everything set and met: Strong, only the start date not judged", () => {

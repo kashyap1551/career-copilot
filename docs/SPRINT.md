@@ -4,10 +4,17 @@ About 4 to 5 focused hours a day. Every day ends with a deploy. Start the next s
 
 ## Fit levels (first version; tune them as real ads come in)
 
-- **Strong:** every must-have met, and no hard conflict.
-- **Good:** one must-have missing or partly met, and no hard conflict.
-- **Stretch:** two must-haves missing, or one conflict that can be closed, such as a language one level short.
-- **Long shot:** three or more must-haves missing, or a conflict that can't be closed soon, such as an on-site job in a city out of reach.
+- **Strong:** every must-have we can judge is met, and there is no conflict (not even one that could be closed).
+- **Good:** exactly one must-have is missing, and there is no conflict.
+- **Stretch:** two gaps. A gap is a missing must-have or a conflict that could be closed soon; one such conflict alone is also Stretch.
+- **Long shot:** three or more gaps, or any conflict that can't be closed soon.
+
+Notes (they match the code, lib/engine/fit.ts, match.ts, rules.ts, judgeable.ts):
+- A conflict can be closed soon if: a language is one level short (a language missing from the profile can't); total years are one year short; the start is up to 30 days late. A city that is not on the profile, and a work mode the profile does not accept, can't be closed soon; a hybrid job counts as on-site for the city.
+- Nice-to-haves are shown and counted but never change the level.
+- A must-have that is not in our skill list yet is shown as "could not judge" and is not counted; the label says "; N must-have(s) not judged". If the AI found no requirements at all in the ad, if none of the ad's must-haves can be judged, or if the profile or list has no skills, no level is shown (in that order). An ad with only nice-to-haves is Strong.
+- The report says "(skills only)" when no constraint was both set by the person and stated by the ad, and "(judged: skills, ...)" otherwise.
+- When a conflict that can't be closed soon sets the level, the report names it; each constraint that was judged and is fine gets one line.
 
 ## Day 1: A skeleton that's live
 
