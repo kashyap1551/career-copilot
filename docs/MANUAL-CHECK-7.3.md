@@ -7,7 +7,7 @@ Every text and number under **Expect** was worked out by hand from the invented 
 ## Before you start
 
 - Use **only the invented text**: the CV of `docs/MANUAL-CHECK-7.1.md` and the ten ads of `docs/MANUAL-CHECK-TEN-ADS.md` (their texts are not copied here). No real CV, name, email or phone.
-- Where: the Vercel preview of the branch `step-7.3` (find its address in the Vercel dashboard, under Deployments, the row for the commit `cc94645` or a later one; it sits behind the Vercel sign-in). Use a **new private (Incognito) window** and Chrome. The first read asks for the access code: type it into the app's **code box only**, press **Use this code**, then press the button again. Do not write the code anywhere else and do not send it to anyone, including the reviewer. Never send a screenshot of Request headers.
+- Where: the Vercel preview of the branch `step-7.3` (find its address in the Vercel dashboard, under Deployments, the row for the commit `cc94645` or a later one; the newest commit of the branch is the best choice; it sits behind the Vercel sign-in). Use a **new private (Incognito) window** and Chrome. The first read asks for the access code: type it into the app's **code box only**, press **Use this code**, then press the button again. Do not write the code anywhere else and do not send it to anyone, including the reviewer. Never send a screenshot of Request headers.
 - **AI reads this check needs: 11.** The CV once and the ten ads once each (a preview address has its own empty storage, so the 11 reads are needed on this address. This step 1 also covers everything that step 10 of `docs/MANUAL-CHECK-7.1.md` expects (the roadmap with ten usable ads), so do that batch once, here). Every later step changes only the profile on the confirm screen and needs **no** AI read. The free tier allows about one large read a minute: wait about a minute between reads.
 - Developer tools: Cmd+Option+I, the **Network** tab (the list of every request the page sends). It is used in step 7.
 - The box is called **What to learn** and sits under the "Saved ads" list. In this check the profile has the city Berlin. The ten ads are all in Berlin and hybrid, so no ad is held back by anything but skills.
@@ -19,7 +19,7 @@ Every text and number under **Expect** was worked out by hand from the invented 
    **Expect:** ten rows in "Saved ads". In the box: the line `Already Strong: 10 jobs (...)` with the ten names of the list at the top of `docs/MANUAL-CHECK-TEN-ADS.md`, **ten different titles with ten different companies, each once**; then `Skills to build, in order: none. No other saved job can become a Strong match by skills alone.`; then `Blocked jobs: none`; and last the one line `Timeline from skills in progress: none.` (no skill is in progress). The sentence "These counts assume you learn each skill by its expected date." is NOT shown. If one name appears twice, stop: that is the P0 defect.
    **Report:** "passed", or the exact lines the box shows.
 
-2. **Do:** on the confirm screen (still showing), **untick SQL**. Under "Skills you are learning" type `SQL` in "Skill name", pick the date **1 March 2027** (2027-03-01) in "Expected date", and press **Add**. Do NOT press "Save on this device". Before you untick, open the **Network** tab, tick **Preserve log** at its top (step 6 reloads the page, and a reload empties the list otherwise), type `api` in its filter box, and press the clear button so the list is empty.
+2. **Do:** first set up the Network tab: open it (Cmd+Option+I), tick **Preserve log** at its top (step 6 reloads the page, and a reload empties the list otherwise), type `api` in its filter box, and press the clear button so the list is empty. Then, on the confirm screen (still showing), **untick SQL**. Under "Skills you are learning" type `SQL` in "Skill name", pick the date **1 March 2027** (2027-03-01) in "Expected date", and press **Add** (the button next to "Expected date"). Do NOT press "Save on this device".
    **Expect:** the box shows, in this order:
    - `Already Strong: none`
    - `Skills to build, in order:`
@@ -32,11 +32,11 @@ Every text and number under **Expect** was worked out by hand from the invented 
    (Hand count: with SQL not on the CV, every ad misses its one must-have, SQL; none is Strong; all ten are reachable. SQL is in progress for 2027-03-01, and at that date all ten are covered.)
    **Report:** "passed", or the exact lines the box shows (the ten names may be left out if they are right).
 
-3. **Do (change the date):** in the list under "Skills you are learning", press **remove** next to `SQL`, then add `SQL` again with the date **1 June 2027** (2027-06-01) and press **Add**.
+3. **Do (change the date):** in the list under "Skills you are learning", press **remove** next to `SQL`, then add `SQL` again with the date **1 June 2027** (2027-06-01) and press **Add** (next to "Expected date").
    **Expect:** the same ten names, under the new date: the timeline line is `By 2027-06-01 (SQL): 10 more Strong matches (...)`, and the ranking line says `(in progress, expected 2027-06-01)`. The count stays 10.
    **Report:** "passed", or the exact lines.
 
-4. **Do:** add a second skill the same way: `Docker`, date **10 January 2027** (2027-01-10), press **Add**. No ad asks for Docker.
+4. **Do:** add a second skill the same way: `Docker`, date **10 January 2027** (2027-01-10), press **Add** (next to "Expected date"). No ad asks for Docker.
    **Expect:** the timeline has two lines after the framing sentence, **in date order**:
    - `By 2027-01-10 (Docker): 0 more Strong matches. Docker doesn't unlock a job yet.`
    - `By 2027-06-01 (SQL): 10 more Strong matches (...)` with the ten names.
@@ -48,11 +48,11 @@ Every text and number under **Expect** was worked out by hand from the invented 
    **Expect:** the timeline is the one line `Timeline from skills in progress: none.` and the sentence "These counts assume ..." is gone.
    **Report:** "passed", or what you see.
 
-5b. **Do (optional, a product question):** on the confirm screen, in **Skill name** type `Python`, leave the date empty, press **Add**.
+5b. **Do (optional, a product question):** on the confirm screen, in **Skill name** type `Python`, leave the date empty, press **Add** (next to "Expected date").
    **Expect:** a red line on the confirm screen: `Add a valid expected date for Python.` Python does not count as a skill you are learning (the page ignores it until it has a date). The box still shows the one line `Timeline from skills in progress: none.` Then press **remove** next to `Python` if it is listed.
    **Report:** the red line's words, and ONE sentence: does "none" read as wrong or confusing to you as a product manager, when you have just added a skill and the page ignored it? (The reviewer needs your opinion, not a test result.)
 
-6. **Do:** add `SQL` in progress again with the date **1 June 2027**. Press **Save on this device**. Reload the page (Cmd+R). **Do NOT press "Use this profile" yet**; look at the box; then press **Use this profile**.
+6. **Do:** add `SQL` in progress again with the date **1 June 2027**. Press **Save on this device** (this replaces the profile saved in step 1: the app keeps only one saved profile). Reload the page (Cmd+R). **Do NOT press "Use this profile" yet**; look at the box; then press **Use this profile**.
    **Expect:** after the reload, before "Use this profile", the box holds the one line `What to learn needs a profile in use. Read and confirm a CV, or press "Use this profile" if one is saved on this device.` After pressing it, the timeline shows `By 2027-06-01 (SQL): 10 more Strong matches (...)` with the ten names (the date is stored, not worked out again).
    **Report:** "passed", or what you see.
 
@@ -60,7 +60,7 @@ Every text and number under **Expect** was worked out by hand from the invented 
    **Expect, answer yes or no:** after the clear in step 2, did any `/api/` request appear for steps 2 to 6? (The list covers steps 2 to 6 only if **Preserve log** was ticked in step 2.) **Expected: no.** (The box only reads. The only `/api/` requests of the whole check are the 11 reads of step 1.) Does the box contain a button, a link or an input of its own? **Expected: no.**
    **Report:** the two answers.
 
-8. **Do:** press **Delete** on any one saved ad (nine are left).
+8. **Do:** press **Delete** (the button next to **Open**, in the row of the saved ad) on any one saved ad (nine are left).
    **Expect:** the whole roadmap and the timeline disappear, and the box shows the line `The roadmap shows from 10 saved ads we could judge. You have 9. Save 1 more to see it.` No timeline lines at all.
    **Report:** "passed", or the exact lines.
 
