@@ -136,7 +136,7 @@ The plan asks that 15 saved ads survive a reload. The check by hand uses **3 ads
 
 - Tester: owner. Live site, Chrome, normal window, browser extensions on.
 - App code under test: commit 93f79b4 (Vercel: Production, Ready, 2026-11-16 22:00). Later commits are docs-only and do not change these results.
-- Run on 2026-11-16, 22:25 to 23:54 Berlin time.
+- Steps 1 to 9 run on 2026-11-16, 22:25 to 23:54 Berlin time; steps 10 to 17 run on 2026-11-17, between about 01:20 and 01:40 Berlin time (same app code, commit 93f79b4; the commits since are docs-only).
 
 | Step | Result | What was seen |
 |---|---|---|
@@ -149,14 +149,14 @@ The plan asks that 15 saved ads survive a reload. The check by hand uses **3 ads
 | 7 | PASSED | "Use this profile": read-only box with SQL (line 3), Tableau (line 4), Excel (line 5) and "Constraints set: location (Berlin); years (3)"; only the buttons Delete this profile and Read a CV again. |
 | 8 | PASSED | Ad 1 read against the saved profile. The read response had "Cache-Control: no-store" and X-Reading-Cache miss; the request body was 252 bytes (the ad text only, the profile did not travel). Report: "Fit: Long shot (judged: skills, location, years)"; must-haves 2 of 2 met (SQL line 3, Tableau line 4); nice-to-have Excel met (line 5); conflict "The job is in Exampleville; the cities on your profile are: Berlin." marked "(can't be closed soon)"; not judged: language (ad says English at C1), work mode (hybrid), start date. Save this ad button with the notice was shown. |
 | 9 | PASSED | "Delete this profile": "The saved profile was deleted."; the top box disappeared; profile 0 entries. The report already on screen did not change. |
-| 10 | NOT RUN YET | |
-| 11 | NOT RUN YET | |
-| 12 | NOT RUN YET | |
-| 13 | NOT RUN YET | |
-| 14 | NOT RUN YET | |
-| 15 | NOT RUN YET | |
-| 16 | NOT RUN YET | |
-| 17 | NOT RUN YET | |
+| 10 | PASSED | Invented ad 1 read with no saved profile: "Fit: Stretch (skills only)"; must-haves met 0 of 2 (SQL and Tableau "not on your list"); nice-to-have Excel missing. The "Save this ad" button and the final notice wording were shown. |
+| 11 | PASSED | Save: "Saved on this device."; Saved ads box with 1 row, "Reporting Analyst, Northlake Foods Ltd (2026-11-17)", with Open and Delete. IndexedDB jobs has 1 entry: schemaVersion 1, id 7d9ddd8d4550c0ac (16 hex), savedAt 2026-11-17T00:21:57Z (UTC). |
+| 12 | PASSED | Invented ad 2 read ("Operations Coordinator, Harbor Light Stationery"; 2 of 2 must-haves missing: Excel, Customer service; nice-to-haves 0 of 0 because "German B1 is a plus" is a language wish, not a skill) and saved: 2 rows, newest first. |
+| 13 | PASSED | Saved again without any change: still 2 rows (the owner confirmed in words, no screenshot). |
+| 14 | PASSED | Ad 2 with the extra line "Start as soon as possible." read and saved: 3 rows, two with the same title (the owner confirmed in words, no screenshot). |
+| 15 | PASSED | Reload: 3 rows still listed (the owner confirmed in words, no screenshot). |
+| 16 | PASSED | Open on the oldest row: its report shows, its ad text is put back in the ad box, there is NO "Save this ad" button; jobs still 3 entries; the entry's savedAt is still 2026-11-17T00:21:57Z, so opening wrote nothing back. |
+| 17 | PASSED | Delete on the top row: "The saved ad was deleted."; 2 rows; jobs shows 2 entries (keys 58ef... and 7d9d...). |
 | 18 | NOT RUN YET | |
 | 19 | NOT RUN YET | |
 | 20 | NOT RUN YET | |
@@ -168,8 +168,12 @@ The plan asks that 15 saved ads survive a reload. The check by hand uses **3 ads
 
 Console: the only red error seen was "Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received" (3 repeats, no file of ours named), together with Grammarly warnings: browser-extension noise. The clean Console test is steps 22 and 25 in a private window.
 
+Steps 10 to 17: the DevTools header showed an error count (red 1, at times amber 3) during these steps; it was not inspected; same class as the earlier extension noise; steps 22 to 25 (private window) are the clean console test.
+
 ### Observations (not failures; decisions for the reviewer)
 
 - O-1: a constraint that is judged and satisfied (years: the ad asks 2+, the profile says 3) gets no line of its own; only the "judged:" header names it.
 - O-2: after "Delete this profile" the report already on screen stays, and still says "on your profile", until the page is reloaded.
 - O-3: the level is "Long shot" although every must-have and nice-to-have is met, because of one location conflict marked "can't be closed soon".
+- O-4: with no profile loaded the report says "Stretch (skills only)" and "not on your list" for every skill (the known empty-skills observation, for the fit-level conversation before 6.2).
+- O-5: two saved ads with different text can have the same title, and the Saved ads list shows only title and date, so they cannot be told apart (for the 6.2 list screen; nothing to fix in 6.1).
