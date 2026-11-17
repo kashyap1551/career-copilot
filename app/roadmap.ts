@@ -31,6 +31,7 @@ import {
   thresholdLine,
   unjudgedCaveat,
 } from "@/lib/saved/messages";
+import type { OpenedAd } from "./savedAdRows";
 
 // Step 7.1 (docs/PLAN-7.1.md): the "What to learn" box, assembled by pure code. No AI, no store, no network. The words are
 // constants in lib/saved/messages.ts (the 6.2 pattern); this file only chooses and joins them. The numbers come from the
@@ -153,4 +154,16 @@ export function roadmapBox(
     counted: M,
     alreadyStrongIds: counted.filter((_, i) => strongIds.has(engineJobs[i].id)).map((c) => c.ad.id),
   };
+}
+
+// The saved ads the box can read: the readings 6.2 already opens (as stored, or re-checked in the browser). A record that could
+// not be opened, or that a newer app saved, is not an ad here (the saved-ads list names it in its own notice).
+export function roadmapAds(opened: OpenedAd[]): { id: string; job: Job }[] {
+  const ads: { id: string; job: Job }[] = [];
+  for (const a of opened) {
+    const o = a.opened;
+    if (o.kind === "failed" || o.kind === "newer-version") continue;
+    ads.push({ id: a.id, job: o.reading.job });
+  }
+  return ads;
 }

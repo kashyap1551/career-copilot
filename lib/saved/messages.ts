@@ -128,3 +128,5 @@ export const rankingNoneLine = (otherStrong: boolean) =>
   `Skills to build, in order: none. No ${otherStrong ? "other " : ""}saved job can become a Strong match by skills alone.`;
 export const BLOCKED_NONE = "Blocked jobs: none";
 export const blockedCountLine = (n: number) => `Blocked jobs (skills alone can't make these Strong): ${n}`;
+
+export const WHAT_TO_LEARN = "What to learn";
