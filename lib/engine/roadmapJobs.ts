@@ -1,4 +1,4 @@
-import { noLevelReason, splitJudgeable } from "./judgeable";
+import { isUnlistedId, noLevelReason, splitJudgeable } from "./judgeable";
 import type { Job } from "./types";
 
 // Step 7.1 (docs/PLAN-7.1.md sections 5 and 6, Amendments 3 and 4): which saved ads the gap list and the roadmap can use.
@@ -27,4 +27,17 @@ export function roadmapBasis(job: Job): RoadmapBasis {
     skillCount: 1,
   });
   return { judged, unjudgedMusts, excluded: reason === "no-skills" ? null : reason };
+}
+
+// Amendment 6 (2): in the box, a requirement with one listed and one unlisted alternative ("Power BI or Looker") keeps only its
+// listed skill ids, so no raw `new:` id reaches a gap row or the ranking. A requirement whose ids are ALL unlisted is left
+// unchanged (never an empty list; `splitJudgeable` has already set those aside). The input is not changed.
+export function listedAlternatives(job: Job): Job {
+  return {
+    ...job,
+    requirements: job.requirements.map((r) => {
+      const listed = r.skillIds.filter((id) => !isUnlistedId(id));
+      return listed.length === 0 || listed.length === r.skillIds.length ? r : { ...r, skillIds: listed };
+    }),
+  };
 }
