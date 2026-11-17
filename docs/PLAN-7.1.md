@@ -30,6 +30,13 @@ The words in brackets are the kinds of conflict found, taken from the engine's c
 2. Rows with equal counts are ordered by the skill's display name (`nameOf(skillId)`, compared in lower case), then by skill id. `nameOf` is the third parameter, the same `NameOf` type as in lib/engine/explain.ts.
 3. The texts "1 requirement ... could not judge it", "N saved ads are not counted ...", the no-profile note, the G10 sentence, the sentence of G3, and the exclusion of G14e are tested in tests/roadmap.test.ts and tests/roadmapJobs.test.ts, not in tests/gaps.test.ts.
 
+**Amendment 4 (reviewer, 2026-11-17 evening: stage B review).** It fixes what the first three left open; where they differ, this one rules.
+1. The number in the Part A title is M, the ads counted; the noun follows M: "Skills you are missing across your 4 saved ads" and "... across your 1 saved ad".
+2. Part A order: title, subtitle, rows, alternatives note, could-not-judge line, not-counted line, held-back line.
+3. M = 0 with at least one saved ad (all excluded): Part A is the not-counted line only (no title, no "You meet every requirement" sentence, since nothing was judged) and Part B is the threshold line with "You have 0. Save 10 more to see it."
+4. No saved ad at all: `roadmapBox` returns empty parts and the page does not show the box. No profile in use: the no-profile note and empty parts.
+5. The sentence guard also reads JSX text between tags.
+
 ## 1. What the screen shows
 
 A new box on the page, below the "Saved ads" list, called **"What to learn"**, with two parts. It uses the saved ads and the profile in use (section 2); it has no button that saves, deletes or calls the AI.
