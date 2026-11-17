@@ -104,6 +104,8 @@ Goal: a person builds up a list of jobs, each with a clear report.
 
 - [ ] **6.1** Keep the profile and saved jobs in the browser's own database (IndexedDB); no accounts yet.
   Check: 15 saved ads survive a reload.
+- [ ] **6.1b** Access code on the two AI routes (docs/PLAN-ACCESS-CODE.md).
+  Check: section 6 of that plan passes on the live site.
 - [ ] **6.2** Jobs page: paste an ad, check its requirements, save.
   Check: a saved ad shows in the list with its fit level.
 - [ ] **6.3** Fit report page: the level first, then each must-have with its evidence, conflicts in plain sentences, then nice-to-haves.

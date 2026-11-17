@@ -1,4 +1,4 @@
-STATUS: DRAFT, awaiting reviewer. Careful lane (secrets, cost, what the AI routes accept). Every item marked "proposed; reviewer decides" is a proposal, not a decision. Nothing is built.
+STATUS: APPROVED by the owner on 2026-11-17, with the reviewer's answers in section 10. Built as step 6.1b after 6.1 is ticked, before 6.2.
 
 # Plan: a shared access code on the two AI routes
 
@@ -51,8 +51,8 @@ Why the check comes before parsing and the cache: a cache hit must not be probea
 | # | Kill switch | `ACCESS_CODE` | Environment | Header | Answer |
 |---|---|---|---|---|---|
 | 1 | on | any | any | any | 503, paused message; AI not called |
-| 2 | off | not configured | production | any | 503, "not set up" message; AI not called |
-| 3 | off | not configured | development | any | goes on (no check) |
+| 2 | off | not configured | any `NODE_ENV` except exactly "development" or "test" (production, staging, unset, anything else) | any | 503, "not set up" message; AI not called |
+| 3 | off | not configured | `NODE_ENV` exactly "development" or "test" | any | goes on (no check) |
 | 4 | off | configured | any | missing, empty, whitespace, wrong | 401, one plain message; AI not called |
 | 5 | off | configured | any | the right code | goes on to body parsing |
 
@@ -61,9 +61,9 @@ Why the check comes before parsing and the cache: a cache hit must not be probea
 - 503 not configured, body `{ "error": "This site is not set up to read yet. Please try again later." }`.
 - Every answer keeps `Cache-Control: no-store` through `jsonNoStore`; the two constants and the two statuses live in `lib/ai/accessMessages.ts` (no `node:` import, as `noStore.ts`), so the page can import the words without importing `node:crypto`.
 
-**If `ACCESS_CODE` is not set (proposed; reviewer decides).**
-- Production: fail closed, 503 "not set up". `NODE_ENV` is "production" on every Vercel deployment, previews included, so a preview without the variable also answers 503 (set the variable for Production and Preview).
-- Development (`npm run dev`): no check, so local work needs no code. To test the page's code box locally the owner adds an `ACCESS_CODE` line to `.env.local` by hand (I never read or write that file).
+**If `ACCESS_CODE` is not set (decided: the environment rule).** The access check is skipped ONLY when `NODE_ENV` is exactly "development" or "test". Any other value, including unset, behaves like production.
+- Anything but "development" or "test": fail closed, 503 "not set up". `NODE_ENV` is "production" on every Vercel deployment, previews included, so a preview without the variable also answers 503 (set the variable for Production and Preview). A missing or misspelt `NODE_ENV` also fails closed, never open.
+- "development" (`npm run dev`) and "test" (the test runner): no check, so local work and the existing tests need no code. To test the page's code box locally the owner adds an `ACCESS_CODE` line to `.env.local` by hand (I never read or write that file).
 - A forgotten Vercel variable: the live routes answer 503 "not set up" on every call, the page shows that sentence, nothing is exposed, and the AI is not called. Fix: add the variable, redeploy (section 7). This is the safe way to fail and the plan's reason for fail-closed.
 - Order of deployment: set the variable in Vercel FIRST (it does nothing until the new code ships), then deploy the code.
 
@@ -101,14 +101,22 @@ The typed code is trimmed and capped at 128 characters; the input is `type="pass
 
 ## 4. Rate limiting and the length of the code
 
-**The Vercel Firewall rule is a dashboard step for the owner, and I have not verified it exists on the Hobby plan.** Steps to look for it (do not assume it is there):
+**The Vercel Firewall rate-limit rule is a dashboard step for the owner.** What Vercel's page says (https://vercel.com/docs/vercel-firewall/vercel-waf/rate-limiting, last updated 2026-08-28, as read by the reviewer):
+- available on all plans; the Hobby plan has **1 rate-limit rule per project** (within 3 custom rules);
+- a fixed window, from 10 seconds to 10 minutes; keys: IP address and JA4; 1,000,000 allowed requests included;
+- the default action is 429 (also Log, Deny 403, Challenge);
+- **counters are per region**, so the limit can be exceeded across regions (it slows a loop; it is not an exact fence);
+- the first rate-limit rule shows a **"Rate Limiting Pricing" dialog**: the owner reads it and reports what it says BEFORE pressing Continue. Nothing is bought (rule 7).
+The owner still confirms in the dashboard that the rule is offered and that these values hold.
+
+Steps:
 1. Vercel dashboard, open the project, open the **Firewall** tab (some accounts show it under **Security**).
 2. Look for **Configure** or **Custom Rules**, then **Add rule**.
-3. In the rule's action list look for **Rate Limit**. If the list offers only Log, Deny, Challenge, Bypass, the action is not on this plan: write down exactly what is offered (a screenshot) and send it to the reviewer. Do not buy a plan to get it (rule 7).
-4. If it is offered: condition "Request Path" "starts with" `/api/`; key: IP address; a fixed window; deny with 429 for the rest of the window.
-5. Proposed starting values (the owner may change them): **5 requests per 60 seconds per address.** Reason: one real use of the page is one CV read and a few ad reads a minute; the free tier's own per-minute allowance allows only a few calls a minute anyway.
-6. Afterwards: a person using the page normally must not hit it (try one CV and three ads in a minute); a loop must (the 6th call in a minute answers 429).
-7. Record the result in docs/DECISIONS.md and HANDOFF (exists on Hobby: yes/no; the values).
+3. In the rule's action list choose **Rate Limit**. When the pricing dialog appears, STOP: read it, send its words to the reviewer, and press Continue only after the reviewer says nothing is bought.
+4. Condition "Request Path" "starts with" `/api/`; key: IP address; a fixed window; default action 429.
+5. Starting value: **10 requests per 60 seconds per address.** Reason: several people on one network share one address, and one real use of the page is one CV read and a few ad reads a minute.
+6. Afterwards the check in section 6 step 12: a normal minute (one CV and three ads, four requests) never gets 429; a loop does.
+7. Record the result in docs/DECISIONS.md and HANDOFF (offered: yes/no; the values; what the pricing dialog said).
 
 Because every 401 is also a request to `/api/*`, the same rule limits guessing of the code.
 
@@ -116,14 +124,14 @@ Because every 401 is also a request to `/api/*`, the same rule limits guessing o
 
 Hand-worked: expected guesses are half of all possibilities; a year is about 3.2 x 10^7 seconds.
 
-| Code | Possibilities | At 1,000 guesses a second, no rule | At 5 a minute from one address |
+| Code | Possibilities | At 1,000 guesses a second, no rule | At 10 a minute from one address |
 |---|---|---|---|
-| 16 hex characters (the server's minimum, if random) | 16^16 = 2^64, about 1.8 x 10^19 | 9.2 x 10^18 guesses / 1,000 = 9.2 x 10^15 s, about 2.9 x 10^8 years | 9.2 x 10^18 / (5/60 per second) = 1.1 x 10^20 s, about 3.5 x 10^12 years (with a million addresses at once, about 3.5 x 10^6 years) |
+| 16 hex characters (the server's minimum, if random) | 16^16 = 2^64, about 1.8 x 10^19 | 9.2 x 10^18 guesses / 1,000 = 9.2 x 10^15 s, about 2.9 x 10^8 years | 10 a minute is 10/60 = 0.167 per second, so 9.2 x 10^18 / (10/60) = 9.2 x 10^18 x 6 = 5.5 x 10^19 s; 5.5 x 10^19 / 3.2 x 10^7 = 1.7 x 10^12 years (with a million addresses at once, 1.7 x 10^6 years) |
 | 32 hex characters (`openssl rand -hex 16`) | 16^32 = 2^128, about 3.4 x 10^38 | 1.7 x 10^38 / 1,000 = 1.7 x 10^35 s, about 5.4 x 10^27 years | far beyond that |
 
 A made-up word of 16 characters is not covered by this table: only a random code is. The server cannot check randomness; the generation rule does.
 
-Alternative considered, not chosen: Vercel's own deployment protection (not verified for production on the Hobby plan; it would also lock the static page and cannot be tested in our test suite).
+Alternative considered, not chosen: Vercel's own deployment protection (not verified; it would also lock the static page and cannot be tested in our test suite).
 
 ## 5. Tests (written first from the tables, shown red, then the code)
 
@@ -138,11 +146,14 @@ Setup, for both routes in turn (one parametrised test file): `ACCESS_CODE` is a 
 | A5 | whitespace-only header (`"   "`) | 401 | the same body (the Fetch standard strips outer spaces, so the server sees an empty value) |
 | A6 | right code with a space on each side | 200 | normal body (the same standard strips the spaces) |
 | A7 | a header of 100,000 characters | 401 | the same body; `timingSafeEqual` still called with 32-byte buffers (the real platform may refuse such a header earlier; not testable here) |
-| A8 | code unset, production, a header sent | 503 | `{ error: "This site is not set up to read yet. Please try again later." }`; no-store; AI spy 0 |
+| A8 | code unset, `NODE_ENV` "production", a header sent | 503 | `{ error: "This site is not set up to read yet. Please try again later." }`; no-store; AI spy 0 |
 | A8b | code set to blank (`"   "`), production, empty header | 503 | the same (a blank code never matches a blank header) |
 | A8c | code set but shorter than 16 characters, production, header equal to it | 503 | the same |
-| A9 | code unset, development, no header | 200 | normal body (no check) |
-| A9b | code unset, development, a header sent | 200 | normal body (the header is ignored) |
+| A8d | `NODE_ENV` unset, code unset, no header | 503 | the "not set up" body; no-store; AI spy 0 |
+| A8e | `NODE_ENV` "staging", code unset, no header | 503 | the same |
+| A9 | `NODE_ENV` "development", code unset, no header | 200 | normal body (no check) |
+| A9b | `NODE_ENV` "development", code unset, a header sent | 200 | normal body (the header is ignored) |
+| A9c | `NODE_ENV` "test", code unset, no header | 200 | normal body (no check) |
 | A10 | kill switch on, right code | 503 | the paused message; AI spy 0 |
 | A11 | kill switch on, wrong code | 503 | the paused message, NOT 401 (the kill switch comes first) |
 | A12 | read route only: a right-code call fills the cache (miss), then the same ad with a wrong code | 200 then 401 | second answer has NO `x-reading-cache` header; AI spy stays at 1 |
@@ -156,7 +167,9 @@ Setup, for both routes in turn (one parametrised test file): `ACCESS_CODE` is a 
 | A18 | every case above | | no `console.*` call received an argument containing the right code or the sent value |
 | A19 | one-off: a code with a trailing wrong character or the right code minus its last character | 401 | the same body |
 
-Page and helper tests (plain functions, no browser): (P1) `accessHeaders(null)` is `{}`, `accessHeaders("abc")` is `{ "x-access-code": "abc" }`; (P2) the message table of section 3: (401, nothing sent) gives the "Enter the access code..." sentence, (401, code sent) gives the "not accepted" sentence; (P3) with a fake `sessionStorage`: save, read, forget round-trip; a fake that throws on every call gives `null` and a memory fallback, never an exception; (P4) `postJson` with a fake `fetch`: the address passed has no `?` and no code in it, the header is present when a code is kept, absent when not; (P5) a 401 after a send with a code removes the kept code, a 401 after a send without one keeps nothing; (P6) the delete-everything effect list includes forgetting the code; (P7) source guards: no file under `app/` imports `lib/ai/accessCode`; no source file contains `NEXT_PUBLIC_ACCESS`; `app/accessFetch.ts` contains neither `localStorage` nor `indexedDB`.
+Page and helper tests (plain functions, no browser): (P1) `accessHeaders(null)` is `{}`, `accessHeaders("abc")` is `{ "x-access-code": "abc" }`; (P2) the message table of section 3: (401, nothing sent) gives the "Enter the access code..." sentence, (401, code sent) gives the "not accepted" sentence; (P3) with a fake `sessionStorage`: save, read, forget round-trip; a fake that throws on every call gives `null` and a memory fallback, never an exception; (P4) `postJson` with a fake `fetch`: the address passed has no `?` and no code in it, the header is present when a code is kept, absent when not; (P5) a 401 after a send with a code removes the kept code, a 401 after a send without one keeps nothing; (P6) the delete-everything effect list includes forgetting the code; (P7) source guards: no file under `app/` imports `lib/ai/accessCode`; no source file contains `NEXT_PUBLIC_ACCESS`; `app/accessFetch.ts` contains neither `localStorage` nor `indexedDB`; (P8) source guard, one for every route: every file matching `app/api/**/route.ts` calls `checkAccess(` (the allow-list is EMPTY), so a future route cannot forget it.
+
+**The existing route tests run as `NODE_ENV` "test" with `ACCESS_CODE` unset, so they stay open and must pass WITHOUT any edit** (tests/cvRoute.test.ts, tests/readRoute.test.ts, tests/readCacheRoute.test.ts, tests/readCache.test.ts, tests/readExtraction.test.ts, tests/noStoreHeader.test.ts, and any other that calls a route). If one of them needs an edit when this is built, STOP and tell the reviewer why before changing it.
 
 **Deliberate breaks (each must make a named test fail):**
 
@@ -175,11 +188,13 @@ Page and helper tests (plain functions, no browser): (P1) `accessHeaders(null)` 
 | b11 | the 401 answer is built without `jsonNoStore` | A17 |
 | b12 | the header is written to `console.log` | A18 |
 | b13 | only `/api/read` is protected (cv forgotten) | the parametrised cv cases A1 to A8 |
-| b14 | development without a code checks anyway | A9 and A9b |
+| b14 | development or test without a code checks anyway | A9, A9b and A9c (and every existing route test) |
 | b15 | the page imports `accessCode.ts` | P7 |
 | b16 | the page keeps the code in `localStorage` | P7 |
 | b17 | the page puts the code in the address | P4 |
 | b18 | a wrong code stays kept | P5 |
+| b19 | open for every `NODE_ENV` that is not "production" | A8d and A8e |
+| b20 | a new route file under `app/api/` without the check | P8 |
 
 Hand-work discipline as always: expectations come from the tables above; if a test fails, I say whether the code or the hand count is wrong and never change the expectation. A test that passes at once is reported as a guard. Counts before and after, the three hashes (ad 85357f8fac, CV 193e02ee3f, vocabulary e96370fe4c) and READING_VERSION "3" stay unchanged: this step does not touch the reading.
 
@@ -197,7 +212,9 @@ Use the invented CV and ads of docs/MANUAL-CHECK-6.1.md only. Chrome, a normal w
 9. **Do:** enter the right code again, then close the whole Incognito window, open a new one, paste the CV and press Send. **Expect:** asked again (the code did not outlive the tab).
 10. **Do (optional, in a terminal; no AI call is made):** `curl -i -X POST <the live site>/api/read -H 'content-type: application/json' -d '{"text":"x"}'` **Expect:** `HTTP/2 401`, `cache-control: no-store`, and the one-line message.
 11. **Do:** in the Vercel dashboard open the project's **Logs** for those requests. **Expect (to be confirmed by looking, not assumed):** paths and statuses, no header values and no code.
-12. **Do (Firewall, section 4):** follow the steps and report what the rule list offers. If the rule exists, press Read this ad 6 times within a minute with the right code and report whether the 6th answer is 429.
+12. **Do (Firewall, section 4; no AI call is made, because every request is refused before the AI):** in a terminal, replacing the placeholder with the site address:
+    `for i in $(seq 1 12); do curl -s -o /dev/null -w "%{http_code}\n" -X POST <the live site>/api/read -H 'content-type: application/json' -d '{"text":"x"}'; done`
+    It sends 12 requests WITHOUT a code and prints only the status codes, one per line. **Expect:** 401 first, then 429 once the rule bites (about the 11th line; the exact switch point may differ by a request or two: the window is fixed and the counters are per region). **Also expect:** normal use (one CV and three ads in a minute, four requests) never gets 429. If the rule does not bite, report what the rule list offered and what the pricing dialog said.
 Send back "passed" or the step number and what was seen. 6.1b is ticked only when all of these pass.
 
 ## 7. Rotation and sharing
@@ -207,7 +224,7 @@ Send back "passed" or the step number and what was seen. 6.1b is ticked only whe
 - **A reply already in flight** when the redeploy happens finishes normally.
 - **The redeploy also empties the server's reading cache** (memory only), which is harmless.
 - **Sharing:** one code for everybody; tell each person it is for their use only. If it leaks, rotate. There is no way to remove one person (non-goal).
-- **Before the repository goes public:** the code has been set, the manual check passed, the rate rule is confirmed or its absence is recorded. The code itself never appears in any file of the repository, and the tracked docs describe the design, not a value.
+- **Before the repository goes public:** the code has been set, the manual check passed, the rate rule is set and checked. The code itself never appears in any file of the repository, and the tracked docs describe the design, not a value.
 
 ## 8. Non-goals
 
@@ -222,20 +239,33 @@ Proposal: a step **6.1b "Access code"**, built **after 6.1 is ticked** (the owne
 - Cost of this placement: one half day before 6.2. The alternative (after 6.3) keeps the Day 6 product flow unbroken but leaves the routes open for longer; nothing may be shared in that time.
 - It does not replace 9.2 (a daily cap per person and the "busy" message), which stays where it is.
 
-Build order, if approved: (1) read the Next route-handler docs; (2) tests A1 to A19 and P1 to P7 from section 5, shown red; (3) `accessMessages.ts`, `accessCode.ts`, both routes; (4) `accessFetch.ts`, the box, wiring the two fetch calls; (5) breaks b1 to b18; (6) docs: DECISIONS lines, HANDOFF, a step added to MANUAL-CHECK; gate; commit; push; (7) the owner sets the variable and runs section 6.
+Build order, if approved: (1) read the Next route-handler docs; (2) tests A1 to A19 (with A8b to A8e and A9 to A9c) and P1 to P8 from section 5, shown red; the existing route tests must pass untouched; (3) `accessMessages.ts`, `accessCode.ts`, both routes; (4) `accessFetch.ts`, the box, wiring the two fetch calls; (5) breaks b1 to b20; (6) docs: DECISIONS lines, HANDOFF, a step added to MANUAL-CHECK; gate; commit; push; (7) the owner sets the variable and runs section 6.
 
 ## 10. Questions for the reviewer, each with the proposed answer
 
 1. **When does the page ask?** Proposed: after the first 401, not up front (section 3).
-2. **Production without `ACCESS_CODE` (or with a too-short one):** fail closed with 503 "not set up", previews included? Proposed: yes (section 2).
-3. **Development without a code:** open, no check? Proposed: yes; the owner adds a line to `.env.local` by hand to try the box locally.
+   Reviewer: yes.
+2. **Any environment but "development" or "test" without `ACCESS_CODE` (or with a too-short one):** fail closed with 503 "not set up", previews included? Proposed: yes (section 2).
+   Reviewer: yes, with the NODE_ENV rule of 1b (the check is skipped only when NODE_ENV is exactly "development" or "test"; anything else, including unset, fails closed).
+3. **"development" or "test" without a code:** open, no check? Proposed: yes; the owner adds a line to `.env.local` by hand to try the box locally.
+   Reviewer: yes.
 4. **Minimum length 16 characters, enforced by the server, and the owner generates the code with `openssl rand -hex 16`?** Proposed: yes (section 4).
+   Reviewer: yes.
 5. **Kill switch before the access check** (so "paused" is answered to anyone, with no code)? Proposed: yes.
+   Reviewer: yes.
 6. **One 401 message for missing and wrong:** "The access code is missing or wrong."? Proposed: yes; the page, not the server, tells the two situations apart from what it sent.
+   Reviewer: yes.
 7. **Header `x-access-code`** rather than `Authorization: Bearer ...`? Proposed: `x-access-code` (no browser sign-in dialog; it does not suggest accounts).
+   Reviewer: yes.
 8. **Where the code is kept:** `sessionStorage` with a memory fallback, never `localStorage` or IndexedDB? Proposed: yes (section 3).
+   Reviewer: yes.
 9. **"Delete everything saved on this device" also forgets the code**, with the message unchanged? Proposed: yes.
+   Reviewer: yes.
 10. **Placement:** step 6.1b after 6.1 is ticked and before 6.2? Proposed: yes (section 9).
+   Reviewer: yes.
 11. **No lockout or counter in the app before the repository goes public;** the Firewall rule and the code length are enough, and if the rule does not exist on Hobby we record that and accept it? Proposed: yes.
+   Reviewer: yes.
 12. **Should the rate rule be a condition for going public,** or only the code? Proposed: the code is required; the rule is required if it exists on Hobby, otherwise recorded as accepted.
+   Reviewer: the code is required; the rate rule is required too, since Hobby offers it; 10 a minute.
 13. **This plan is a committed file and will be public with the repository.** It describes the design and what the code does not stop, and contains no value, no address and no quota number. Publish it as it is, or keep it out of the public tree until the code is built and checked? Proposed: it may be committed now (a design is not a secret); no further weak-spot detail goes into any other committed file (the owner's instruction of 2026-11-17 stays).
+   Reviewer: commit now; the repository is private; when the public copy is made, rewrite the sentences that say the routes are open today into the past tense, and review this plan.
