@@ -350,6 +350,14 @@ describe("U11: building the box only reads", () => {
   });
 });
 
+// The page-only caveat " (n must-have(s) not judged)" (section 5, Q10) is not in the command-line report (Amendment 5): U12 removes it
+// from the box's lines before comparing, and asserts how many were removed.
+function stripCaveat(lines: string[]): { lines: string[]; removed: number } {
+  let removed = 0;
+  const out = lines.map((l) => l.replace(/ \(\d+ must-haves? not judged\)/g, () => (removed++, "")));
+  return { lines: out, removed };
+}
+
 describe("U12: the page's ranking text equals the engine's text, line by line", () => {
   // The command-line report prints the same sentences (lib/engine/report-text.ts) for the same profile and the same
   // judgeable jobs. Cut its roadmap part (from "Already Strong" to before "Timeline"), trim the indentation, drop blank lines.
@@ -365,12 +373,18 @@ describe("U12: the page's ranking text equals the engine's text, line by line", 
   }
 
   it("U12a: the four-ad example", () => {
-    expect(box(person(), FOUR(), 4).partB).toEqual(engineLines(person(), FOUR()));
+    // hand count: ad 4 (one unlisted must) appears once, in the Python line: 1 caveat removed
+    const { lines, removed } = stripCaveat(box(person(), FOUR(), 4).partB);
+    expect(lines).toEqual(engineLines(person(), FOUR()));
+    expect(removed).toBe(1);
   });
 
   it("U12b: an example with a blocked ad", () => {
     const jobs = [ad1(), ad2({ location: "Exampleville" }), ad3(), ad4()];
-    expect(box(person(), jobs, 4).partB).toEqual(engineLines(person(), jobs));
+    // hand count: ad 4 appears once (the Python line); ad 2, the blocked one, has no unlisted must: 1 caveat removed
+    const { lines, removed } = stripCaveat(box(person(), jobs, 4).partB);
+    expect(lines).toEqual(engineLines(person(), jobs));
+    expect(removed).toBe(1);
   });
 });
 
@@ -391,7 +405,9 @@ describe("U12c and U12d: a years conflict (the CLI adds the years note)", () => 
     const built = person({ years: "2" });
     const jobs = [ad("y", "Senior Analyst", "Invented Co", [must("sql")], { minYears: 5 })];
     const b = box(built, jobs, 1);
-    expect(b.partB).toEqual(engineLines(built, jobs));
+    const { lines, removed } = stripCaveat(b.partB);
+    expect(lines).toEqual(engineLines(built, jobs));
+    expect(removed).toBe(0); // no ad here has an unlisted must-have
     expect(b.partB[0]).toBe("Already Strong: none");
     expect(b.partB).toContain("Blocked jobs (skills alone can't make these Strong): 1");
     expect(b.partB).toContain(YEARS_NOTE);
@@ -400,7 +416,9 @@ describe("U12c and U12d: a years conflict (the CLI adds the years note)", () => 
   it("U12d: the person has 2 years, the ad asks 3 (1 short: closable): the box equals the CLI's lines", () => {
     const built = person({ years: "2" });
     const jobs = [ad("y", "Senior Analyst", "Invented Co", [must("sql")], { minYears: 3 })];
-    expect(box(built, jobs, 1).partB).toEqual(engineLines(built, jobs));
+    const { lines, removed } = stripCaveat(box(built, jobs, 1).partB);
+    expect(lines).toEqual(engineLines(built, jobs));
+    expect(removed).toBe(0);
   });
 });
 
