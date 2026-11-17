@@ -50,10 +50,13 @@ describe("no sentence literal: the words are constants in lib/saved/messages.ts"
       const hit = code(read(f)).split("\n").find((l) => SENTENCE_LITERAL.test(l));
       expect(hit, `${f} holds a sentence literal: ${hit}`).toBeUndefined();
     });
-    it(`${f} has no JSX text of four or more words (Amendment 4 (5))`, () => {
-      expect(jsxSentences(code(read(f))), `${f} holds a sentence as JSX text`).toEqual([]);
-    });
   }
+
+  // JSX only exists in the .tsx file: the scan on a .ts file reads TypeScript (">" of a comparison up to the next "<") and finds
+  // false text, so it runs on the view only.
+  it("app/RoadmapView.tsx has no JSX text of four or more words (Amendment 4 (5))", () => {
+    expect(jsxSentences(code(read("app/RoadmapView.tsx"))), "app/RoadmapView.tsx holds a sentence as JSX text").toEqual([]);
+  });
 });
 
 describe("the guards themselves: both patterns pinned on examples", () => {
