@@ -1,4 +1,4 @@
-STATUS: DRAFT, awaiting reviewer. Careful lane (it changes what level a person is shown). The four changes are decided by the owner (a to d below); this plan only works out how, with hand-worked cases and wording. Nothing is built. All data below is invented.
+STATUS: APPROVED 2026-11-17 with three amendments (see "Amendments" below). Built on the branch step-fit-levels, not merged. Careful lane (it changes what level a person is shown). The four changes are decided by the owner (a to d below); this plan only works out how, with hand-worked cases and wording. Nothing is built. All data below is invented.
 
 # Plan: four changes to what the fit report prints
 
@@ -9,6 +9,12 @@ The four changes (decided; not reopened here):
 - **(b) Named reason (HANDOFF 17):** when a conflict that can't be closed soon sets the level, the explanation names it ("Long shot because of location: ..."). The rule itself stays as it is.
 - **(c) Satisfied constraint (HANDOFF 15):** each constraint that was judged and is fine gets one short line.
 - **(d) Empty skills (O-4):** zero skills on the profile or on the typed list means no level, and one sentence says to add skills first. Both paths (`profileReport` and `skillsOnlyReport`).
+
+## Amendments (reviewer, 2026-11-17; they override the text below where they differ)
+
+1. **The label carries the caveat.** HANDOFF 12 option (c) puts "plus N we could not judge" beside the label. Whenever 1 or more must-haves could not be judged, the label ends with `; N must-have(s) not judged` INSIDE the brackets: "Strong (skills only; 1 must-have not judged)", "Strong (judged: skills, location; 2 must-haves not judged)". This is IN ADDITION to the sentence (W1), the row (W2) and the counts line (W4), and applies to every level (Strong, Good, Stretch, Long shot). Unjudged nice-to-haves do not go in the label. A "No level" label does not carry it (there is no level to qualify; its own wording already says no must-have could be judged). Wording W9 below. Re-worked: cases 7, A1, A2, A5, A6 (the only cases with an unjudged must-have and a level); A3, A3b, A4, A7, A8 and every other case keep their labels.
+2. **W8 language line** becomes `Language: fine. The ad asks for German at B2; your profile has C1.` Several languages: one line, each part in that form (case C1 and C4 re-worked below).
+3. **The count of new cases** is A1 to A8 plus A3b (9), B1 to B5 (5), C1 to C7 (7), D1 to D5 (5): 26 in all.
 
 Not touched by this plan: the reader (AI) and its hashes (ad 85357f8fac, CV 193e02ee3f, vocabulary e96370fe4c, READING_VERSION "3"), `lib/engine/fit.ts`, `lib/engine/match.ts`, `lib/engine/unlock.ts`, `lib/engine/explain.ts`, `lib/engine/report-text.ts` (the command-line report), the golden files.
 
@@ -58,11 +64,13 @@ W7. **Named reason (b).** Only when the level is Long shot because of a conflict
 
 W8. **Satisfied lines (c).** A list headed `Checked and fine:` (under the conflicts, above the must-haves), in the order location, language, work mode, years, start date; one line per kind that was judged (set by the person AND stated by the ad, fitReport.ts:43-57, 102) and has no conflict:
 - `Location: fine. The job is in Berlin, and Berlin is on your profile.`
-- `Language: fine. German at B2 is asked; your profile has C1.` (several languages: one line, each as "German at B2 is asked; your profile has C1." separated by a space; only languages whose level the ad gave and that have no conflict)
+- `Language: fine. The ad asks for German at B2; your profile has C1.` (several languages: one line, each part in that form, separated by a space; only languages whose level the ad gave and that have no conflict)
 - `Work mode: fine. The job is hybrid, and your profile accepts hybrid.`
 - `Years: fine. The ad asks for 2 years; your profile has 3.` (singular: "1 year")
 - `Start date: fine. The ad wants a start by 2026-12-01; you are available from 2026-11-15.`
 A kind with any conflict gets no "fine" line. A language with no level in the ad is not compared (match.ts:134-139) and gets no "fine" line; the existing "not judged" line stays.
+
+W9. **The label caveat (amendment 1).** The label inside the brackets gets `; 1 must-have not judged` or `; N must-haves not judged` (N at least 2) at the end, whenever the number of unjudged must-haves is at least 1. "Strong (skills only; 1 must-have not judged)"; "Good (skills only; 2 must-haves not judged)"; "Long shot (judged: skills, location; 1 must-have not judged)". With nothing unjudged the label is exactly today's. The typed-list path says "(skills only; 1 must-have not judged)" the same way.
 
 ## 3. Hand-worked cases (expected text written BEFORE any code)
 
@@ -79,24 +87,24 @@ Same invented material as docs/FIT-LEVEL-FACTS.md: CV lines 1 "Alex Example, Rep
 | 5 | profile with no skills; two must-haves | No level (no skills on your profile); "No level yet: there are no skills on your profile. Add skills first. 2 of 2 must-haves are missing: SQL, Tableau. TAIL" Counts musts 0 of 2, nices 0 of 1; rows "Missing" as today | CHANGES (was Stretch) |
 | 5b | the same on the typed-list path (empty list) | No level (no skills on your list); "No level yet: your list has no skills we can match. Add skills first. 2 of 2 must-haves are missing: SQL, Tableau. TAIL" | CHANGES (was Stretch) |
 | 6 | Tableau missing, nothing set | Good (skills only); "One must-have is missing: Tableau. TAIL" | must NOT change |
-| 7 | musts SQL, Tableau, plus one unlisted must; nice Excel; nothing set | Strong (skills only); "You meet all 2 must-haves on your profile, plus 1 must-have we could not judge. TAIL"; counts musts 2 of 2 (was 2 of 3), nices 1 of 1; the unlisted row says "Could not judge" and "...so we could not judge it." | CHANGES (was Good; the one case where the level moves) |
+| 7 | musts SQL, Tableau, plus one unlisted must; nice Excel; nothing set | Strong (skills only; 1 must-have not judged); "You meet all 2 must-haves on your profile, plus 1 must-have we could not judge. TAIL"; counts musts 2 of 2 (was 2 of 3), nices 1 of 1; the unlisted row says "Could not judge" and "...so we could not judge it." | CHANGES (was Good; the one case where the level moves) |
 | 8 | only the nice-to-have missing | Strong (skills only); "You meet all 2 must-haves on your profile. TAIL" | must NOT change |
 | 9 | location set and matching (Berlin, hybrid) | Strong (judged: skills, location); explanation as today ("You meet all 2 must-haves on your profile. No conflict was found in what you set. Not judged here: language, work mode, years, start date."); **Checked and fine:** "Location: fine. The job is in Berlin, and Berlin is on your profile." | CHANGES (adds the "fine" line only) |
 | 9b | Tableau in progress (2027-03-01), SQL a have skill | Good (skills only); "One must-have is missing: Tableau. TAIL"; row "Tableau: in progress, expected 2027-03-01" | must NOT change |
 
-### 3b. New cases per change
+### 3b. New cases per change (26 new cases: A1 to A8 plus A3b, B1 to B5, C1 to C7, D1 to D5)
 
 **(a) unlisted requirements**
 
 | Case | Input | Expected |
 |---|---|---|
-| A1 | SQL met, Tableau met, plus two unlisted musts; nothing set | Strong (skills only); "You meet all 2 must-haves on your profile, plus 2 must-haves we could not judge. TAIL"; counts 2 of 2; "Could not judge: 2 must-haves, 0 nice-to-haves."; two "Could not judge" rows |
-| A2 | SQL met, Tableau not on profile, plus one unlisted must | Good (skills only); "One must-have is missing: Tableau, plus 1 must-have we could not judge. TAIL" |
+| A1 | SQL met, Tableau met, plus two unlisted musts; nothing set | Strong (skills only; 2 must-haves not judged); "You meet all 2 must-haves on your profile, plus 2 must-haves we could not judge. TAIL"; counts 2 of 2; "Could not judge: 2 must-haves, 0 nice-to-haves."; two "Could not judge" rows |
+| A2 | SQL met, Tableau not on profile, plus one unlisted must | Good (skills only; 1 must-have not judged); "One must-have is missing: Tableau, plus 1 must-have we could not judge. TAIL" |
 | A3 | edge: both musts unlisted; the profile has all three skills | No level (no must-have we could judge); "No level can be shown: none of the ad's 2 must-haves is in our skill list yet, so none could be judged."; counts musts 0 of 0; two "Could not judge" rows; the nice-to-have Excel (listed, met) still shows Met |
 | A3b | edge with one must-have, unlisted | No level (no must-have we could judge); "No level can be shown: the ad's only must-have is not in our skill list yet, so it could not be judged." |
 | A4 | musts SQL, Tableau met; the only nice-to-have is unlisted | Strong (skills only); "You meet all 2 must-haves on your profile. TAIL"; nices 0 of 0; "Could not judge: 0 must-haves, 1 nice-to-have."; amber note "1 requirement is not in our skill list yet, so we could not judge it. It is not counted in the level or in the counts below." |
-| A5 | SQL met, one unlisted must; ad Exampleville hybrid; profile city Berlin | Long shot (judged: skills, location); lead sentence W7, then "You meet the only must-have on your profile, plus 1 must-have we could not judge. 1 conflict was found in what you set (listed below). Not judged here: language, work mode, years, start date." |
-| A6 | typed-list path: list "SQL"; ad: SQL must, one unlisted must | Strong (skills only); "You meet the only must-have on your list, plus 1 must-have we could not judge. TAIL" |
+| A5 | SQL met, one unlisted must; ad Exampleville hybrid; profile city Berlin | Long shot (judged: skills, location; 1 must-have not judged); lead sentence W7, then "You meet the only must-have on your profile, plus 1 must-have we could not judge. 1 conflict was found in what you set (listed below). Not judged here: language, work mode, years, start date." |
+| A6 | typed-list path: list "SQL"; ad: SQL must, one unlisted must | Strong (skills only; 1 must-have not judged); "You meet the only must-have on your list, plus 1 must-have we could not judge. TAIL" |
 | A7 | the ad has no must-haves at all (nice Excel only), skills present | Strong (skills only); "The ad lists no must-haves. TAIL" (unchanged: zero must-haves is not the same as "none could be judged") |
 | A8 | a requirement with one listed and one unlisted alternative ("Power BI or Looker"), nothing on the profile | missing, not "could not judge" (existing test S9 stays true) |
 
@@ -114,10 +122,10 @@ Same invented material as docs/FIT-LEVEL-FACTS.md: CV lines 1 "Alex Example, Rep
 
 | Case | Input | Expected |
 |---|---|---|
-| C1 | all five kinds set, stated and fine: ad Berlin, hybrid, German B2, 2 years, start 2026-12-01; profile Berlin, hybrid, German C1, 3 years, available 2026-11-15; all musts met | Strong (judged: skills, location, language, work mode, years, start date); "You meet all 2 must-haves on your profile. No conflict was found in what you set."; five lines in this order: "Location: fine. The job is in Berlin, and Berlin is on your profile." / "Language: fine. German at B2 is asked; your profile has C1." / "Work mode: fine. The job is hybrid, and your profile accepts hybrid." / "Years: fine. The ad asks for 2 years; your profile has 3." / "Start date: fine. The ad wants a start by 2026-12-01; you are available from 2026-11-15." |
+| C1 | all five kinds set, stated and fine: ad Berlin, hybrid, German B2, 2 years, start 2026-12-01; profile Berlin, hybrid, German C1, 3 years, available 2026-11-15; all musts met | Strong (judged: skills, location, language, work mode, years, start date); "You meet all 2 must-haves on your profile. No conflict was found in what you set."; five lines in this order: "Location: fine. The job is in Berlin, and Berlin is on your profile." / "Language: fine. The ad asks for German at B2; your profile has C1." / "Work mode: fine. The job is hybrid, and your profile accepts hybrid." / "Years: fine. The ad asks for 2 years; your profile has 3." / "Start date: fine. The ad wants a start by 2026-12-01; you are available from 2026-11-15." |
 | C2 | location fine, years conflict (case 3 plus Berlin matching) | only the location line; the years conflict is listed as today |
 | C3 | the ad names German without a level; profile has German | no language "fine" line; the existing line "Language: The ad names German but no level, so your level was not compared." stays |
-| C4 | two languages in the ad, both fine | ONE language line: "Language: fine. German at B2 is asked; your profile has C1. English at C1 is asked; your profile has C1." |
+| C4 | two languages in the ad, both fine | ONE language line: "Language: fine. The ad asks for German at B2; your profile has C1. The ad asks for English at C1; your profile has C1." |
 | C5 | a kind set by the person but not stated by the ad (existing R13) | not judged, no "fine" line |
 | C6 | two languages, one closable conflict, one fine | no language "fine" line (the kind has a conflict) |
 | C7 | typed-list path, any ad | no "fine" lines (nothing is judged there) |
@@ -145,7 +153,7 @@ Checked every test that calls `profileReport`, `skillsOnlyReport`, `countsSenten
 
 Must pass unchanged (re-checked by hand against sections 1 and 2): profileReport R1, R2, R4, R4b, R5, R6, R7, R8, R9, R11, R12 (no "stands in the way" and no "%" in the new sentences), R13a to R13c, G1 (the 2,048-input grid; it asserts conflicts are of judged kinds, which the new lines do not touch; its profile has skills, so (d) never fires); skillsOnly S1 to S4, S6, S7, S9 (a requirement with a listed alternative is not "could not judge"), S10 to S14 (S14's list "" now also prints the W6 sentence, which has no "conflict" and no "stands in the way"); tests/saved.test.ts S2b-report; tests/traits.test.ts and tests/wireStage2.test.ts (they read the reader, not the report); every engine and CLI test (fit, match, unlock, explain, report, golden), because `lib/engine` files other than the new one are not edited.
 
-New tests to write first from section 3 (a new file, `tests/fitLevelReport.test.ts`, one test per case id above, plus a grid test for (c): for every kind in the existing 2,048-input grid, `satisfied` lists exactly the judged kinds without a conflict, in KINDS order), and unit tests for `splitJudgeable` and `noLevelReason` in `tests/judgeable.test.ts`. Deliberate breaks to run when built, each must make a named test fail: unlisted must counted again in the level; "could not judge" requirement dropped without its row; all-unlisted case still printing a level; lead printed for a closable conflict; lead printed for three-or-more gaps; lead naming the second unclosable conflict; a "fine" line for a kind with a conflict; a "fine" line for a language without a level; a "fine" line on the typed-list path; zero skills still printing a level on either path; one in-progress skill wrongly counting as zero skills; `splitJudgeable` treating a requirement with one listed alternative as unlisted.
+New tests to write first from section 3 (a new file, `tests/fitLevelReport.test.ts`, one test per case id above, plus a grid test for (c): for every kind in the existing 2,048-input grid, `satisfied` lists exactly the judged kinds without a conflict, in KINDS order), and unit tests for `splitJudgeable` and `noLevelReason` in `tests/judgeable.test.ts`. Deliberate breaks to run when built, each must make a named test fail: unlisted must counted again in the level; "could not judge" requirement dropped without its row; all-unlisted case still printing a level; lead printed for a closable conflict; lead printed for three-or-more gaps; lead naming the second unclosable conflict; a "fine" line for a kind with a conflict; a "fine" line for a language without a level; a "fine" line on the typed-list path; the label caveat dropped ("; N must-have(s) not judged" missing from the label, or added for an unjudged nice-to-have, or added to a No level label); zero skills still printing a level on either path; one in-progress skill wrongly counting as zero skills; `splitJudgeable` treating a requirement with one listed alternative as unlisted.
 
 ## 5. Proposed changes to docs/SPRINT.md "Fit levels" (text only; SPRINT.md is NOT edited yet)
 
