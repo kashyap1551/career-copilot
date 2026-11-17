@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { engineView } from "@/lib/cv/engineView";
 import { gapList } from "@/lib/engine/gaps";
 import { match } from "@/lib/engine/match";
-import { ROADMAP_FROM_JOBS, roadmapBasis } from "@/lib/engine/roadmapJobs";
+import { listedAlternatives, ROADMAP_FROM_JOBS, roadmapBasis } from "@/lib/engine/roadmapJobs";
 import { splitJudgeable } from "@/lib/engine/judgeable";
 import { ad, ad1, ad2, ad3, ad4, must, nice, person, skills, UNLISTED } from "./support/roadmapFixtures";
 
@@ -85,6 +85,35 @@ describe("roadmapBasis: which saved ads the roadmap and the gap list can use", (
     const copy = structuredClone(job);
     roadmapBasis(job);
     expect(job).toEqual(copy);
+  });
+});
+
+describe("listedAlternatives: the listed skills of each requirement (Amendment 6 (2))", () => {
+  const deepFreeze = <T,>(x: T): T => {
+    if (x && typeof x === "object") {
+      Object.freeze(x);
+      for (const v of Object.values(x as object)) deepFreeze(v);
+    }
+    return x;
+  };
+
+  it("B10: unlisted alternatives are dropped, the rest of each requirement is untouched, the order is kept, the input is not changed", () => {
+    // hand count: [Power BI or Looker] -> [Power BI]; [Foo or Excel] -> [Excel]; [SQL] -> [SQL]; importance and quote as they were.
+    const job = deepFreeze(ad("x", "Analyst", "Invented Co", [must("power-bi", "new:looker"), nice("new:foo", "excel"), must("sql")]));
+    const out = listedAlternatives(job);
+    expect(out.requirements.map((r) => r.skillIds)).toEqual([["power-bi"], ["excel"], ["sql"]]);
+    expect(out.requirements.map((r) => r.importance)).toEqual(["must", "nice", "must"]);
+    expect(out.requirements.map((r) => r.quote)).toEqual(job.requirements.map((r) => r.quote));
+    expect(out.constraints).toEqual(job.constraints);
+    expect(out.id).toBe("x");
+  });
+
+  it("B11: a requirement whose ids are ALL unlisted is left unchanged (never an empty list); an all-listed job comes back equal", () => {
+    const allUnlisted = must("new:looker", "new:foo");
+    const out = listedAlternatives(ad("x", "Analyst", "Invented Co", [allUnlisted]));
+    expect(out.requirements[0].skillIds).toEqual(["new:looker", "new:foo"]);
+    const listedOnly = ad("y", "Clerk", "Invented Co", [must("sql"), nice("power-bi", "tableau")]);
+    expect(listedAlternatives(listedOnly)).toEqual(listedOnly);
   });
 });
 

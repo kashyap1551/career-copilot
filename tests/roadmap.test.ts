@@ -1,12 +1,13 @@
 import { describe, expect, it, vi, afterEach } from "vitest";
 import { profileReport } from "@/app/fitReport";
-import { roadmapBox } from "@/app/roadmap";
+import { roadmapBox, roadmapBoxSafe } from "@/app/roadmap";
 import { engineView } from "@/lib/cv/engineView";
 import { YEARS_NOTE } from "@/lib/engine/explain";
 import { renderProfileReport } from "@/lib/engine/report-text";
 import { ROADMAP_FROM_JOBS, roadmapBasis } from "@/lib/engine/roadmapJobs";
 import type { Job } from "@/lib/engine/types";
 import type { BuiltProfile } from "@/lib/cv/profile";
+import { ROADMAP_FAILED_LINE } from "@/lib/saved/messages";
 import { ad, ad1, ad2, ad3, ad4, asSaved, FOUR, must, nice, person, skills, UNLISTED } from "./support/roadmapFixtures";
 
 // Step 7.1e, tests first (docs/PLAN-7.1.md sections 1, 4, 5 and 7: U1 to U9, U11, U12 and the text cases of Amendment 3 (3)).
@@ -108,6 +109,39 @@ describe("Part A: the gap list texts (G1, G3, G6, G7, G8, G9, G10)", () => {
     const two = [ad("x", "Analyst", "Invented Co", [must("sql"), must(UNLISTED)]), ad("y", "Clerk", "Invented Co", [must("excel"), nice("new:other-thing")])];
     // hand count: 2 unlisted requirements (one in each ad)
     expect(box(person(), two).partA).toEqual(["You meet every requirement we could judge in your 2 saved ads.", COULD_NOT_2]);
+  });
+
+  it("G7c: the could-not-judge number counts REQUIREMENTS, in COUNTED ads only (Amendment 6 (1))", () => {
+    // Hand count, first part: ad x has 3 requirements: must SQL (met), must Kombucha (unlisted), nice 'other thing' (unlisted); ad y: must Excel (met).
+    // M = 2. Requirements not judged: 2, both in ad x. Ads with one: 1. So the plural line says 2 (counting ads would say 1).
+    const x = ad("x", "Analyst", "Invented Co", [must("sql"), must(UNLISTED), nice("new:other-thing")]);
+    const y = ad("y", "Clerk", "Invented Co", [must("excel")]);
+    expect(box(person(), [x, y]).partA).toEqual(["You meet every requirement we could judge in your 2 saved ads.", COULD_NOT_2]);
+    // Second part: ad x' has one unlisted must (1 requirement); ad 'Odd' is only an unlisted must, so it is EXCLUDED (no must-have we could
+    // judge): its unlisted requirement is NOT counted. M = 1, requirements not judged = 1 (x' only), the excluded ad is named instead.
+    const x1 = ad("x", "Analyst", "Invented Co", [must("sql"), must(UNLISTED)]);
+    const odd = ad("odd", "Odd", "Invented Co", [must(UNLISTED)]);
+    const b = box(person(), [x1, odd]);
+    expect(b.counted).toBe(1);
+    expect(b.partA).toContain(COULD_NOT_1);
+    expect(b.partA).toContain(NOT_COUNTED_NOMUST);
+    expect(b.partA).not.toContain(COULD_NOT_2);
+  });
+
+  it("G15: a requirement with one listed and one unlisted alternative is judged on the listed one; no raw `new:` id anywhere (Amendment 6 (2))", () => {
+    // Hand count: the profile has SQL and Excel (nothing in progress). The requirement is must 'Power BI or Looker'; Looker is not in
+    // our list, so the box keeps Power BI only. Power BI is not on the profile: one row, one ad. No requirement could not be judged
+    // (it was judged, on its listed alternative), no conflict (Berlin, hybrid), and only one skill is left so no alternatives note.
+    const job = ad("p", "Analyst", "Invented Co", [must("power-bi", "new:looker")]);
+    const b = box(person({ inProgress: [] }), [job], 1);
+    expect(b.partA).toEqual(["Skills you are missing across your 1 saved ad", SUBTITLE, "Power BI: must-have in 1 ad"]);
+    expect(b.partB).toEqual([
+      "Already Strong: none",
+      "Skills to build, in order:",
+      "1. Power BI: unlocks 1 job (Analyst, Invented Co). Total so far: 1 job.",
+      "Blocked jobs: none",
+    ]);
+    expect([...b.partA, ...b.partB].some((l) => l.includes("new:"))).toBe(false);
   });
 
   it("G8: an ad with no requirements is named in the not-counted line (singular, no requirements)", () => {
@@ -325,6 +359,27 @@ describe("Part B: who counts (U5 to U9)", () => {
       "- Dispatcher, Exampleville Depot Ltd: blocked by 1 thing; it can't be closed soon",
       "(can't be closed soon) The job is in Exampleville; the cities on your profile are: Berlin.",
     ]);
+  });
+});
+
+describe("S1 and S2: roadmapBoxSafe (Amendment 6 (3))", () => {
+  it("S1: a record that makes the box throw gives the one failed line, not an exception", () => {
+    // ad z has no `requirements` at all (a damaged reading): roadmapBasis throws. Hand count: the answer is the failed line,
+    // nothing in Part B, no note, 0 counted.
+    const broken = { id: "z", job: { ...ad1(), requirements: undefined } as never };
+    const healthy = { id: "h", job: ad("h", "Clerk", "Invented Co", [must("sql")]) };
+    expect(() => roadmapBox(person(), [broken, healthy], skills)).toThrow();
+    const b = roadmapBoxSafe(person(), [broken, healthy], skills);
+    expect(b.partA).toEqual([ROADMAP_FAILED_LINE]);
+    expect(b.partB).toEqual([]);
+    expect(b.noProfile).toBeNull();
+    expect(b.counted).toBe(0);
+    expect(ROADMAP_FAILED_LINE).toBe("What to learn could not be worked out.");
+  });
+
+  it("S2: for a healthy input it returns exactly what roadmapBox returns", () => {
+    expect(roadmapBoxSafe(person(), asSaved(FOUR()), skills)).toEqual(roadmapBox(person(), asSaved(FOUR()), skills));
+    expect(roadmapBoxSafe(null, asSaved(FOUR()), skills)).toEqual(roadmapBox(null, asSaved(FOUR()), skills));
   });
 });
 

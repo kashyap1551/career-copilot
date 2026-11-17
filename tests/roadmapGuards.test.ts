@@ -59,6 +59,16 @@ describe("no sentence literal: the words are constants in lib/saved/messages.ts"
   });
 });
 
+describe("the view keys each line by its position (Amendment 6 (4))", () => {
+  it("app/RoadmapView.tsx never keys a line by its text alone, and every key mentions an index", () => {
+    const src = code(read("app/RoadmapView.tsx"));
+    expect(src).not.toContain("key={line}");
+    const keyLines = src.split("\n").filter((l) => l.includes("key="));
+    expect(keyLines.length).toBeGreaterThanOrEqual(2); // Part A and Part B
+    for (const l of keyLines) expect(l, `key without an index: ${l}`).toMatch(/\b(i|index|idx)\b/);
+  });
+});
+
 describe("the guards themselves: both patterns pinned on examples", () => {
   it("flags a sentence as a string literal and as JSX text; lets short labels and short templates through", () => {
     // flagged
