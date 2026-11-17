@@ -12,7 +12,7 @@ About 4 to 5 focused hours a day. Every day ends with a deploy. Start the next s
 Notes (they match the code, lib/engine/fit.ts, match.ts, rules.ts, judgeable.ts):
 - A conflict can be closed soon if: a language is one level short (a language missing from the profile can't); total years are one year short; the start is up to 30 days late. A city that is not on the profile, and a work mode the profile does not accept, can't be closed soon; a hybrid job counts as on-site for the city.
 - Nice-to-haves are shown and counted but never change the level.
-- A must-have that is not in our skill list yet is shown as "could not judge" and is not counted; the label says "; N must-have(s) not judged". If none of the ad's must-haves can be judged, or the profile or list has no skills, no level is shown. An ad with no must-haves is Strong.
+- A must-have that is not in our skill list yet is shown as "could not judge" and is not counted; the label says "; N must-have(s) not judged". If the AI found no requirements at all in the ad, if none of the ad's must-haves can be judged, or if the profile or list has no skills, no level is shown (in that order). An ad with only nice-to-haves is Strong.
 - The report says "(skills only)" when no constraint was both set by the person and stated by the ad, and "(judged: skills, ...)" otherwise.
 - When a conflict that can't be closed soon sets the level, the report names it; each constraint that was judged and is fine gets one line.
 

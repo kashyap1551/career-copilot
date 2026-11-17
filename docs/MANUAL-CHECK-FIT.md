@@ -6,7 +6,7 @@ For the owner. Plain words, one small action per step. Each step has **Do** and 
 
 - Use **only the invented text in this file.** No real CV, name, email or phone. (The Groq terms are still not checked.)
 - Where: the branch's own preview address in Vercel (to be confirmed in the dashboard), or the live site after the branch is merged. Chrome.
-- Each **Read this ad** costs one AI call; this check uses 4. If the site asks for an access code (step 6.1b, if it is merged), enter it when asked.
+- This check presses **Read this ad** 7 times and sends the CV once, so it makes 5 to 8 AI calls: a repeat of the same ad text (steps 5, 6 and 7 repeat texts from steps 4 and 2) may come from the reading cache and cost nothing. If the site asks for an access code (step 6.1b, if it is merged), enter it when asked.
 - The AI decides what a sentence in an ad is: it may call "You can weld stainless steel tanks" a must-have or a nice-to-have. Both are fine; the Expect lines say what to see in each case.
 
 ## The invented material
@@ -58,7 +58,9 @@ You write SQL queries and build dashboards in Tableau.
    **Expect:** "Fit: Strong (skills only; 1 must-have not judged)" (or without the part after the semicolon if the welding line was read as a nice-to-have), and the same "Could not judge" row and yellow note as in step 2. No "Checked and fine" list (nothing is judged on a typed list).
 8. **Do:** clear the list again and paste an ad that has only the welding line as its requirement, for example the three lines "Welder / Northlake Foods Ltd, Berlin. / You can weld stainless steel tanks." and press **Read this ad**.
    **Expect (only if the AI read the welding line as a must-have):** "Fit: No level (no must-have we could judge)" and the sentence "No level can be shown: the ad's only must-have is not in our skill list yet, so it could not be judged." If the AI read it as a nice-to-have, or found no requirement, write down what you saw instead (this is the edge case; both are fine to report).
-9. **Do:** in the Console tab of the developer tools (Cmd+Option+I) look after the steps above.
+9. **Do:** paste the invented text `Hello, this is not a job ad.` into "The job ad" and press **Read this ad**.
+   **Expect:** either "Fit: No level (no requirements found in this ad)" with the sentence "No level can be shown: no requirements were found in this ad, so check that the whole ad was pasted.", or a message from the reader that it found nothing to read. Whichever happens, write down exactly what you saw.
+10. **Do:** in the Console tab of the developer tools (Cmd+Option+I) look after the steps above.
    **Expect:** no new red errors of ours (extension noise is known).
 
 ## What to send back
@@ -78,3 +80,4 @@ For each step: "passed", or the step number and what you saw instead. Also any r
 | 7 | NOT RUN YET | |
 | 8 | NOT RUN YET | |
 | 9 | NOT RUN YET | |
+| 10 | NOT RUN YET | |
