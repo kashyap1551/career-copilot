@@ -1,7 +1,8 @@
 import { levelName } from "@/lib/engine/explain";
 import { languageName, match, MODE_NAMES } from "@/lib/engine/match";
+import { noLevelReason, splitJudgeable } from "@/lib/engine/judgeable";
 import { skillIdFor } from "@/lib/engine/skillIds";
-import type { Job, Profile, Skill } from "@/lib/engine/types";
+import type { Job, Profile, Requirement, RequirementResult, Skill } from "@/lib/engine/types";
 
 // Step 3.4 page logic, as pure functions (no AI, no network): a pasted list of
 // skills becomes a provisional profile, and the job is judged on skills only.
@@ -80,12 +81,11 @@ export type SkillsOnlyReport = {
   explanation: string;
   counts: { mustsMet: number; mustsTotal: number; nicesMet: number; nicesTotal: number };
   rows: RequirementRow[];
-  unlistedRequirements: number; // requirements whose skills are all unlisted
+  unlistedRequirements: number; // requirements whose skills are all unlisted: shown as "could not judge", never counted
+  couldNotJudge: { musts: number; nices: number }; // the same, apart (docs/PLAN-FIT-LEVEL.md (a))
   notJudged: string[];
   checkYourself: string[];
 };
-
-const isUnlistedId = (id: string) => id.startsWith("new:");
 
 // The job's constraints go in as "not stated" so the engine judges skills
 // only; the real ones are listed as "not judged". otherConditions stay: the
@@ -124,17 +124,47 @@ const NOT_JUDGED_SENTENCE =
 // Written here, not by explainFit: that text says what "stands in the way",
 // which is unknown when the job's constraints are not judged. This one only
 // says what the counts show.
-// The counts sentence, shared with the confirmed-profile report (app/fitReport.ts).
-export function countsSentence(total: number, missing: string[], where = "on your list"): string {
+// The counts sentence, shared with the confirmed-profile report (app/fitReport.ts). `couldNotJudge` is the number of
+// must-haves that are not in our skill list yet: they are not in `total` and are named at the end (docs/PLAN-FIT-LEVEL.md W1).
+export function countsSentence(total: number, missing: string[], where = "on your list", couldNotJudge = 0): string {
   if (total === 0) return "The ad lists no must-haves.";
+  const tail = couldNotJudge > 0 ? `, plus ${couldNotJudge} ${couldNotJudge === 1 ? "must-have" : "must-haves"} we could not judge` : "";
   if (missing.length === 0)
-    return total === 1 ? `You meet the only must-have ${where}.` : `You meet all ${total} must-haves ${where}.`;
-  if (missing.length === 1) return `One must-have is missing: ${missing[0]}.`;
-  return `${missing.length} of ${total} must-haves are missing: ${missing.join(", ")}.`;
+    return (total === 1 ? `You meet the only must-have ${where}` : `You meet all ${total} must-haves ${where}`) + `${tail}.`;
+  if (missing.length === 1) return `One must-have is missing: ${missing[0]}${tail}.`;
+  return `${missing.length} of ${total} must-haves are missing: ${missing.join(", ")}${tail}.`;
 }
 
-export function skillsOnlyExplanation(total: number, missing: string[]): string {
-  return `${countsSentence(total, missing)} ${NOT_JUDGED_SENTENCE}`;
+export function skillsOnlyExplanation(total: number, missing: string[], couldNotJudge = 0): string {
+  return `${countsSentence(total, missing, "on your list", couldNotJudge)} ${NOT_JUDGED_SENTENCE}`;
+}
+
+// ---- no level, and the label (docs/PLAN-FIT-LEVEL.md W5, W6, W9) -----------------------------------------------------
+
+export const NO_SKILLS_PROFILE_SENTENCE = "No level yet: there are no skills on your profile. Add skills first.";
+export const NO_SKILLS_LIST_SENTENCE = "No level yet: your list has no skills we can match. Add skills first.";
+
+// Every must-have of the ad is not in our skill list yet, so none could be judged (n is how many the ad has).
+export function noMustHaveJudgeableSentence(n: number): string {
+  return n === 1
+    ? "No level can be shown: the ad's only must-have is not in our skill list yet, so it could not be judged."
+    : `No level can be shown: none of the ad's ${n} must-haves is in our skill list yet, so none could be judged.`;
+}
+
+// "Strong (skills only; 1 must-have not judged)", "Long shot (judged: skills, location; 2 must-haves not judged)", or the
+// "No level (...)" label. The caveat goes in the brackets whenever 1 or more must-haves could not be judged; a "No level"
+// label does not carry it. `inner` is "skills only" or "judged: skills, ...".
+export function fitLabelText(
+  levelName: string,
+  noLevel: "no-must-have-judgeable" | "no-skills" | null,
+  inner: string,
+  unjudgedMusts: number,
+  where: "profile" | "list",
+): string {
+  if (noLevel === "no-must-have-judgeable") return "No level (no must-have we could judge)";
+  if (noLevel === "no-skills") return `No level (no skills on your ${where})`;
+  const caveat = unjudgedMusts > 0 ? `; ${unjudgedMusts} ${unjudgedMusts === 1 ? "must-have" : "must-haves"} not judged` : "";
+  return `${levelName} (${inner}${caveat})`;
 }
 
 export { NOT_JUDGED_SENTENCE };
@@ -147,7 +177,11 @@ export function skillsOnlyReport(
   unlisted: Skill[],
 ): SkillsOnlyReport {
   const profile = profileFromList(cvLines, lines);
-  const result = match(profile, skillsOnlyJob(job));
+  // docs/PLAN-FIT-LEVEL.md (a): the level is decided from the requirements in our skill list only.
+  const { judged, couldNotJudge } = splitJudgeable(job);
+  const result = match(profile, skillsOnlyJob(judged));
+  const unjudgedMusts = couldNotJudge.filter((r) => r.importance === "must").length;
+  const unjudgedNices = couldNotJudge.length - unjudgedMusts;
 
   const nameOf = (id: string) =>
     skills.find((s) => s.id === id)?.name ??
@@ -155,9 +189,17 @@ export function skillsOnlyReport(
     id;
   const labelOf = (ids: string[]) => ids.map(nameOf).join(" or ");
 
-  const rows: RequirementRow[] = [...result.musts, ...result.nices].map((r) => {
-    const label = labelOf(r.requirement.skillIds);
-    const base = { quote: r.requirement.quote, importance: r.requirement.importance, label };
+  // Rows in the ad's order, musts then nice-to-haves; an unlisted requirement keeps its place and says "could not judge".
+  const byRequirement = new Map<Requirement, RequirementResult>();
+  for (const r of [...result.musts, ...result.nices]) byRequirement.set(r.requirement, r);
+  const inOrder = [...job.requirements.filter((r) => r.importance === "must"), ...job.requirements.filter((r) => r.importance === "nice")];
+  const rows: RequirementRow[] = inOrder.map((requirement) => {
+    const label = labelOf(requirement.skillIds);
+    const base = { quote: requirement.quote, importance: requirement.importance, label };
+    const r = byRequirement.get(requirement);
+    if (!r) {
+      return { ...base, status: "unlisted" as const, detail: `${label}: not in our skill list yet, so we could not judge it.` };
+    }
     if (r.met && r.metBy) {
       return {
         ...base,
@@ -165,25 +207,26 @@ export function skillsOnlyReport(
         detail: `${nameOf(r.metBy.skillId)}: from your list, line ${r.metBy.evidence.line}: "${r.metBy.evidence.text}"`,
       };
     }
-    if (r.requirement.skillIds.every(isUnlistedId)) {
-      return {
-        ...base,
-        status: "unlisted" as const,
-        detail: `${label}: not in our skill list yet, so it can't be matched with your CV`,
-      };
-    }
     return { ...base, status: "missing" as const, detail: `${label}: not on your list` };
   });
 
+  const noLevel = noLevelReason({ judgedMusts: result.counts.mustsTotal, unjudgedMusts, skillCount: profile.skills.length });
+  const missing = result.musts.filter((m) => !m.met).map((m) => labelOf(m.requirement.skillIds));
+  const usual = skillsOnlyExplanation(result.counts.mustsTotal, missing, unjudgedMusts);
+  const explanation =
+    noLevel === "no-must-have-judgeable"
+      ? noMustHaveJudgeableSentence(unjudgedMusts)
+      : noLevel === "no-skills"
+        ? `${NO_SKILLS_LIST_SENTENCE} ${usual}`
+        : usual;
+
   return {
-    fitLabel: `${levelName(result.level)} (skills only)`,
-    explanation: skillsOnlyExplanation(
-      result.counts.mustsTotal,
-      result.musts.filter((m) => !m.met).map((m) => labelOf(m.requirement.skillIds)),
-    ),
+    fitLabel: fitLabelText(levelName(result.level), noLevel, "skills only", unjudgedMusts, "list"),
+    explanation,
     counts: result.counts,
     rows,
-    unlistedRequirements: rows.filter((r) => r.status === "unlisted").length,
+    unlistedRequirements: couldNotJudge.length,
+    couldNotJudge: { musts: unjudgedMusts, nices: unjudgedNices },
     notJudged: notJudgedLines(job),
     checkYourself: result.checkYourself,
   };

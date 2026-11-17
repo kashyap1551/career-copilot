@@ -58,3 +58,17 @@ export function closeMatchLines(
 export function closeMatchLine(written: string, skillName: string): string {
   return `Read as "${skillName}" (close spelling of "${written}")`;
 }
+
+// docs/PLAN-FIT-LEVEL.md W3 and W4: what the page says about requirements that are not in our skill list yet (they are not
+// judged, and not counted). null when there are none.
+export function couldNotJudgeNote(total: number): string | null {
+  if (total <= 0) return null;
+  return total === 1
+    ? "1 requirement is not in our skill list yet, so we could not judge it. It is not counted in the level or in the counts below."
+    : `${total} requirements are not in our skill list yet, so we could not judge them. They are not counted in the level or in the counts below.`;
+}
+
+export function couldNotJudgeCounts(musts: number, nices: number): string | null {
+  if (musts + nices <= 0) return null;
+  return `Could not judge: ${musts} ${musts === 1 ? "must-have" : "must-haves"}, ${nices} ${nices === 1 ? "nice-to-have" : "nice-to-haves"}.`;
+}

@@ -71,11 +71,11 @@ describe("skillsOnlyReport", () => {
     ]);
   });
 
-  it("S5: an empty list meets nothing: 3 musts missing is Long shot", () => {
+  it("S5: an empty list has no skills we can match: no level, and the sentence says to add skills first", () => {
     const r = report("");
-    expect(r.fitLabel).toBe("Long shot (skills only)");
+    expect(r.fitLabel).toBe("No level (no skills on your list)");
     expect(r.explanation).toBe(
-      "3 of 3 must-haves are missing: SQL, Excel, Communication." + NOT_JUDGED,
+      "No level yet: your list has no skills we can match. Add skills first. 3 of 3 must-haves are missing: SQL, Excel, Communication." + NOT_JUDGED,
     );
     expect(r.counts.mustsMet).toBe(0);
     expect(r.rows.every((x) => x.status === "missing")).toBe(true);
@@ -93,7 +93,7 @@ describe("skillsOnlyReport", () => {
     expect(r.rows[0].detail).toBe('SQL: from your list, line 1: "sql"');
   });
 
-  it("S8: a requirement whose skills are all unlisted is not met, even if the same unlisted skill is on the list", () => {
+  it("S8: a requirement whose skills are all unlisted is 'could not judge', even if the same unlisted skill is on the list; the only must-have, so no level", () => {
     const docker: Job = {
       ...northwind,
       requirements: [{ skillIds: ["new:welding"], importance: "must", quote: "Welding experience." }],
@@ -105,13 +105,14 @@ describe("skillsOnlyReport", () => {
         importance: "must",
         label: "Welding",
         status: "unlisted",
-        detail: "Welding: not in our skill list yet, so it can't be matched with your CV",
+        detail: "Welding: not in our skill list yet, so we could not judge it.",
       },
     ]);
     expect(r.unlistedRequirements).toBe(1);
-    expect(r.explanation).toBe("One must-have is missing: Welding." + NOT_JUDGED);
+    expect(r.explanation).toBe("No level can be shown: the ad's only must-have is not in our skill list yet, so it could not be judged.");
     expect(r.counts.mustsMet).toBe(0);
-    expect(r.fitLabel).toBe("Good (skills only)");
+    expect(r.counts.mustsTotal).toBe(0);
+    expect(r.fitLabel).toBe("No level (no must-have we could judge)");
   });
 
   it("S9: alternatives with one listed skill are not counted as unlisted", () => {
