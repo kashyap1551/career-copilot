@@ -1,11 +1,11 @@
 import { engineView } from "@/lib/cv/engineView";
 import { KIND_WORDS, type BuiltProfile } from "@/lib/cv/profile";
-import { blockedHeader, conflictLine, explainRankedSkill, jobLabel, YEARS_NOTE } from "@/lib/engine/explain";
+import { blockedHeader, conflictLine, explainRankedSkill, explainTimelineEntry, jobLabel, YEARS_NOTE } from "@/lib/engine/explain";
 import { gapList, type HeldBack } from "@/lib/engine/gaps";
 import { match } from "@/lib/engine/match";
 import { listedAlternatives, ROADMAP_FROM_JOBS, roadmapBasis } from "@/lib/engine/roadmapJobs";
 import type { Job, Skill } from "@/lib/engine/types";
-import { classifyJobs, jobsBroughtCloser, rankMissingSkills } from "@/lib/engine/unlock";
+import { classifyJobs, jobsBroughtCloser, rankMissingSkills, unlockTimeline } from "@/lib/engine/unlock";
 import {
   alreadyStrongLine,
   ALTERNATIVES_NOTE,
@@ -30,6 +30,9 @@ import {
   RANKING_HEADER,
   rankingNoneLine,
   thresholdLine,
+  TIMELINE_FRAMING,
+  TIMELINE_HEADER,
+  TIMELINE_NONE,
   unjudgedCaveat,
 } from "@/lib/saved/messages";
 import type { OpenedAd } from "./savedAdRows";
@@ -58,9 +61,10 @@ export type RoadmapBox = {
   partB: string[]; // the roadmap, or the one threshold line
   counted: number; // M: the saved ads the gap list and the roadmap use
   alreadyStrongIds: string[]; // ids of counted ads classed Already Strong ([] while the roadmap is not shown)
+  timeline: string[]; // step 7.3: the timeline from skills in progress, with the roadmap only; [] otherwise (the view draws it as a third list)
 };
 
-const EMPTY: RoadmapBox = { noProfile: null, partA: [], partB: [], counted: 0, alreadyStrongIds: [] };
+const EMPTY: RoadmapBox = { noProfile: null, partA: [], partB: [], counted: 0, alreadyStrongIds: [], timeline: [] };
 
 // `built` is the profile in use (null = none). `ads` are the saved ads as opened by 6.2 (the same readings the fit levels use).
 export function roadmapBox(
@@ -118,7 +122,7 @@ export function roadmapBox(
   if (held) partA.push(held);
 
   // ---- Part B: the roadmap, from the engine's own functions ----
-  if (M < fromJobs) return { noProfile: null, partA, partB: [thresholdLine(M, fromJobs)], counted: M, alreadyStrongIds: [] };
+  if (M < fromJobs) return { noProfile: null, partA, partB: [thresholdLine(M, fromJobs)], counted: M, alreadyStrongIds: [], timeline: [] };
 
   const labelOf = (jobId: string) => {
     const i = engineJobs.findIndex((j) => j.id === jobId);
@@ -151,6 +155,12 @@ export function roadmapBox(
       if (b.conflicts.some((c) => c.kind === "years")) partB.push(YEARS_NOTE);
     }
   }
+  // Step 7.3: the same two values as the ranking above, so the two cannot disagree. Each line is the engine's own sentence.
+  const entries = unlockTimeline(engineProfile, engineJobs);
+  const timeline =
+    entries.length === 0
+      ? [TIMELINE_NONE]
+      : [TIMELINE_HEADER, TIMELINE_FRAMING, ...entries.map((e) => explainTimelineEntry(e, nameOf, labelOf))];
   const strongIds = new Set(groups.alreadyStrong);
   return {
     noProfile: null,
@@ -158,6 +168,7 @@ export function roadmapBox(
     partB,
     counted: M,
     alreadyStrongIds: counted.filter((_, i) => strongIds.has(engineJobs[i].id)).map((c) => c.ad.id),
+    timeline,
   };
 }
 
@@ -184,6 +195,6 @@ export function roadmapBoxSafe(
   try {
     return roadmapBox(built, ads, skills, fromJobs);
   } catch {
-    return { noProfile: null, partA: [ROADMAP_FAILED_LINE], partB: [], counted: 0, alreadyStrongIds: [] };
+    return { noProfile: null, partA: [ROADMAP_FAILED_LINE], partB: [], counted: 0, alreadyStrongIds: [], timeline: [] };
   }
 }

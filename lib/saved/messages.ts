@@ -129,6 +129,12 @@ export const rankingNoneLine = (otherStrong: boolean) =>
 export const BLOCKED_NONE = "Blocked jobs: none";
 export const blockedCountLine = (n: number) => `Blocked jobs (skills alone can't make these Strong): ${n}`;
 
+// Step 7.3 (docs/PLAN-7.3.md section 1): the timeline. The header and the "none" line are the words of the command-line report
+// (lib/engine/report-text.ts); the framing sentence is the page's own. The `By DATE (...)` lines are the engine's (explainTimelineEntry).
+export const TIMELINE_HEADER = "Timeline from skills in progress:";
+export const TIMELINE_FRAMING = "These counts assume you learn each skill by its expected date.";
+export const TIMELINE_NONE = "Timeline from skills in progress: none.";
+
 export const WHAT_TO_LEARN = "What to learn";
 
 export const ROADMAP_FAILED_LINE = "What to learn could not be worked out.";
