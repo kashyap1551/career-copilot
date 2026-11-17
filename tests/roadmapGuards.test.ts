@@ -83,3 +83,34 @@ describe("the guards themselves: both patterns pinned on examples", () => {
     expect(jsxSentences("const f = (x) => <li>{x}</li>;")).toEqual([]); // the ">" of an arrow is not JSX text
   });
 });
+
+// ---- Step 7.3 (docs/PLAN-7.3.md section 7, T14 and T15): source guards for the timeline. Appended; no existing case is touched.
+
+describe("T14: the timeline and the ranking are computed from the very same two values", () => {
+  it("T14: app/roadmap.ts calls unlockTimeline(...) with exactly the arguments of rankMissingSkills(...)", () => {
+    const src = code(read("app/roadmap.ts"));
+    const args = (fn: string) => [...src.matchAll(new RegExp(`\\b${fn}\\(([^()]*)\\)`, "g"))].map((m) => m[1].replace(/\s+/g, " ").trim());
+    const ranking = args("rankMissingSkills");
+    const timeline = args("unlockTimeline");
+    expect(ranking.length).toBeGreaterThanOrEqual(1);
+    expect(timeline, "app/roadmap.ts must call unlockTimeline once").toHaveLength(1);
+    expect(timeline[0]).toBe(ranking[0]);
+  });
+});
+
+describe("T15: no clock, and the view draws the timeline by position", () => {
+  it("T15a: no Date.now, new Date or performance.now in app/roadmap.ts, app/RoadmapView.tsx or lib/engine/unlock.ts (code only)", () => {
+    for (const f of ["app/roadmap.ts", "app/RoadmapView.tsx", "lib/engine/unlock.ts"]) {
+      for (const w of ["Date.now", "new Date", "performance.now"]) expect(code(read(f)), `${f} must not contain "${w}"`).not.toContain(w);
+    }
+  });
+
+  it("T15b: app/RoadmapView.tsx maps box.timeline, with a key that mentions an index, and still has no onClick", () => {
+    const src = code(read("app/RoadmapView.tsx"));
+    expect(src).toContain("box.timeline");
+    const keyLines = src.split("\n").filter((l) => l.includes("key="));
+    expect(keyLines.length).toBeGreaterThanOrEqual(3); // Part A, Part B and the timeline
+    for (const l of keyLines) expect(l, `key without an index: ${l}`).toMatch(/\b(i|index|idx)\b/);
+    expect(src).not.toContain("onClick");
+  });
+});

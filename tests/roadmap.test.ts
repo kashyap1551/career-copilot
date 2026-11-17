@@ -9,6 +9,7 @@ import type { Job } from "@/lib/engine/types";
 import type { BuiltProfile } from "@/lib/cv/profile";
 import { ROADMAP_FAILED_LINE } from "@/lib/saved/messages";
 import { ad, ad1, ad2, ad3, ad4, asSaved, FOUR, must, nice, person, skills, UNLISTED } from "./support/roadmapFixtures";
+import { page } from "./support/viaPage";
 
 // Step 7.1e, tests first (docs/PLAN-7.1.md sections 1, 4, 5 and 7: U1 to U9, U11, U12 and the text cases of Amendment 3 (3)).
 // `roadmapBox` is the pure assembler of the "What to learn" box. SIGNATURE CHOSEN (the plan's section 6 row says "assembles
@@ -482,5 +483,61 @@ describe("the ads that count are the ones roadmapBasis does not exclude", () => 
     const jobs = [ad1(), ad("n", "Empty", "Invented Co", []), ad4(), ad("m", "Odd", "Invented Co", [must(UNLISTED)])];
     expect(box(person(), jobs).counted).toBe(jobs.filter((j) => roadmapBasis(j).excluded === null).length); // hand count: 2 (ads 1 and 4)
     expect(box(person(), jobs).counted).toBe(2);
+  });
+});
+
+// ---- Step 7.3 (docs/PLAN-7.3.md section 7, T10 and T11): U12 extended to the timeline. Appended; no existing case is touched.
+// The box side is built the way the page does (every job id "pasted-ad", through roadmapAds); the command-line side gets the same engine
+// inputs with the fixtures' own distinct ids, so the two sides are also independent of the ids.
+
+describe("U12e: the page's timeline text equals the command-line report's, line by line", () => {
+  const T_HEADER = "Timeline from skills in progress";
+  const FRAMING = "These counts assume you learn each skill by its expected date.";
+  const prog = (name: string, date: string) => ({ name, date });
+
+  // The report prints the timeline last: from its header line to the end, trimmed, without blank lines.
+  function reportTimeline(built: BuiltProfile, jobs: Job[]): string[] {
+    const views = jobs.map((j) => engineView(j, built));
+    const lines = renderProfileReport(views[0].engineProfile, views.map((v) => v.engineJob), skills).split("\n");
+    const from = lines.findIndex((l) => l.startsWith(T_HEADER));
+    expect(from).toBeGreaterThanOrEqual(0);
+    return lines.slice(from).map((l) => l.trim()).filter((l) => l !== "");
+  }
+  const boxTimeline = (built: BuiltProfile, jobs: Job[], from: number) => {
+    const { lines, removed } = stripCaveat(page(built, jobs, from).timeline);
+    return { lines: lines.filter((l) => l !== FRAMING), removed };
+  };
+
+  it("T10a: H1: equal; removals 0 (the only job named, ad 1, has no unlisted must-have)", () => {
+    const { lines, removed } = boxTimeline(person(), FOUR(), 4);
+    expect(lines).toEqual(reportTimeline(person(), FOUR()));
+    expect(removed).toBe(0);
+  });
+
+  it("T10b: H2: equal; removals 2 (ad 4, with one unlisted must-have, is named once in each of the two lines)", () => {
+    const built = () => person({ keptIds: ["sql"], inProgress: [prog("Tableau", "2027-03-01"), prog("Python", "2027-03-01"), prog("Excel", "2027-09-01")] });
+    const jobs = () => [ad1(), ad2({ location: "Exampleville" }), ad3(), ad4()];
+    const { lines, removed } = boxTimeline(built(), jobs(), 4);
+    expect(lines).toEqual(reportTimeline(built(), jobs()));
+    expect(removed).toBe(2);
+  });
+});
+
+describe("U12f: the shared literals equal the report's; the framing sentence is the page's own", () => {
+  it("T11a: the report never prints the framing sentence (H1)", () => {
+    const views = FOUR().map((j) => engineView(j, person()));
+    const text = renderProfileReport(views[0].engineProfile, views.map((v) => v.engineJob), skills);
+    expect(text).not.toContain("These counts assume");
+  });
+
+  it("T11b: the header line of the box is the report's header line (H1), and the empty line is the report's empty line (H4)", () => {
+    const h1 = FOUR().map((j) => engineView(j, person()));
+    const h1Text = renderProfileReport(h1[0].engineProfile, h1.map((v) => v.engineJob), skills).split("\n");
+    expect(page(person(), FOUR(), 4).timeline[0]).toBe(h1Text.find((l) => l.startsWith("Timeline from skills in progress"))!.trim());
+
+    const h4Built = person({ inProgress: [] });
+    const h4 = FOUR().map((j) => engineView(j, h4Built));
+    const h4Text = renderProfileReport(h4[0].engineProfile, h4.map((v) => v.engineJob), skills).split("\n");
+    expect(page(h4Built, FOUR(), 4).timeline).toEqual([h4Text.find((l) => l.startsWith("Timeline from skills in progress"))!.trim()]);
   });
 });
