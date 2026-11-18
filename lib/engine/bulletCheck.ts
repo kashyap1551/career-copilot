@@ -43,7 +43,7 @@ const CLAIMS = set(
 );
 
 // R8: words that LIMIT a claim or a role; each that stands in a cited line must stand in the bullet in exactly this form.
-const QUALIFIERS = set(
+export const QUALIFIERS = set(
   "helped help helping assisted assist assisting supported supporting contributed contributing participated participating basic basics beginner learning studying " +
     "familiar exposure shadowed attended about around approximately roughly nearly almost over under some several only mostly mainly partly partially " +
     "occasionally sometimes rarely junior assistant deputy associate acting interim vice " +
