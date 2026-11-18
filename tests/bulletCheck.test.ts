@@ -2,6 +2,9 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { checkBullet } from "@/lib/engine/bulletCheck";
+import { cvFixtures } from "@/fixtures/synthetic-cvs";
+import { numberLines } from "@/lib/cv/numberLines";
+import { removeContactDetails } from "@/lib/cv/redact";
 import { skills } from "@/lib/vocab";
 
 // Step 8.3, stage 1a, tests first (docs/PLAN-8.3.md v2, section 3 and 3.1; tests T1 to T9 and T26). EVERY expected verdict below is a hand
@@ -25,7 +28,7 @@ const CV_A = [
 ];
 
 type Reason =
-  | "bad-citation" | "bad-length" | "new-date" | "new-number" | "new-skill" | "new-name" | "new-claim" | "lost-qualifier" | "new-word" | "reordered";
+  | "bad-citation" | "bad-length" | "new-date" | "new-number" | "new-skill" | "new-name" | "new-claim" | "lost-qualifier" | "new-word" | "reordered" | "check-failed";
 type Verdict = { ok: true } | { ok: false; reason: Reason };
 const OK: Verdict = { ok: true };
 const NO = (reason: Reason): Verdict => ({ ok: false, reason });
@@ -182,10 +185,17 @@ describe("T5: the date table", () => {
   });
 });
 
+describe("T6b: a vocabulary skill name is NOT tolerated by word form (0.15)", () => {
+  it("T6b: the vocabulary lists 'Dashboards' and no singular, so R5 (before R9) rejects the plural when the line has the singular", () => {
+    expect(one("Built monthly dashboard", "Built monthly dashboards")).toEqual(NO("new-skill"));
+    expect(one("Built monthly dashboards", "Built monthly dashboard")).toEqual(OK); // the singular is no vocabulary form: R5 has nothing to ask
+  });
+});
+
 describe("T6: word forms", () => {
   it("T6: a plural or a tense of a word of the line is tolerated, both ways (4 letters or more)", () => {
-    expect(one("Built monthly dashboards", "Built monthly dashboard")).toEqual(OK);
-    expect(one("Built monthly dashboard", "Built monthly dashboards")).toEqual(OK);
+    expect(one("Built monthly reports", "Built monthly report")).toEqual(OK); // neither text holds a vocabulary form (0.15)
+    expect(one("Built monthly report", "Built monthly reports")).toEqual(OK);
     expect(one("Handled the orders daily", "Handle the orders daily")).toEqual(OK);
     expect(one("Sort orders daily", "Sorting orders daily")).toEqual(OK);
   });
@@ -298,6 +308,56 @@ describe("T9: it never throws and never changes its input", () => {
     }
     expect(() => checkBullet("Kept the stock sheet in Excel", [1], { lines: ["", "\u0000"], vocabulary: skills })).not.toThrow();
     expect(() => checkBullet("Kept the stock sheet in Excel", [1], { lines: [], vocabulary: [] })).not.toThrow();
+  });
+});
+
+describe("T9c: identity: a line is always a valid bullet for itself", () => {
+  // The eligibility is written here, from the plan's own words (3 to 25 words or numbers, one line, no list marker, no quotation marks around it).
+  const count = (l: string) => (l.match(/\p{L}+(?:['\u2019]\p{L}+)*|\d+(?:[.,]\d+)*/gu) ?? []).length;
+  const eligible = (l: string) => {
+    const t = l.trim();
+    const n = count(t);
+    return n >= 3 && n <= 25 && !/[\r\n]/.test(t) && !/^(?:[-*\u2022\u2013\u2014]|\d+[.)])\s/.test(t) && !(/^["'\u201c\u2018\u201e]/.test(t) && /["'\u201d\u2019\u201c]$/.test(t));
+  };
+  const sets: { name: string; lines: string[] }[] = [
+    { name: "CV-A", lines: CV_A },
+    ...cvFixtures.map((c) => ({ name: c.id, lines: numberLines(removeContactDetails(c.text)) })),
+  ];
+  for (const set of sets) {
+    it(`T9c: every eligible line of ${set.name} passes as its own bullet`, () => {
+      const failures: string[] = [];
+      let checked = 0;
+      set.lines.forEach((line, i) => {
+        if (!eligible(line)) return;
+        checked++;
+        const v = checkBullet(line, [i + 1], { lines: set.lines, vocabulary: skills }) as Verdict;
+        if (!v.ok) failures.push(`line ${i + 1} (${v.reason}): ${line}`);
+      });
+      expect(checked, `${set.name}: no eligible line was found`).toBeGreaterThan(0);
+      expect(failures).toEqual([]);
+    });
+  }
+});
+
+describe("T9d: a crash is not a length problem (0.16)", () => {
+  const boom = () => {
+    throw new Error("unreadable");
+  };
+  it("T9d: a vocabulary that throws when it is read gives check-failed and checkBullet does not throw", () => {
+    const vocabulary = new Proxy([] as typeof skills, { get: boom });
+    let verdict: Verdict | undefined;
+    expect(() => {
+      verdict = checkBullet("Kept the stock sheet up to date in Excel", [3], { lines: CV_A, vocabulary }) as Verdict;
+    }).not.toThrow();
+    expect(verdict).toEqual(NO("check-failed"));
+  });
+  it("T9d: lines that throw when they are read give check-failed too", () => {
+    const lines = new Proxy([] as string[], { get: boom });
+    let verdict: Verdict | undefined;
+    expect(() => {
+      verdict = checkBullet("Kept the stock sheet up to date in Excel", [3], { lines, vocabulary: skills }) as Verdict;
+    }).not.toThrow();
+    expect(verdict).toEqual(NO("check-failed"));
   });
 });
 
