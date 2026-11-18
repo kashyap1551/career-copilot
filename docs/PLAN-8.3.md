@@ -48,6 +48,10 @@ STATUS: ACCEPTED v2, 2026-11-18: owner and reviewer decisions below; no code and
 - **0.17 Identity test T9c.** Every line of CV-A and of the five invented CVs that has 3 to 25 words or numbers, one line, no list marker and no quotation marks around it passes `checkBullet` as its own bullet, cited by its own line number. *Reason:* every rule says "must stand in the line", so a line always passes as its own bullet; a failure is a bug in the checker.
 - **0.18 Stage 2 clarifications (implementer, from the engine confirmation).** P2 as first written assumed "Spreadsheets" might be a name of Excel; the vocabulary lists it as its own skill, so P2 has one pair and a new P2b (Excel and Spreadsheets both evidenced by line 4) tests the one-pair-per-line rule; P4 and a new P4b fix the order (musts first) and the cap of 5; the API of `chooseBulletPairs` and `bulletsFrom` is written down in section 10. Nothing here changes a rule or a decision.
 - **0.19 Rename (reviewer).** The drop reason `unknown-pair` is now `repeated-pair`: a pair id answered more than once. *Reason:* a bullet for an id that was never asked is `ignored`, not dropped, so the old name was wrong for the only case that uses it.
+- **0.20 Eval, stage 5 (reviewer).** M4 also reports UNCHANGED: the number of accepted bullets that equal their cited line when compared lower-case with spaces collapsed. It is a reported number, not a pass line. If most accepted bullets are unchanged, the feature picks lines and adds little wording; the owner must be told.
+- **0.21 Stage 4 note (reviewer).** When a bullet equals its line (the same comparison), the page shows the source line once, not twice.
+- **0.22 Later list (reviewer).** The learning marker "currently" also excludes lines about a current job; look at it once the eval shows yield (no rule change before a measure).
+- **0.23 Stage 3 decisions (reviewer).** The route is `POST /api/bullets`, in the same order as /api/cv (kill switch, access code, body, schema, AI call, check); it answers `{ bullets, asked, dropped }` with `Cache-Control: no-store`; `writeBullets(pairs)` calls the AI and then `bulletsFrom` (as `readCvLines` calls `fromCv`); the `BULLETS_REQUEST_HASH` constant and test T23 come only after the reviewer has approved the prompt text.
 
 ## 1. Facts (each read in this run)
 
@@ -119,7 +123,7 @@ Failure (a plain line, no bullets, no partial result):
 | W4 | the notice under the closed button (careful lane, Q-C2) | `This sends the ad's requirement lines and up to 5 lines of your own CV to the AI service (Groq). We store nothing and do not log the text.` | new constant; "up to 5" is `MAX_PAIRS` (text decided by the owner, 0.2) |
 | W5 | the block's title | `CV bullets for this ad` | new constant |
 | W6 | the line under the title (careful lane, Q-C2) | `Each bullet is built from the words of the CV line shown under it. Read each one before you use it.` | new constant (text decided by the owner, 0.2) |
-| W7 | under each bullet (careful lane, Q-C4) | `from your CV line 3: "<the line, word for word>"` | new function `sourceLine(line, text)`; the text is the line as the person saw it |
+| W7 | under each bullet (careful lane, Q-C4); when a bullet equals its line (lower-case, spaces collapsed) the source line is shown once, not twice (0.21) | `from your CV line 3: "<the line, word for word>"` | new function `sourceLine(line, text)`; the text is the line as the person saw it |
 | W8 | the dropped count, only when at least one bullet was dropped; the count is every dropped pair, whatever the reason; no "of M" (5 are asked, at most 3 are shown) | one: `1 bullet was dropped by the checks: it did not stay close enough to your CV line.` many: `2 bullets were dropped by the checks: they did not stay close enough to your CV line.` | new function `droppedLine(dropped)` (text decided by the owner, 0.2) |
 | W9 | nothing passed | `No bullet passed the checks, so none is shown. You can try again, or use your CV lines as they are.` | new constant ("Nothing was invented." is removed: a dropped bullet may have held an invention that the checks caught) |
 | W10 | nothing to write from | `No requirement of this ad is met by a line of your CV, so there is nothing to write from.` | new constant |
@@ -230,7 +234,7 @@ Invented CV "CV-A", numbered as the page numbers it (contact line already remove
 - **M1, INVENTED:** accepted bullets in which the reviewer, reading the bullet next to its line, finds a fact the line does not say (employer, title, number, date, tool, skill, result, scope, a dropped qualifier or a changed meaning). Every accepted bullet is read by hand. M1 has sub-counts: **new fact**, **dropped limit**, **order or joined meaning**, **other**.
 - **M2, wrong-line facts:** accepted bullets that use a fact of another pair's line. By construction 0 (R5, R6, R9 reject them); measured as the number of bullets REJECTED for that cause (a rejected bullet whose rejecting word is in another pair's line), reported, not a pass line.
 - **M3, rejected by the verifier:** counts per reason (`new-number`, `new-date`, `new-skill`, `new-name`, `new-claim`, `lost-qualifier`, `new-word`, `bad-length`, `check-failed`, `repeated-pair`, `missing`).
-- **M4, yield:** accepted bullets over asked bullets, and runs with at least one accepted bullet; reported for English and for German separately.
+- **M4, yield:** accepted bullets over asked bullets, and runs with at least one accepted bullet; reported for English and for German separately. M4 also reports **UNCHANGED**: the number of accepted bullets that equal their cited line, compared lower-case with spaces collapsed. It is a reported number, not a pass line. If most accepted bullets are unchanged, the feature picks lines and adds little wording; the owner must be told (0.20).
 - **M5, cost:** calls, tokens in and out, seconds.
 
 **Pre-registered numbers (fixed before any measure; the owner may change them before the first counted run, never after).**
@@ -484,7 +488,8 @@ Log table: 12 rows, NOT RUN YET.
 
 1. What the page shows: under the report of the ad on screen, `Write CV bullets for this ad` (needs a profile in use and a met requirement with an evidence line); up to three bullets, each with its source line and a dropped count; copy as text.
 2. The verifier's rules and word lists are in lib/engine/bulletCheck.ts; changing a list changes what a person is told is safe: it is a careful-lane change and needs a new plan version and a new measure on fresh material.
-3. Ideas, not planned: bullets from any CV line while the CV is in memory (Q4); a daily cap (9.2); a summary or cover-letter helper under the same rule; an English version of a German line (needs a different design).
+3. Later: the learning marker "currently" also excludes lines about a current job; look at it once the eval shows yield (0.22; no rule change before a measure).
+4. Ideas, not planned: bullets from any CV line while the CV is in memory (Q4); a daily cap (9.2); a summary or cover-letter helper under the same rule; an English version of a German line (needs a different design).
 
 ## 18. Stages
 
