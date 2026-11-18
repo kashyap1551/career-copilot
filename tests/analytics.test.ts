@@ -260,6 +260,18 @@ describe("T9: the analytics outcome alone", () => {
     expect(screenOutcomes(null, adsViaPage(FOUR()), skills, 4).analytics).toEqual({ kind: "none" });
     expect(screenOutcomes(person(), [], skills, 4).analytics).toEqual({ kind: "none" });
   });
+
+  it("T9 (third case): a reading whose constraints.languages is missing makes ONLY the analytics' level step throw: the box and the report are still fine, the analytics are 'failed'", () => {
+    // Found by the stage-2 probe (d) of docs/PLAN-8.2.md section 15: roadmapInputs and roadmapBox work on it (the engine view blanks the languages when the person
+    // set none), profileReport throws a TypeError (adSays reads languages.length). Hand count: 2 counted ads (both have a must-have); the box shows the
+    // roadmap at gate 1 and is NOT the failure line; the report is ready; the analytics are the one failed outcome.
+    const damaged = { ...ad1(), constraints: { ...ad1().constraints, languages: undefined } } as never as Job;
+    const o = screenOutcomes(person(), adsViaPage([damaged, ad2()]), skills, 1);
+    expect(o.box.partA).not.toEqual(["What to learn could not be worked out."]);
+    expect(o.box.counted).toBe(2);
+    expect(o.report.kind).toBe("ready");
+    expect(o.analytics).toEqual({ kind: "failed", line: "The analytics could not be worked out." });
+  });
 });
 
 // ---- the overlaps (T10 to T12): both sides come from the page's way, never from the analytics' own counting -------------------------
