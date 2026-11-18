@@ -19,14 +19,15 @@ export class ReadAdError extends Error {
   }
 }
 
-export type ReadSubject = "ad" | "cv";
+export type ReadSubject = "ad" | "cv" | "bullets";
 
 // Logs only the kind of error and the status code: never the ad or CV text,
 // never the key, never the error's own message (it could echo the text).
 export function toReadError(raw: unknown, subject: ReadSubject): ReadAdError {
   const detail = raw instanceof Error ? raw.message : undefined;
-  const tag = subject === "cv" ? "cv" : "read";
-  const what = subject === "cv" ? "CV" : "ad";
+  const tag = subject === "cv" ? "cv" : subject === "bullets" ? "bullets" : "read";
+  const what = subject === "cv" ? "CV" : subject === "bullets" ? "bullets" : "ad";
+  const verb = subject === "bullets" ? "writing" : "reading"; // only the last, generic message uses it
 
   // The AI SDK retries a retryable error twice and then throws a RetryError
   // around the last one. Look at what was wrapped, so a 429 or a 5xx keeps its
@@ -84,7 +85,7 @@ export function toReadError(raw: unknown, subject: ReadSubject): ReadAdError {
 
   console.error(`${tag}: unexpected error`);
   return new ReadAdError(
-    `Something went wrong while reading the ${what}. Please try again.`,
+    `Something went wrong while ${verb} the ${what}. Please try again.`,
     500,
     detail,
   );

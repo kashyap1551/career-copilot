@@ -36,12 +36,14 @@ describe("T13: the request schema", () => {
   });
 
   it("T13: a missing field is refused (id, requirement, line)", () => {
-    const { id: _a, ...noId } = pair(1);
-    const { requirement: _b, ...noRequirement } = pair(1);
-    const { line: _c, ...noLine } = pair(1);
-    expect(ok([noId])).toBe(false);
-    expect(ok([noRequirement])).toBe(false);
-    expect(ok([noLine])).toBe(false);
+    const without = (field: string) => {
+      const p: Record<string, unknown> = pair(1);
+      delete p[field];
+      return p;
+    };
+    expect(ok([without("id")])).toBe(false);
+    expect(ok([without("requirement")])).toBe(false);
+    expect(ok([without("line")])).toBe(false);
     expect(ok([pair(1, { line: 5 })])).toBe(false);
     expect(ok([pair(1, { requirement: null })])).toBe(false);
   });
