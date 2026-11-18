@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { cvFixtures } from "@/fixtures/synthetic-cvs";
 import { skills } from "@/fixtures/skills";
+import { engineView } from "@/lib/cv/engineView";
 import { buildProfile, type ConfirmState } from "@/lib/cv/profile";
 import { numberLines } from "@/lib/cv/numberLines";
 import { removeContactDetails } from "@/lib/cv/redact";
@@ -160,8 +161,9 @@ describe("T11: order, one pair per line, the limit of 5", () => {
     expect(pairsFor(L7, P7, KEPT7, r).map((p) => p.skillId)).toEqual(["excel", "sql", "python"]);
   });
 
-  it("T11: an ad with no requirement at all gives no pair, and a requirement with two accepted skills uses the one the profile has", () => {
-    expect(pairsFor(L7, P7, KEPT7, [])).toEqual([]);
+  it("T11: an ad with no requirement at all gives no pair (the roadmap does not count such an ad, so the engine's view is built directly), and a requirement with two accepted skills uses the one the profile has", () => {
+    const view = engineView(ad("j0", "Empty Ad", "Invented Co", []), buildProfile(L7, P7, KEPT7, skills));
+    expect(chooseBulletPairs(view.engineProfile, view.engineJob)).toEqual([]);
     const either: Requirement = { skillIds: ["power-bi", "tableau"], importance: "must", quote: "Power BI or Tableau." };
     expect(pairsFor(L7, P7, KEPT7, [either])).toEqual([{ id: 1, requirement: "Power BI or Tableau.", skillId: "tableau", line: 4, text: L7[3] }]);
   });
