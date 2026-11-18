@@ -336,7 +336,7 @@ Expected texts and number lists are literal strings from section 7 (and, for the
 | T6 | `null` for: no profile; no saved ads; 9 counted ads at the real gate; zero counted ads; and NOT null with exactly 10 (the boundary) | same | page's way |
 | T7 | the cut cases of section 7 (limits 2, 3, 4, 5 on R1, each for the asked list AND the your-skills list: with limit 2 the your-skills list shows SQL and Excel and no more-line; limit 1 on R6; limit 1 on R1's your-skills list) | same | page's way, `top` as parameter |
 | T8 | the number checker on the hand lists: `reportNumbers` of R1, R2, R3, R3d, R6, R9 (literal lines) equals the hand numbers lists | same | helper only |
-| T9 | the analytics outcome alone: healthy `{ kind: "ready" }`; nothing to show `{ kind: "none" }`; when only the analytics' own step throws (a level that cannot be worked out) `{ kind: "failed", line: "The analytics could not be worked out." }` while the box and the report are still ready. If no real record makes only that step throw (to be found at stage 2), the test passes a throwing level function to `analyticsFrom` | same | the S1 form of tests/roadmap.test.ts |
+| T9 | the analytics outcome alone: healthy `{ kind: "ready" }`; nothing to show `{ kind: "none" }`; when only the analytics' own step throws (a level that cannot be worked out) `{ kind: "failed", line: "The analytics could not be worked out." }` while the box and the report are still ready. Stage 2 found such a record (a reading with `constraints.languages` missing: the box and the report work, `profileReport` throws), so the third case uses it and no injected seam is needed | same | the S1 form of tests/roadmap.test.ts |
 | T10 | overlap with the BOX: for R1, R2, R3, R3d, R6, R9: `M` of the analytics basis line = the box's `counted`; the Strong bucket = `alreadyStrongIds.length` of the box (1, 1, 0, 10, 0, 0); the five buckets sum to M | same | page's way, both sides |
 | T11 | overlap with the REPORT and the gap list: for every ranked skill of the report of R1, R2, R3, R6 the numbers of its "Asked as ..." line equal the must and nice numbers of its asked row (R1 Python 2/1, Tableau 1/2; R3 SQL 10/0; R6 Python 2/0, SQL 2/0); and for every gap row of the box's gap list the asked row has the same two numbers (R1, R2, R3, R6) | same | page's way, both sides |
 | T12 | overlap with the SAVED-ADS LIST: the tally equals the counts of `rankedAdRows` levels (the list's own ranks 0 to 3 and 4) for the same ads, for R1, R2, R3, R6 | same | page's way, list side |
@@ -448,6 +448,34 @@ The "No level" line and its note (R6, R9) are not reached by hand (they need a p
 ## 15. Engine confirmation of the counts (stage 2, to be done before any code)
 
 A temporary script (deleted afterwards; no AI call; no code of 8.2 exists) will run the engine's own `roadmapInputs`, `profileReport` and `gapList` on R1, R2, R3, R3d, R6 and R9 with saved-ad ids and report: the level of each ad, the tally, the asked counts by a plain loop, and whether the box's Already Strong count equals the Strong bucket. It must also probe the open risk of Q4: an ad with one listed and one unlisted alternative in one must-have, with and without `listedAlternatives`. It must also confirm that the list's no-level label starts with the words `No level` (fitLabelText, used at app/fitReport.ts:233), since A9 reuses those words without retyping the reason, and that the label carries a reason for each of the three no-level causes (no requirements, no must-have we could judge, no skills on the profile), since A9b says the list "says why for each". It must also confirm, for R6 and R9, that the level really is `null` for every counted ad (no skills on the profile), by printing `profileReport(...).level` for each counted ad. Every disagreement with the hand work is reported; **no expectation is changed to fit the engine** (CLAUDE.md careful lane).
+
+### Stage 2 results (2026-11-18; a throwaway script run with the real engine, no AI, invented data; the script is not committed)
+
+The engine's own functions (`roadmapInputs`, `profileReport`, `roadmapBox`, `rankedAdRows`) were run on R1, R2, R3, R3d, R6 and R9 with saved-ad ids and the gates of section 7. The asked counts, their order, the standings, the your-skills lists and the cut cases were worked by a plain loop over the engine jobs of `roadmapInputs` (the new functions do not exist yet). **Every hand value of section 7 agrees with the engine; no expectation was changed.**
+
+| Case | M | Levels per counted ad (engine) | Tally Strong / Good / Stretch / Long shot / No level | Box Already Strong = Strong? | Asked rows, order, standing, your-skills | Verdict |
+|---|---|---|---|---|---|---|
+| R1 (gate 4) | 4 | good, good, strong, good | 1 / 3 / 0 / 0 / 0 | 1 = 1 | SQL 3,0 have; Python 2,1 none; Tableau 1,2 learning:2027-03-01; Excel 1,1 have; Power BI 0,1 none; yours SQL, Excel | agrees |
+| R2 (gate 4) | 4 | good, longShot, strong, good | 1 / 2 / 0 / 1 / 0 | 1 = 1 | same as R1 | agrees |
+| R3 (gate 10) | 10 | good x 10 | 0 / 10 / 0 / 0 / 0 | 0 = 0 | SQL 10,0 learning:2027-06-01; yours none | agrees |
+| R3d (gate 10) | 10 | strong x 10 | 10 / 0 / 0 / 0 / 0 | 10 = 10 | SQL 10,0 have; yours SQL | agrees |
+| R6 (gate 3) | 3 | null x 3 | 0 / 0 / 0 / 0 / 3 | 0 = 0 | Python 2,0 none; SQL 2,0 none; yours none | agrees |
+| R9 (gate 1) | 1 | null | 0 / 0 / 0 / 0 / 1 | 0 = 0 | Python 1,1 none; SQL 1,0 none; yours none | agrees |
+
+**The cut cases** (rule: the first N rows plus any following row with the same counts as the N-th): R1 limits 1, 2, 3, 4, 5 give shown rows and more-counts exactly as written in section 7 (asked list 4, 3, 2, 1, 0 more; your-skills list 1, 0, 0, 0, 0 more; with limit 2 the your-skills list shows SQL and Excel); R6 limit 1 shows Python and SQL (the tie) and no more-line. All agree.
+
+**Probe (a), the Q4 risk.** Three ads with mixed requirements (one listed and one unlisted alternative, as a must and as a nice-to-have) were run for five different profiles at gate 1. In every case the box's Already Strong count equals the tally's Strong count (2/2, 0/0, 3/3, 1/1, 0/0): **SAME**. Reason found in the code: the engine profile never holds a `new:` skill (lib/cv/profile.ts puts unlisted names in `unmatchable`), so no requirement can be met through its unlisted part, and dropping that part (`listedAlternatives`) cannot change whether a requirement is met. The risk of Q4 does not occur.
+
+**Probe (b), the exact labels of the saved ads list for the three no-level causes** (the list's line is `Fit: ` plus the label):
+- no requirements: `Fit: No level (no requirements found in this ad)`
+- no must-have we could judge: `Fit: No level (no must-have we could judge)`
+- no skills on the profile: `Fit: No level (no skills on your profile)`
+
+Each starts with the words `No level` and carries a reason, so the condition on Q11 is met: the saved ads list has words for each of the three causes (A9b's "the saved ads list says why for each" is true).
+
+**Probe (c).** For R6 and R9 the level is `null` for every counted ad (R6: null, null, null; R9: null).
+
+**Probe (d), a record that makes ONLY the analytics' level step throw.** One exists: a reading whose `constraints.languages` is missing (undefined). `roadmapInputs` and `roadmapBox` work on it (the engine view blanks the languages when the person set none), while `profileReport` throws a TypeError (`adSays` reads `languages.length`). Two other damaged shapes (`constraints.otherConditions` or `constraints.location` missing) make `roadmapInputs` throw as well, and a missing `title` throws nowhere. So T9's third case uses the first record; **no injected seam is needed** and section 6 is unchanged. (The record is a damaged reading, like the one S1 and T9 of 8.1 use; whether the saved store can hold exactly this shape was not checked, and the saved-ads list would show its row with the level-failed line.)
 
 ## 16. For HANDOFF at merge time
 
