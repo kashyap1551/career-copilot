@@ -1,8 +1,8 @@
 import type { BuiltProfile } from "@/lib/cv/profile";
 import { ROADMAP_FROM_JOBS } from "@/lib/engine/roadmapJobs";
 import type { Job, Skill } from "@/lib/engine/types";
-import { REPORT_FAILED_LINE } from "@/lib/saved/messages";
-import { ANALYTICS_TOP, type AnalyticsOutcome } from "./analytics";
+import { ANALYTICS_FAILED_LINE, REPORT_FAILED_LINE } from "@/lib/saved/messages";
+import { ANALYTICS_TOP, analyticsFrom, type AnalyticsOutcome } from "./analytics";
 import { failedRoadmapBox, roadmapBoxFrom, roadmapInputs, type RoadmapBox, type RoadmapInputs } from "./roadmap";
 import { roadmapReportFrom, type ReportOutcome } from "./roadmapReport";
 
@@ -20,12 +20,11 @@ export function screenOutcomes(
   fromJobs: number = ROADMAP_FROM_JOBS,
   top: number = ANALYTICS_TOP,
 ): ScreenOutcomes {
-  void top; // used by the analytics slot (added by the analytics commit)
   let inputs: RoadmapInputs;
   try {
     inputs = roadmapInputs(built, ads, skills);
   } catch {
-    return { box: failedRoadmapBox(), report: { kind: "failed", line: REPORT_FAILED_LINE }, analytics: { kind: "none" } };
+    return { box: failedRoadmapBox(), report: { kind: "failed", line: REPORT_FAILED_LINE }, analytics: { kind: "failed", line: ANALYTICS_FAILED_LINE } };
   }
 
   let box: RoadmapBox;
@@ -43,5 +42,13 @@ export function screenOutcomes(
     report = { kind: "failed", line: REPORT_FAILED_LINE };
   }
 
-  return { box, report, analytics: { kind: "none" } };
+  let analytics: AnalyticsOutcome;
+  try {
+    const a = analyticsFrom(inputs, built, skills, top, fromJobs);
+    analytics = a ? { kind: "ready", analytics: a } : { kind: "none" };
+  } catch {
+    analytics = { kind: "failed", line: ANALYTICS_FAILED_LINE };
+  }
+
+  return { box, report, analytics };
 }

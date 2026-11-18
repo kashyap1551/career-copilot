@@ -18,6 +18,7 @@ import CvBox from "./CvBox";
 import { roadmapAds } from "./roadmap";
 import RoadmapReportView from "./RoadmapReportView";
 import { screenOutcomes } from "./screenOutcomes";
+import AnalyticsView from "./AnalyticsView";
 import RoadmapView from "./RoadmapView";
 import { openedReadings, reportFor } from "./savedAdRows";
 import ReportView from "./ReportView";
@@ -253,6 +254,7 @@ export default function Home() {
       <RoadmapView box={roadmap} />
       {/* Mounted only while a report exists: a report that goes away and comes back starts closed. */}
       {reportOutcome.kind !== "none" && <RoadmapReportView outcome={reportOutcome} />}
+      {reportOutcome.kind !== "none" && <AnalyticsView outcome={outcomes.analytics} />}
 
       {result && report && (
         <>

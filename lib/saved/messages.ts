@@ -161,19 +161,21 @@ export const REPORT_COPIED = "Copied.";
 export const REPORT_COPY_FAILED = "Could not copy. Select the text and copy it by hand.";
 export const REPORT_FAILED_LINE = "The roadmap report could not be worked out.";
 
-// ---- Step 8.2 stage 1: STUBS (docs/PLAN-8.2.md section 2, A1 to A16). Empty values; the texts are written in stage 3 from the plan.
-export const ANALYTICS_BUTTON_OPEN = "";
-export const ANALYTICS_BUTTON_CLOSE = "";
-export const ANALYTICS_TITLE = "";
-export const LEVELS_TITLE = "";
-export const LEVELS_NOTE = "";
-export const levelCountLine = (name: string, n: number, counted: number): string => (void name, void n, void counted, "");
-export const NO_LEVEL_NAME = "";
-export const NO_LEVEL_NOTE = "";
-export const askedTitle = (counted: number): string => (void counted, "");
-export const ON_PROFILE_NOTE = "";
-export const NOT_ON_PROFILE_NOTE = "";
-export const moreSkillsLine = (n: number): string => (void n, "");
-export const yoursTitle = (counted: number): string => (void counted, "");
-export const yoursNoneLine = (counted: number): string => (void counted, "");
-export const ANALYTICS_FAILED_LINE = "";
+// Step 8.2 (docs/PLAN-8.2.md section 2, A1 to A16): the words of the analytics block. The level names are the engine's own (`levelName`), the skill rows
+// are the box's own (`gapRowText`, `learningNote`, `NO_CV_LINE_NOTE`) and the basis, not-counted and several-skills lines are reused; none is retyped.
+export const ANALYTICS_BUTTON_OPEN = "Show my analytics";
+export const ANALYTICS_BUTTON_CLOSE = "Hide the analytics";
+export const ANALYTICS_TITLE = "Your analytics";
+export const LEVELS_TITLE = "Fit levels across your saved ads";
+export const LEVELS_NOTE = "(These are the levels shown on your saved ads, counted against the profile in use.)";
+export const levelCountLine = (name: string, n: number, counted: number): string => `${name}: ${n} of your ${counted} saved ${noun(counted, "ad", "ads")}`;
+export const NO_LEVEL_NAME = "No level";
+export const NO_LEVEL_NOTE = "No level means the app could not judge those ads; the saved ads list says why for each.";
+export const askedTitle = (counted: number): string => `Skills asked across your ${counted} saved ${noun(counted, "ad", "ads")}`;
+export const ON_PROFILE_NOTE = " (on your profile)";
+export const NOT_ON_PROFILE_NOTE = " (not on your profile)";
+export const moreSkillsLine = (n: number): string =>
+  n === 1 ? "1 more skill is asked in your saved ads and is not shown." : `${n} more skills are asked in your saved ads and are not shown.`;
+export const yoursTitle = (counted: number): string => `Skills of yours that are asked for in your ${counted} saved ${noun(counted, "ad", "ads")}`;
+export const yoursNoneLine = (counted: number): string => `${yoursTitle(counted)}: none.`;
+export const ANALYTICS_FAILED_LINE = "The analytics could not be worked out.";
