@@ -250,3 +250,10 @@ export function roadmapBoxSafe(
     return { noProfile: null, partA: [ROADMAP_FAILED_LINE], partB: [], counted: 0, alreadyStrongIds: [], timeline: [] };
   }
 }
+
+// ---- Step 8.2 stage 1: STUB (docs/PLAN-8.2.md D9, section 6). The body is replaced in stage 3; it returns an empty box so the red tests fail by assertion.
+export function roadmapBoxFrom(inputs: RoadmapInputs, fromJobs: number = ROADMAP_FROM_JOBS): RoadmapBox {
+  void inputs;
+  void fromJobs;
+  return { ...EMPTY };
+}

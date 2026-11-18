@@ -92,3 +92,10 @@ export async function copyReport(text: string, write: (text: string) => Promise<
 export function shownCopyStatus(record: CopyRecord | null, currentText: string): CopyStatus {
   return record !== null && record.text === currentText ? record.status : "idle";
 }
+
+// ---- Step 8.2 stage 1: STUB (docs/PLAN-8.2.md D9, section 6). The body is replaced in stage 3; it returns nothing so the red tests fail by assertion.
+export function roadmapReportFrom(inputs: ReturnType<typeof roadmapInputs>, fromJobs: number = ROADMAP_FROM_JOBS): RoadmapReport | null {
+  void inputs;
+  void fromJobs;
+  return null;
+}

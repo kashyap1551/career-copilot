@@ -1,4 +1,4 @@
-import { roadmapAds, roadmapBox } from "@/app/roadmap";
+import { roadmapAds, roadmapBox, roadmapInputs } from "@/app/roadmap";
 import type { OpenedAd } from "@/app/savedAdRows";
 import type { BuiltProfile } from "@/lib/cv/profile";
 import type { Job } from "@/lib/engine/types";
@@ -37,3 +37,17 @@ export function viaPage(
 
 // The same without the saved-ad list: the box's short form for tests that only need the threshold.
 export const page = (built: BuiltProfile | null, jobs: Job[], fromJobs?: number) => viaPage(built, jobs, undefined, undefined, fromJobs);
+
+// Step 8.2 (docs/PLAN-8.2.md D10): the same way, ending in the INPUTS (what the page's composition works out once), and the ads alone for the
+// composition. Added; nothing above is changed.
+export function adsViaPage(jobs: Job[], savedIds: string[] = savedIdsFor(jobs.length), jobIdOf: (i: number) => string = pastedId) {
+  return roadmapAds(jobs.map((j, i) => openedAd(savedIds[i], { ...j, id: jobIdOf(i) })));
+}
+export function inputsViaPage(
+  built: BuiltProfile | null,
+  jobs: Job[],
+  savedIds: string[] = savedIdsFor(jobs.length),
+  jobIdOf: (i: number) => string = pastedId,
+) {
+  return roadmapInputs(built, adsViaPage(jobs, savedIds, jobIdOf), skills);
+}

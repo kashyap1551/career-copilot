@@ -160,3 +160,20 @@ export const REPORT_COPY = "Copy report as text";
 export const REPORT_COPIED = "Copied.";
 export const REPORT_COPY_FAILED = "Could not copy. Select the text and copy it by hand.";
 export const REPORT_FAILED_LINE = "The roadmap report could not be worked out.";
+
+// ---- Step 8.2 stage 1: STUBS (docs/PLAN-8.2.md section 2, A1 to A16). Empty values; the texts are written in stage 3 from the plan.
+export const ANALYTICS_BUTTON_OPEN = "";
+export const ANALYTICS_BUTTON_CLOSE = "";
+export const ANALYTICS_TITLE = "";
+export const LEVELS_TITLE = "";
+export const LEVELS_NOTE = "";
+export const levelCountLine = (name: string, n: number, counted: number): string => (void name, void n, void counted, "");
+export const NO_LEVEL_NAME = "";
+export const NO_LEVEL_NOTE = "";
+export const askedTitle = (counted: number): string => (void counted, "");
+export const ON_PROFILE_NOTE = "";
+export const NOT_ON_PROFILE_NOTE = "";
+export const moreSkillsLine = (n: number): string => (void n, "");
+export const yoursTitle = (counted: number): string => (void counted, "");
+export const yoursNoneLine = (counted: number): string => (void counted, "");
+export const ANALYTICS_FAILED_LINE = "";

@@ -174,3 +174,62 @@ describe("T24: the clipboard is written in one place, in a click handler, and no
     }
   });
 });
+
+// ---- Step 8.2 (docs/PLAN-8.2.md section 8, T19 to T22): source guards for the analytics. Appended; no existing case is touched. The new files were
+// stubs when these were written: the "must not contain" guards are green on a stub by nature; the "must contain" ones (a key, one onClick, one
+// composition call) were red.
+
+const ANALYTICS_APP_FILES = ["app/analytics.ts", "app/AnalyticsView.tsx"] as const;
+const ANALYTICS_FILES = [...ANALYTICS_APP_FILES, "lib/engine/analytics.ts"] as const;
+
+describe("T19: the analytics only read, make no call, use no clock, no AI, no clipboard, no file", () => {
+  for (const f of ANALYTICS_FILES) {
+    it(`T19: ${f} has no fetch, storage, save or delete call, no effect, no clipboard, no Blob, no @/lib/ai import, no clock`, () => {
+      const src = read(f);
+      for (const w of ["fetch(", "localStorage", "sessionStorage", "indexedDB", "saveJob", "saveProfile", "deleteJob", "deleteProfile", "deleteAll", "useEffect", "clipboard", "Blob", "createObjectURL", "@/lib/ai", "Date.now", "new Date", "performance.now"]) {
+        expect(code(src), `${f} must not contain "${w}"`).not.toContain(w);
+      }
+      expect(src, `${f} must not import @/lib/ai`).not.toMatch(/from\s+["']@\/lib\/ai/);
+    });
+  }
+
+  it("T19: lib/engine/analytics.ts imports nothing from app/", () => {
+    expect(read("lib/engine/analytics.ts")).not.toMatch(/from\s+["'](?:@\/app|\.\.\/\.\.\/app|\.\.\/app|app\/)/);
+  });
+});
+
+describe("T20: no sentence in the new app files; the view keys each line by position and has one button", () => {
+  for (const f of ANALYTICS_APP_FILES) {
+    it(`T20: ${f} has no string literal of four or more words`, () => {
+      const hit = code(read(f)).split("\n").find((l) => SENTENCE_LITERAL.test(l));
+      expect(hit, `${f} holds a sentence literal: ${hit}`).toBeUndefined();
+    });
+  }
+
+  it("T20: app/AnalyticsView.tsx has no JSX text of four or more words, no <form, exactly one onClick, and keys its lines by an index", () => {
+    const src = code(read("app/AnalyticsView.tsx"));
+    expect(jsxSentences(src), "the view holds a sentence as JSX text").toEqual([]);
+    expect(src).not.toContain("<form");
+    expect((src.match(/onClick=/g) ?? []).length, "exactly one onClick (the open/hide button)").toBe(1);
+    const keyLines = src.split("\n").filter((l) => l.includes("key="));
+    expect(keyLines.length, "the view must key its list items").toBeGreaterThanOrEqual(1);
+    for (const l of keyLines) expect(l, `key without an index: ${l}`).toMatch(/\b(i|index|idx)\b/);
+  });
+});
+
+describe("T21: the other views are unchanged", () => {
+  it("T21: app/RoadmapView.tsx still has no onClick; app/RoadmapReportView.tsx still writes the clipboard once, in onCopy", () => {
+    expect(code(read("app/RoadmapView.tsx"))).not.toContain("onClick");
+    expect((code(read("app/RoadmapReportView.tsx")).match(/navigator\.clipboard\.writeText/g) ?? []).length).toBe(1);
+  });
+});
+
+describe("T22: the page works the inputs out ONCE, through the composition", () => {
+  it("T22: app/page.tsx calls screenOutcomes once and none of roadmapInputs, roadmapBoxSafe, roadmapReportSafe, roadmapBoxFrom, roadmapReportFrom", () => {
+    const page = code(read("app/page.tsx"));
+    expect((page.match(/screenOutcomes\(/g) ?? []).length, "exactly one screenOutcomes call").toBe(1);
+    for (const w of ["roadmapInputs(", "roadmapBoxSafe(", "roadmapReportSafe(", "roadmapBoxFrom(", "roadmapReportFrom("]) {
+      expect(page, `app/page.tsx must not call ${w}`).not.toContain(w);
+    }
+  });
+});
