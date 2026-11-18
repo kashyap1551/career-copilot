@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { analyticsFrom, type Analytics, type AnalyticsLine } from "@/app/analytics";
+import { ANALYTICS_TOP, analyticsFrom, type Analytics, type AnalyticsLine } from "@/app/analytics";
 import { profileReport } from "@/app/fitReport";
 import { roadmapBox, roadmapBoxFrom } from "@/app/roadmap";
 import { roadmapReport, roadmapReportFrom } from "@/app/roadmapReport";
@@ -479,4 +479,93 @@ describe("T23: the From functions equal the old wrappers (the commit-1 refactor)
       expect(roadmapBoxFrom(inputs, c.gate).counted).toBeGreaterThan(0); // not an empty box compared with an empty box
     });
   }
+});
+
+// ---- Stage 1b (docs/PLAN-8.2.md v3.1, section 7: R10, R11, R12; section 8: T28 to T31). Written from the hand cases BEFORE any code; the lists of numbers of
+// R10 and R11 equal the reviewer's own cross-check lists. The order of the lines is the rule of section 2: asked rows, the more-skills line, then the
+// several-skills note; the not-counted line right after the basis line.
+
+const R10_ADS = () => [...R6_ADS(), ad("p4", "Delta Analyst", "Invented Co Eight", [must("tableau"), nice("excel")])];
+const R10: Row[] = [
+  B("Based on 4 saved ads we could judge and the profile in use." + TAIL),
+  H(LEVELS_HEAD),
+  N(LEVELS_NOTE),
+  V("Strong: 0 of your 4 saved ads", 0, 4),
+  V("Good: 0 of your 4 saved ads", 0, 4),
+  V("Stretch: 0 of your 4 saved ads", 0, 4),
+  V("Long shot: 0 of your 4 saved ads", 0, 4),
+  V("No level: 4 of your 4 saved ads", 4, 4),
+  N(NO_LEVEL_NOTE),
+  H("Skills asked across your 4 saved ads"),
+  K("Python (not on your profile): must-have in 2 ads"),
+  K("SQL (not on your profile): must-have in 2 ads"),
+  P("2 more skills are asked in your saved ads and are not shown."),
+  N(ALT_NOTE),
+  P("Skills of yours that are asked for in your 4 saved ads: none."),
+];
+const R10_NUMBERS = [4, 0, 4, 0, 4, 0, 4, 0, 4, 4, 4, 4, 2, 2, 2, 4];
+
+const R11_ADS = () => [
+  ad("q1", "Report Clerk", "Alder Works Ltd", [must("sql")]),
+  ad("q2", "Data Assistant", "Birch Yard Ltd", [must("python")]),
+  ad("q3", "Empty Ad", "Invented Co Five", []), // no requirements: not counted
+];
+const R11: Row[] = [
+  B("Based on 2 saved ads we could judge and the profile in use." + TAIL),
+  P("1 saved ad is not counted: the AI found no requirements in it."),
+  H(LEVELS_HEAD),
+  N(LEVELS_NOTE),
+  V("Strong: 1 of your 2 saved ads", 1, 2),
+  V("Good: 1 of your 2 saved ads", 1, 2),
+  V("Stretch: 0 of your 2 saved ads", 0, 2),
+  V("Long shot: 0 of your 2 saved ads", 0, 2),
+  H("Skills asked across your 2 saved ads"),
+  K("Python (not on your profile): must-have in 1 ad"),
+  K("SQL (on your profile): must-have in 1 ad"),
+  H("Skills of yours that are asked for in your 2 saved ads"),
+  K("SQL (on your profile): must-have in 1 ad"),
+];
+const R11_NUMBERS = [2, 1, 1, 2, 1, 2, 0, 2, 0, 2, 2, 1, 1, 2, 1];
+
+const handAddedExcel = () => person({ keptIds: [], added: ["Excel"], inProgress: [] }); // Excel as `have` with NO CV line
+const R12_ADS = () => [ad("h1", "Clerk One", "Invented Co Nine", [must("excel")])];
+const R12: Row[] = [
+  B("Based on 1 saved ad we could judge and the profile in use." + TAIL),
+  H(LEVELS_HEAD),
+  N(LEVELS_NOTE),
+  V("Strong: 0 of your 1 saved ad", 0, 1),
+  V("Good: 1 of your 1 saved ad", 1, 1),
+  V("Stretch: 0 of your 1 saved ad", 0, 1),
+  V("Long shot: 0 of your 1 saved ad", 0, 1),
+  H("Skills asked across your 1 saved ad"),
+  K("Excel (on your profile without a CV line, so it does not count): must-have in 1 ad"),
+  P("Skills of yours that are asked for in your 1 saved ad: none."),
+];
+const R12_NUMBERS = [1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1];
+
+describe("T28 to T31: the stage-1b cases", () => {
+  it("T28: R11, a saved ad that is not counted: the not-counted line right after the basis line, levels over the 2 counted ads, Python before SQL, SQL in the your-skills list", () => {
+    expect(reportNumbers([TITLE, ...R11.map((r) => r[0])], NAMES), "the hand text and the hand numbers list agree").toEqual(R11_NUMBERS);
+    const a = got(analytics(person(), R11_ADS(), 2));
+    expect(rows(a)).toEqual(R11);
+    expect(numbers(a)).toEqual(R11_NUMBERS);
+  });
+
+  it("T29: R10 with a limit of 2: the more-skills line, THEN the several-skills note, then the your-skills none line; No level 4 with its note", () => {
+    expect(reportNumbers([TITLE, ...R10.map((r) => r[0])], NAMES), "the hand text and the hand numbers list agree").toEqual(R10_NUMBERS);
+    const a = got(analytics(noSkills(), R10_ADS(), 4, 2));
+    expect(rows(a)).toEqual(R10);
+    expect(numbers(a)).toEqual(R10_NUMBERS);
+  });
+
+  it("T30: ANALYTICS_TOP is 10 (green on the stub by nature: the constant is already written there)", () => {
+    expect(ANALYTICS_TOP).toBe(10);
+  });
+
+  it("T31: R12, a skill added by hand: the asked row carries the no-CV-line note, the your-skills list is the none line, the level is Good", () => {
+    expect(reportNumbers([TITLE, ...R12.map((r) => r[0])], NAMES), "the hand text and the hand numbers list agree").toEqual(R12_NUMBERS);
+    const a = got(analytics(handAddedExcel(), R12_ADS(), 1));
+    expect(rows(a)).toEqual(R12);
+    expect(numbers(a)).toEqual(R12_NUMBERS);
+  });
 });
