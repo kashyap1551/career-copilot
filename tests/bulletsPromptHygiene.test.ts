@@ -5,6 +5,9 @@ import { cvFixtures } from "@/fixtures/synthetic-cvs";
 import { jobs } from "@/fixtures/jobs";
 import { brightwaterAdText, fjordlightAdText, lindenbergAdText, northwindAdText } from "@/fixtures/synthetic-ad-texts";
 import { INSTRUCTIONS_BULLETS } from "@/lib/ai/writeBullets";
+import { checkBullet, QUALIFIERS } from "@/lib/engine/bulletCheck";
+import { foldText } from "@/lib/engine/text";
+import { skills } from "@/lib/vocab";
 
 // Step 8.3, stage 3 (docs/PLAN-8.3.md v2, section 4; test T25): the word check of tests/promptHygiene.test.ts, repeated for the bullets prompt. No word of 5
 // letters or more inside a double-quoted example of the prompt may appear in any invented CV, CV key, ad or job, nor in the CV-A lines of the plan's hand
@@ -66,5 +69,39 @@ describe("the bullets prompt's examples do not use the test material's words", (
     expect(INSTRUCTIONS_BULLETS).toContain("Example, made up");
     expect(INSTRUCTIONS_BULLETS).toContain("bullets");
     expect(INSTRUCTIONS_BULLETS).toContain("pair");
+  });
+});
+
+// ---- Step 8.3, prompt v2 (docs/PLAN-8.3.md 0.24): the prompt names every limiting word, and its example answers pass the checker ---------------------------------
+
+describe("T25f: the prompt names every limiting word of rule R8", () => {
+  it("T25f: every member of QUALIFIERS (folded) is a word of the folded prompt; the list of missing words is empty", () => {
+    const promptWords = new Set(foldText(INSTRUCTIONS_BULLETS).match(/\p{L}+/gu) ?? []);
+    const checked = [...QUALIFIERS];
+    const missing = checked.filter((w) => !promptWords.has(w));
+    console.log(`T25f: ${checked.length} QUALIFIERS words checked, ${missing.length} missing`);
+    expect(checked.length).toBeGreaterThan(80);
+    expect(missing).toEqual([]);
+  });
+});
+
+describe("T25g: the example answers of the prompt pass the checker", () => {
+  const example = INSTRUCTIONS_BULLETS.slice(INSTRUCTIONS_BULLETS.indexOf("Example, made up"));
+  const lines = [...example.matchAll(/^CV line: "([^"]*)"$/gm)].map((m) => m[1]);
+  const answerStart = example.search(/^(?:Answer|Reading):/m); // the answer line of the example (v1 said "Reading:", v2 says "Answer:")
+  const answers = [...example.slice(Math.max(answerStart, 0)).matchAll(/text "([^"]*)"/g)].map((m) => m[1]);
+  const CONTROL_LINE = "Sold honey jars at the harbour stall and sometimes packed the parcels"; // the line of pair 3 of the v2 example
+
+  it("T25g: every answer of the example is accepted by checkBullet against its own line (one pair, line 1)", () => {
+    expect(lines.length).toBeGreaterThanOrEqual(2);
+    expect(answers.length).toBe(lines.length);
+    lines.forEach((line, i) => {
+      expect(checkBullet(answers[i], [1], { lines: [line], vocabulary: skills }), `pair ${i + 1}: ${answers[i]}`).toEqual({ ok: true });
+    });
+  });
+
+  it("T25g (negative control): pair 3's line with an answer that loses the limiting word 'sometimes' is rejected as lost-qualifier; and when the prompt has a third pair it is this line", () => {
+    expect(checkBullet("Sold honey jars at the harbour stall", [1], { lines: [CONTROL_LINE], vocabulary: skills })).toEqual({ ok: false, reason: "lost-qualifier" });
+    if (lines.length >= 3) expect(lines[2]).toBe(CONTROL_LINE);
   });
 });
