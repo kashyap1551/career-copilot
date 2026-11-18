@@ -233,3 +233,69 @@ describe("T22: the page works the inputs out ONCE, through the composition", () 
     }
   });
 });
+
+// ---- Step 8.3 stage 4 (docs/PLAN-8.3.md v2, 0.26; tests T30, T32 and T36): source guards for the bullets block. Appended; no existing case is touched. The new files did
+// not exist when these were written, so every guard that reads one failed (a missing file).
+
+const BULLET_APP_FILES = ["app/bullets.ts", "app/BulletsView.tsx", "app/timedFetch.ts"] as const;
+
+describe("T30: the block's client files make no call of their own, store nothing, use no clock, import nothing server-only", () => {
+  for (const f of BULLET_APP_FILES) {
+    it(`T30: ${f} has no fetch(, no storage, no save or delete call, no effect, no clock, no @/lib/ai import`, () => {
+      const src = read(f);
+      for (const w of ["fetch(", "localStorage", "sessionStorage", "indexedDB", "saveJob", "saveProfile", "deleteJob", "deleteProfile", "deleteAll", "useEffect", "Date.now", "new Date", "performance.now", "@/lib/ai"]) {
+        expect(code(src), `${f} must not contain "${w}"`).not.toContain(w);
+      }
+    });
+  }
+  it("T30: the only sender is postJson: app/bullets.ts calls postJson, and gives it the signal through fetchWithSignal of app/timedFetch.ts", () => {
+    const src = code(read("app/bullets.ts"));
+    expect(src).toContain("postJson(");
+    expect(src).toContain("fetchWithSignal");
+    expect(code(read("app/timedFetch.ts"))).toContain("signal");
+  });
+  it("T30: the clipboard is written once, in the view's click handler, and never in app/bullets.ts; no Blob, no download", () => {
+    expect(code(read("app/bullets.ts"))).not.toContain("clipboard");
+    const view = code(read("app/BulletsView.tsx"));
+    expect((view.match(/navigator\.clipboard\.writeText/g) ?? []).length).toBe(1);
+    for (const f of BULLET_APP_FILES) for (const w of ["Blob", "createObjectURL", "download=", "execCommand"]) expect(code(read(f)), `${f}: ${w}`).not.toContain(w);
+  });
+});
+
+describe("T32: no sentence in the block's app files; the view keys its lines by position", () => {
+  for (const f of BULLET_APP_FILES) {
+    it(`T32: ${f} has no string literal of four or more words`, () => {
+      const hit = code(read(f)).split("\n").find((l) => SENTENCE_LITERAL.test(l));
+      expect(hit, `${f} holds a sentence literal: ${hit}`).toBeUndefined();
+    });
+  }
+  it("T32: app/BulletsView.tsx has no JSX text of four or more words, no <form, and keys its list items by an index", () => {
+    const src = code(read("app/BulletsView.tsx"));
+    expect(jsxSentences(src), "the view holds a sentence as JSX text").toEqual([]);
+    expect(src).not.toContain("<form");
+    const keyLines = src.split("\n").filter((l) => l.includes("key="));
+    expect(keyLines.length).toBeGreaterThanOrEqual(1);
+    for (const l of keyLines) expect(l, `key without an index: ${l}`).toMatch(/\b(i|index|idx)\b/);
+  });
+});
+
+describe("T36: the words of the block avoid the words the owner ruled out", () => {
+  const FORBIDDEN = /\b(ready|tailored|improve|boost|optimi[sz]e)\b/i;
+  for (const f of BULLET_APP_FILES) {
+    it(`T36: ${f} contains none of: ready, tailored, improve, boost, optimise, optimize (the whole file text, comments included)`, () => {
+      const hit = read(f).split("\n").find((l) => FORBIDDEN.test(l));
+      expect(hit, `${f}: ${hit}`).toBeUndefined();
+    });
+  }
+  it("T36: the new message constants of lib/saved/messages.ts (from the 8.3 bullets block to the end) contain none of them", () => {
+    const all = read("lib/saved/messages.ts");
+    const at = all.indexOf("// ---- Step 8.3 (docs/PLAN-8.3.md v2): the words of the bullets block");
+    expect(at, "the 8.3 block marker was not found").toBeGreaterThan(-1);
+    const hit = all.slice(at).split("\n").find((l) => FORBIDDEN.test(l));
+    expect(hit, `messages.ts: ${hit}`).toBeUndefined();
+  });
+  it("T36: the guard itself catches the words (a pinned example)", () => {
+    for (const w of ["ready", "Tailored", "improve", "boost", "optimise", "optimize"]) expect(FORBIDDEN.test(`a ${w} bullet`)).toBe(true);
+    expect(FORBIDDEN.test("already improved")).toBe(false); // whole words only
+  });
+});

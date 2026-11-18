@@ -351,6 +351,12 @@ Invented CV "CV-A", numbered as the page numbers it (contact line already remove
 | T34 | the eval report on fake outputs: counts per reason, yield, at most 15 lines | same | pure |
 | T35 | the eval's profiles are built from the keys of the invented CVs and contain no line with a learning marker | same | pure |
 | T36 | guard (SOURCE): the new app files and the new message constants contain none of the words ready, tailored, improve, boost, optimise, optimize (Q-C8) | tests/roadmapGuards.test.ts (new `describe`) | source |
+| T37 | the block's candidates: the page's way (the ad on screen through roadmapAds, job id `pasted-ad`); a requirement over 300 characters, a line with an email, a line over 1,000 characters are NOT sent and the next candidate takes their place, up to 5; the ids sent are renumbered 1..n and the real line numbers are kept; nothing left gives the 'nothing to write from' line; the body sent holds id, requirement and line text only and passes the route's schema | tests/bulletsPage.test.ts | the page's way |
+| T38 | the 30-second timer: the timeout line at 30,000 ms and not at 29,999; the request is aborted; a late answer is ignored; an answer in time clears the timer | tests/bulletsAsk.test.ts | fake timers, fake post |
+| T39 | nothing is stored: a successful, a nothing-passed and a failed call write nothing to localStorage, sessionStorage or IndexedDB | tests/bulletsAsk.test.ts | spies |
+| T40 | a 401 opens the code box of the ad with the 'enter the code' message and the block returns to its closed state; a kept code is sent in the header; a wrong one is forgotten | tests/bulletsAsk.test.ts | fake fetch, memory store |
+| T41 | the answer and every way it can be wrong as a plain line (route message, `The server returned an error (status).`, wrong shape, no connection) | tests/bulletsAsk.test.ts | fake post |
+| T42 | an unexpected throw in the block is one plain line and no button, not an exception | tests/bulletsPage.test.ts, tests/bulletsView.test.ts | the page's way |
 
 ## 10. Hand-worked cases for the pair choice (before any code)
 
