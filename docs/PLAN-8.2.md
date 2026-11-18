@@ -1,4 +1,4 @@
-STATUS: APPROVED v3.1 (owner's answers 2026-11-18; v3.1 adds the order rule and cases R10 to R12). Stage 1, 1b, 2 and 2b done; stage 1b tests are red; no stage-3 code until the manual sittings of 7.1, 7.3 and 8.1 have passed. Branch step-8.2, cut from step-8.1 (3831e02). (v1 e3db48a, v2 9922ca3.)
+STATUS: APPROVED v3.1 (owner's answers 2026-11-18; v3.1 adds the order rule and cases R10 to R12). Stage 1, 1b, 2, 2b, 3 and 4 done: the code is built (1,756 of 1,756 tests green) and all 24 deliberate breaks are caught. The manual-check document (docs/MANUAL-CHECK-8.2.md) is written once stage 5 is done. The merge waits for the manual sittings of 7.1, 7.3, 8.1 and 8.2. Branch step-8.2, cut from step-8.1 (3831e02). (v1 e3db48a, v2 9922ca3.)
 
 # Plan for step 8.2: analytics across the saved ads
 
@@ -575,6 +575,46 @@ Each starts with the words `No level` and carries a reason, so the condition on 
 - **What was not done.** The deliberate breaks of section 9 (stage 4) were not run; the page was not opened in a browser (no dev server): the looks (bars, dark mode, phone width) and the wiring under the report are for the manual check of section 10.
 - **Decisions the plan did not spell out.** (1) The several-skills note (A12) is shown when any requirement of the box's `engineJobs` (after `listedAlternatives`) names more than one skill, met or not. (2) A bar's width is `n/of` in percent rounded to two decimals. (3) `analyticsFrom` returns null below the gate it is given and when the inputs are not ready; a limit below 1 is read as 1. (4) A shared `failedRoadmapBox()` was added to app/roadmap.ts and `roadmapBoxSafe` uses it, so the composition and the old wrapper return the very same failure box. (5) In commit 1 the analytics slot was `none` everywhere; in commit 2 a throw while working out the inputs gives the analytics `failed` (T25b), as D9 says. (6) The analytics view is mounted under the report whenever the report outcome is not `none`, so when the report is `failed` the analytics line is `failed` too. (7) Statuses use the box's notes (`learningNote`, `NO_CV_LINE_NOTE`) and two new notes; the your-skills list holds only `have` rows. (8) Classes and markup details of the view (the heading weight, the bar colours `zinc-500` on `zinc-200`, dark `zinc-400` on `zinc-800`) follow D6; their contrast is not measured.
 - **Ambiguities in the plan.** The STATUS line still says "stage 1b tests are red" (not updated; the plan's own status is edited only by the reviewer). Section 6 lists `analyticsFrom(inputs, built, skills, top, fromJobs)` while D9 speaks of "the analytics outcome": both are as built. The plan does not say what the view shows for a `failed` analytics when the report is ready (built: the failed line, no button).
+
+### Stage 4 results (2026-11-18; the deliberate breaks, run on step-8.2 with the code of stage 3)
+
+Each break changed product code only (app/ or lib/), once, by a script that asserted the old text occurs exactly once; the whole suite (1,756 tests) was run; the change was reverted with `git checkout -- <file>` and the tree was clean (`git status --short` and `git diff --stat` empty) before the next break. No test, test support file or expected text was touched; nothing was committed or pushed while a break was in. B9, B20, B21 and B24 have variants in the plan or need one run per code place, so the 24 numbered breaks were run as 29 runs.
+
+| Break | File and change | Named test(s) | Failing tests (count: names) | Verdict |
+|---|---|---|---|---|
+| B1 | lib/engine/analytics.ts: askedSkills: an ad is counted once PER REQUIREMENT naming the skill (per-ad set dropped) | T5, T15 | 3: T5, T8, T15 | CAUGHT |
+| B2 | app/analytics.ts: analytics: asked counts skip blocked ads (classifyJobs blocked ids filtered out of engineJobs) | T2, T11 | 7: T2, T8, T11, T14 x4 | CAUGHT |
+| B3 | lib/engine/analytics.ts: askedSkills: only UNMET requirements are counted (the gap list's rule) | T1, T15 | 16 tests, among them the named ones: T1, T15 | CAUGHT |
+| B4 | app/analytics.ts: level taken straight from match().level (no-level cases ignored) | T4, T12 | 8: T4, T5, T8, T9, T12, T14 x2, T29 | CAUGHT |
+| B5 | app/analytics.ts: cut exactly at the limit (the tie loop removed) | T7 | 1: T7b | CAUGHT |
+| B6 | lib/engine/analytics.ts: askedSkills sorts nice-to-have asks before must-have asks | T1, T15 | 8: T1, T2, T7a, T8, T13, T29, T15 x2 | CAUGHT |
+| B7 | lib/engine/analytics.ts + app/analytics.ts: counts keyed by the reading's job.id ('pasted-ad') instead of the saved-ad id | T13, T1 | 22 tests, among them the named ones: T13, T1 | CAUGHT |
+| B8 | app/analytics.ts: notes swapped: a skill you have gets the learning note, a skill you are learning gets 'on your profile' | T1, T3 | 7: T1, T2, T3a, T3b, T7a, T13, T28 | CAUGHT |
+| B9a | app/analytics.ts: a `new Date()` added to app/analytics.ts | T19 | 1: T19 | CAUGHT |
+| B9b | app/AnalyticsView.tsx: a `fetch(` added to app/AnalyticsView.tsx | T19 | 1: T19 | CAUGHT |
+| B10 | app/AnalyticsView.tsx: level bar drawn as n/(of-n) | T18 | 1: T18 | CAUGHT |
+| B11 | app/analytics.ts: gate >= changed to >  (M <= gate returns null) | T6 | 39 tests, among them the named ones: T6 | CAUGHT |
+| B12 | app/page.tsx: the page calls roadmapBoxSafe again beside the shared inputs | T22 | 2: X5, T22 | CAUGHT |
+| B13 | app/AnalyticsView.tsx: a sentence of four words in the view (JSX text) | T20 | 2: X5, T20 | CAUGHT |
+| B14 | app/analytics.ts: the Good bucket counted into Strong | T10, T1 | 16 tests, among them the named ones: T10, T1 | CAUGHT |
+| B15 | app/analytics.ts: your-skills filter dropped (all asked rows shown) | T1, T3 | 12: T1, T2, T3a, T4, T5, T7a, T7b, T8, T13, T28, T29, T31 | CAUGHT |
+| B16 | app/analytics.ts: more-skills count off by one (+1) | T7 | 3: T7a, T7b, T29 | CAUGHT |
+| B17 | app/analytics.ts: your-skills list cut from the OVERALL list | T7 | 2: T7a, X5 | CAUGHT |
+| B18 | app/analytics.ts: several-skills note always shown | T1, T2, T3 | 8: T1, T2, T3a, T3b, T7a, T13, T28, T31 | CAUGHT |
+| B19 | app/analytics.ts: several-skills note never shown | T4, T5 | 5: T4, T5, T7b, T29, X5 | CAUGHT |
+| B20a | app/roadmap.ts: the box wrapper roadmapBox calls roadmapBoxFrom without its gate | U3, T23, T24 | 50 tests, among them the named ones: U3, T23, T24 | CAUGHT |
+| B20b | app/roadmap.ts: roadmapBoxFrom itself ignores its gate (always 10) | U3, T27a | 45 tests, among them the named ones: U3, T27a | CAUGHT |
+| B21a1 | app/screenOutcomes.ts: composition: the box slot ignores its gate | T24, T27a | 4: T24 x3, T27a | CAUGHT |
+| B21a2 | app/screenOutcomes.ts: composition: the report slot ignores its gate | T24, T27a | 6: T9, X5, T24 x3, T27a | CAUGHT |
+| B21b | app/screenOutcomes.ts: composition: the analytics slot ignores its gate | T27b | 4: T9 x2, X5, T27b | CAUGHT |
+| B22 | app/analytics.ts: level lines' 'of N' is the SAVED ads (counted + not counted), not the counted ads | T28 | 1: T28 | CAUGHT |
+| B23 | app/analytics.ts: several-skills note written BEFORE the more-skills line | T29 | 2: T29, X5 | CAUGHT |
+| B24a | lib/engine/analytics.ts: engine standing: a hand-added skill (no CV line) reported as 'have' | T31, T15 | 3: T31, T15, X5 | CAUGHT |
+| B24b | app/analytics.ts: app layer: the no-CV-line note replaced by ' (on your profile)' | T31 | 1: T31 | CAUGHT |
+
+**Counts: 24 of 24 numbered breaks CAUGHT (29 of 29 runs); MISSED 0; EQUIVALENT 0.** Every named test failed in its run. The plan's statements that a break is NOT caught by a test were also confirmed: under B20b neither T23 nor T24 fails (both sides go through the same wrong function); under B16 T16 does not fail (it only sees the text of `moreSkillsLine(n)` for a given n).
+
+Notes. (1) X5 (`tests/closeSpelling.test.ts`, the slow test) appeared among the failures in some runs (B12, B13, B14, B17, B19, B20, B21a2, B21b, B23, B24a): it times out at its 5 s default when the machine is busy; it is not part of any named test, and the full run after the last revert was 1,756 of 1,756. (2) B20a and B20b break existing tests of the box too (the four-ad cases at gate 4), which is why their lists are long. (3) B22 uses "counted + 1 when a not-counted line exists" as the stand-in for the number of saved ads (the inputs do not carry it); R11 has exactly one not-counted ad, so the break writes `of your 3`. (4) B7 changes two places (the counting keyed by `job.id`, and the jobs handed over with the reading's id). (5) B24 was run in two variants: B24a in the engine (`standing` "have" for a skill with no CV line: T31 and T15 fail) and B24b in the app layer (the note replaced: T31 fails; T15 cannot, it tests the engine only).
 
 ## 16. For HANDOFF at merge time
 
