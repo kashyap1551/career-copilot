@@ -9,7 +9,7 @@ import type { Skill } from "./types";
 export const MAX_SHOWN = 3;
 
 export type BulletAnswer = { bullets: { pair: number; text: string }[] };
-export type DropReason = BulletReason | "missing" | "unknown-pair";
+export type DropReason = BulletReason | "missing" | "repeated-pair";
 export type BulletsResult = {
   bullets: { pair: number; line: number; text: string }[]; // at most `show`, the accepted ones, in pair order
   asked: number; // the number of pairs
@@ -34,7 +34,7 @@ export function bulletsFrom(answer: BulletAnswer, pairs: BulletPair[], vocabular
     if (mine.length === 0) {
       dropped.push({ pair: p.id, reason: "missing" });
     } else if (mine.length > 1) {
-      dropped.push({ pair: p.id, reason: "unknown-pair" }); // answered more than once: no bullet of that id is trusted
+      dropped.push({ pair: p.id, reason: "repeated-pair" }); // answered more than once: no bullet of that id is trusted
     } else {
       const verdict = checkBullet(mine[0].text, [p.line], { lines, vocabulary });
       if (verdict.ok) accepted.push({ pair: p.id, line: p.line, text: mine[0].text });

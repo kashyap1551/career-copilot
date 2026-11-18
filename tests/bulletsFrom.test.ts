@@ -5,7 +5,7 @@ import { bulletsFrom } from "@/lib/engine/bulletsFrom";
 
 // Step 8.3, stage 2, tests first (docs/PLAN-8.3.md v2, sections 4 and 10; test T12). The answer check: each bullet of the AI's answer is checked with
 // checkBullet against ITS OWN pair's line (the citation is assigned by code); at most 3 accepted bullets are shown, in pair order; every asked pair that
-// has no accepted bullet is dropped (a failed rule, `missing`, or a repeated pair id: `unknown-pair`); a bullet for a pair that was not asked is only
+// has no accepted bullet is dropped (a failed rule, `missing`, or a repeated pair id: `repeated-pair`); a bullet for a pair that was not asked is only
 // counted in `ignored`. Every expected value is a hand result. Invented text only; no AI.
 
 const L4 = "Answered the phone and kept the stock sheet up to date in Excel";
@@ -51,7 +51,7 @@ describe("T12: the answer check", () => {
     });
   });
 
-  it("T12 a repeated pair: every bullet of that pair id is dropped (`unknown-pair`) and the pair counts once", () => {
+  it("T12 a repeated pair: every bullet of that pair id is dropped (`repeated-pair`) and the pair counts once", () => {
     const got = run(
       [
         { pair: 1, text: "Kept the stock sheet up to date in Excel" },
@@ -61,7 +61,7 @@ describe("T12: the answer check", () => {
       TWO,
     );
     expect(got.bullets).toEqual([{ pair: 1, line: 4, text: "Kept the stock sheet up to date in Excel" }]);
-    expect(got.dropped).toEqual([{ pair: 2, reason: "unknown-pair" }]);
+    expect(got.dropped).toEqual([{ pair: 2, reason: "repeated-pair" }]);
     expect(got.ignored).toBe(0);
   });
 
@@ -136,7 +136,7 @@ describe("T12: the answer check", () => {
     expect(got.dropped).toEqual([
       { pair: 2, reason: "new-number" },
       { pair: 3, reason: "missing" },
-      { pair: 4, reason: "unknown-pair" },
+      { pair: 4, reason: "repeated-pair" },
     ]);
     expect(got.dropped.length).toBe(3);
     expect(got.ignored).toBe(1);
