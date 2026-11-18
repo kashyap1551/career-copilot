@@ -126,3 +126,19 @@ The preview of the newest `step-8.1` commit also contains step 7.3, unchanged. S
 - The two Network questions (7.3 step 7, 8.1 step 8) are about the same list: answered together (item 12).
 
 **Records.** Results are recorded **per document**, in its own log table, with the commit of the preview you used. This changes nothing in the 7.3 document: it stays a document of its own, and its log is filled in by its own steps.
+
+## The extension for 8.2: one sitting for 7.3, 8.1 and 8.2
+
+`docs/MANUAL-CHECK-8.2.md` has 14 steps (its own numbers, below as "8.2 step N"). It uses the same profile and the same ten saved ads, so it needs **no read of its own**: the whole sitting stays at **11 AI reads** (12 with the one optional re-read, which serves step 7 of 8.1 and step 12 of 8.2 together). The order above is NOT repeated here: keep its 13 items and make these insertions.
+
+- **Item 1 also covers 8.2 step 1** (the same setup, done once). Check the Expect of 8.2 step 1 as well.
+- **Right after item 3** (the Network setup, done once; 8.2 step 2's Network sentence is the same action): **8.2 steps 2 to 5**. The profile is still the one of item 1 (SQL, Tableau and Excel all had, nothing in progress), which is exactly the state they expect. Leave the analytics **open** at the end of step 5.
+- **Right after item 6** (8.1 steps 3 to 5: SQL in progress at 2027-06-01, the report open): **8.2 steps 6 and 7** (step 6 is the same edit as 8.1 step 3 / 7.3 step 3 and is not done again; check the analytics lines it expects).
+- **Right after item 7** (8.1 step 6: the date changed to 2027-03-01 with the report open): **8.2 steps 8 and 9** (step 8 is the same edit as 8.1 step 6 and is not done again; step 9 is the phone-width and dark-mode look).
+- **Item 10** (7.3 step 6: save, reload, "Use this profile"): **8.2 step 10 is done together with it**, in place of its own save and reload (the profile saved at 2027-06-01 is the one 8.2 step 10 expects).
+- **Item 11** (the ONE deletion, 7.3 step 8 and 8.1 step 7): **also 8.2 step 11**, checked against the same page.
+- **Item 12** (the ONE Network look): **also 8.2 step 13.** Do the Network look **before** the optional re-read.
+- **After item 12 and before item 13**, optional: the re-read and save of the deleted ad (8.1 step 7's optional part and 8.2 step 12, one AI read). It adds one `/api/` request to the Network list; the Network answers were given just before.
+- **Item 13** (the Console look): **also 8.2 step 14.**
+
+**Why this order has no conflict.** 8.2 steps 2 to 5 and 6 to 9 need the confirm screen or a state of the profile that later items change, so they come before item 10; 7.3 step 6 saves, reloads and removes the confirm screen, so after it only the steps that edit nothing remain (8.2 steps 10 to 14). 8.2 step 3 expects "nothing in progress", which is true only before item 4 (7.3 step 2 unticks SQL), so steps 2 to 5 sit right after item 3. 8.2 steps 6 and 7 expect SQL at 2027-06-01 with the report open, which is the state at the end of item 6. 8.2 step 8 expects the date 2027-03-01, the state after item 7; item 8 (7.3 step 3 again) puts the date back before 7.3 step 4. Results are recorded **per document**, in its own log table, with the commit of the preview used.
