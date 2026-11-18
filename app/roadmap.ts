@@ -171,7 +171,12 @@ export function roadmapBox(
   skills: Skill[],
   fromJobs: number = ROADMAP_FROM_JOBS,
 ): RoadmapBox {
-  const r = roadmapInputs(built, ads, skills);
+  return roadmapBoxFrom(roadmapInputs(built, ads, skills), fromJobs);
+}
+
+// Step 8.2 (docs/PLAN-8.2.md D9): the box from inputs that are already worked out, so the page works them out ONCE for the box, the report
+// and the analytics. `roadmapBox` is the old way in and calls this; nothing in the lines or the fields changed.
+export function roadmapBoxFrom(r: RoadmapInputs, fromJobs: number = ROADMAP_FROM_JOBS): RoadmapBox {
   if (r.kind === "no-ads") return EMPTY; // nothing saved: the page does not show the box
   if (r.kind === "no-profile") return { ...EMPTY, noProfile: NO_PROFILE_NOTE };
   if (r.kind === "none-counted") {
@@ -247,13 +252,11 @@ export function roadmapBoxSafe(
   try {
     return roadmapBox(built, ads, skills, fromJobs);
   } catch {
-    return { noProfile: null, partA: [ROADMAP_FAILED_LINE], partB: [], counted: 0, alreadyStrongIds: [], timeline: [] };
+    return failedRoadmapBox();
   }
 }
 
-// ---- Step 8.2 stage 1: STUB (docs/PLAN-8.2.md D9, section 6). The body is replaced in stage 3; it returns an empty box so the red tests fail by assertion.
-export function roadmapBoxFrom(inputs: RoadmapInputs, fromJobs: number = ROADMAP_FROM_JOBS): RoadmapBox {
-  void inputs;
-  void fromJobs;
-  return { ...EMPTY };
+// The box the page shows when working it out threw: one line, nothing else (Amendment 6 (3)). Shared by `roadmapBoxSafe` and `screenOutcomes`.
+export function failedRoadmapBox(): RoadmapBox {
+  return { noProfile: null, partA: [ROADMAP_FAILED_LINE], partB: [], counted: 0, alreadyStrongIds: [], timeline: [] };
 }

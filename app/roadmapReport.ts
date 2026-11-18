@@ -10,7 +10,7 @@ import {
   reportAskedLine,
   reportBasisLine,
 } from "@/lib/saved/messages";
-import { roadmapInputs, roadmapParts } from "./roadmap";
+import { roadmapInputs, roadmapParts, type RoadmapInputs } from "./roadmap";
 
 // Step 8.1 (docs/PLAN-8.1.md): the roadmap report, built by pure code. No AI, no network, no store, no clock. The numbers and the engine's
 // sentences come from the same inputs and builders as the "What to learn" box (app/roadmap.ts: `roadmapInputs`, `roadmapParts`), so the two
@@ -33,7 +33,12 @@ export function roadmapReport(
   skills: Skill[],
   fromJobs: number = ROADMAP_FROM_JOBS,
 ): RoadmapReport | null {
-  const r = roadmapInputs(built, ads, skills);
+  return roadmapReportFrom(roadmapInputs(built, ads, skills), fromJobs);
+}
+
+// Step 8.2 (docs/PLAN-8.2.md D9): the report from inputs that are already worked out (the page works them out once). `roadmapReport` calls
+// this; nothing in the lines changed.
+export function roadmapReportFrom(r: RoadmapInputs, fromJobs: number = ROADMAP_FROM_JOBS): RoadmapReport | null {
   if (r.kind !== "ready" || r.M < fromJobs) return null;
   const parts = roadmapParts(r);
 
@@ -91,11 +96,4 @@ export async function copyReport(text: string, write: (text: string) => Promise<
 // The status to show: the last attempt's, but only while the text on screen is still the text that attempt described.
 export function shownCopyStatus(record: CopyRecord | null, currentText: string): CopyStatus {
   return record !== null && record.text === currentText ? record.status : "idle";
-}
-
-// ---- Step 8.2 stage 1: STUB (docs/PLAN-8.2.md D9, section 6). The body is replaced in stage 3; it returns nothing so the red tests fail by assertion.
-export function roadmapReportFrom(inputs: ReturnType<typeof roadmapInputs>, fromJobs: number = ROADMAP_FROM_JOBS): RoadmapReport | null {
-  void inputs;
-  void fromJobs;
-  return null;
 }

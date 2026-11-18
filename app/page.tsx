@@ -15,9 +15,9 @@ import ConfirmBox from "./ConfirmBox";
 import AccessBox from "./AccessBox";
 import { postJson } from "./accessFetch";
 import CvBox from "./CvBox";
-import { roadmapAds, roadmapBoxSafe } from "./roadmap";
+import { roadmapAds } from "./roadmap";
 import RoadmapReportView from "./RoadmapReportView";
-import { roadmapReportSafe } from "./roadmapReport";
+import { screenOutcomes } from "./screenOutcomes";
 import RoadmapView from "./RoadmapView";
 import { openedReadings, reportFor } from "./savedAdRows";
 import ReportView from "./ReportView";
@@ -160,8 +160,10 @@ export default function Home() {
     () => roadmapAds(adStamps ? openedReadings(adList, { stamps: adStamps, skills }) : []),
     [adList, adStamps],
   );
-  const roadmap = useMemo(() => roadmapBoxSafe(profile, roadmapAdList, skills), [roadmapAdList, profile]);
-  const reportOutcome = useMemo(() => roadmapReportSafe(profile, roadmapAdList, skills), [roadmapAdList, profile]);
+  // Step 8.2 (docs/PLAN-8.2.md D9): ONE call works the inputs out once and gives the box, the roadmap report and (later) the analytics.
+  const outcomes = useMemo(() => screenOutcomes(profile, roadmapAdList, skills), [roadmapAdList, profile]);
+  const roadmap = outcomes.box;
+  const reportOutcome = outcomes.report;
 
   // Names the reader matched by close spelling (stage 2): one short line each; exact matches show nothing.
   const closeLines = result ? closeMatchLines(result.job.requirements, (id) => skills.find((k) => k.id === id)?.name ?? id) : [];
