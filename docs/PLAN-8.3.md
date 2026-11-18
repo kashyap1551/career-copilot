@@ -53,6 +53,7 @@ STATUS: ACCEPTED v2, 2026-11-18: owner and reviewer decisions below; no code and
 - **0.22 Later list (reviewer).** The learning marker "currently" also excludes lines about a current job; look at it once the eval shows yield (no rule change before a measure).
 - **0.23 Stage 3 decisions (reviewer).** The route is `POST /api/bullets`, in the same order as /api/cv (kill switch, access code, body, schema, AI call, check); it answers `{ bullets, asked, dropped }` with `Cache-Control: no-store`; `writeBullets(pairs)` calls the AI and then `bulletsFrom` (as `readCvLines` calls `fromCv`); the `BULLETS_REQUEST_HASH` constant and test T23 come only after the reviewer has approved the prompt text.
 - **0.24 Prompt v2 (reviewer, 2026-11-18, before any measure).** R8 is line-wide (a limiting word anywhere in the cited line must stand in the bullet, even in a part the AI cut), so the prompt now says so and names all 83 words of `QUALIFIERS` (it named 13). It also asks for ONE STRETCH of words that stand next to each other (it guards the known limit L1) and returns the line unchanged when one stretch cannot hold every limiting word. The example has three pairs. New tests: T25f (the prompt names every limiting word) and T25g (the example answers pass `checkBullet`, with a negative control). `QUALIFIERS` is exported from lib/engine/bulletCheck.ts (an export only). No checker rule or word list changed. *Reason:* the draft prompt did not tell the AI what the checker would reject, so every bullet that cut a limiting word out would have been dropped.
+- **0.25 The request hash is pinned (reviewer, 2026-11-18).** `BULLETS_REQUEST_HASH` (lib/ai/bulletsRequestHash.ts) and test T23 (tests/bulletsRequestHashPin.test.ts): the first 10 characters of the hash of the request captured call-free from prompt v2 (3,011 characters, model openai/gpt-oss-120b) are `5e3da9fa30`; T23b says it differs from the ad pin `85357f8fac`, the CV pin `193e02ee3f` and the vocabulary pin `e96370fe4c`. The two old pins, the vocabulary hash and `READING_VERSION` "3" are unchanged; tests/requestHashPins.test.ts is not edited. Break B43.
 
 ## 1. Facts (each read in this run)
 
@@ -416,6 +417,7 @@ The pair's requirement text is the ad's own quote of that requirement. `chooseBu
 | B40 | the catch returns ok | T9d |
 | B41 | a limiting word (praktikum) is removed from the prompt | T25f |
 | B42 | an example answer of the prompt is made to add a word ("today") | T25g |
+| B43 | one word of the prompt is changed ("Never write I." to "Never write me.") without a new pin | T23 |
 
 Any MISSED break is a finding: it is reported, never fixed silently, and gets a real test.
 
