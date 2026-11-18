@@ -2,7 +2,7 @@ import { skills } from "@/fixtures/skills";
 import { engineView } from "@/lib/cv/engineView";
 import type { BuiltProfile } from "@/lib/cv/profile";
 import { chooseBulletPairs, MAX_PAIRS, type BulletPair } from "@/lib/engine/bulletPairs";
-import { bulletsFrom } from "@/lib/engine/bulletsFrom";
+import { bulletsFrom, MAX_SHOWN } from "@/lib/engine/bulletsFrom";
 import { listedAlternatives } from "@/lib/engine/roadmapJobs";
 import type { Job } from "@/lib/engine/types";
 import {
@@ -69,14 +69,23 @@ export type ShownBullet = { pair: number; line: number; text: string; source: st
 
 const sameWords = (a: string, b: string) => a.toLowerCase().replace(/\s+/g, " ").trim() === b.toLowerCase().replace(/\s+/g, " ").trim();
 
-// D9: every bullet the route kept is checked AGAIN against its own pair's line. The dropped count is every asked pair that has no shown bullet, whoever dropped it.
-export function checkAnswer(answer: { bullets: { pair: number; text: string }[] }, pairs: BulletPair[]): { shown: ShownBullet[]; dropped: number } {
-  const checked = bulletsFrom(answer, pairs, skills);
-  const shown = checked.bullets.map((b) => {
+// D9: every bullet the route kept is checked AGAIN against its own pair's line. The dropped count (W8) is the number of pairs a CHECK dropped: the pairs on the route's
+// dropped list plus the bullets this page rejected itself. A pair the route left out only because of the cap of 3 is NOT counted (0.27).
+export function checkAnswer(
+  answer: { bullets: { pair: number; text: string }[]; dropped: { pair: number; reason: string }[] },
+  pairs: BulletPair[],
+): { shown: ShownBullet[]; dropped: number } {
+  const checked = bulletsFrom({ bullets: answer.bullets }, pairs, skills, pairs.length); // the cap must not create drops: check every answered bullet
+  const accepted = new Set(checked.bullets.map((b) => b.pair));
+  const asked = new Set(pairs.map((p) => p.id));
+  const byRoute = new Set(answer.dropped.map((d) => d.pair).filter((id) => asked.has(id)));
+  const answered = new Set(answer.bullets.map((b) => b.pair).filter((id) => asked.has(id)));
+  const dropped = [...asked].filter((id) => !accepted.has(id) && (byRoute.has(id) || answered.has(id))).length;
+  const shown = checked.bullets.slice(0, MAX_SHOWN).map((b) => {
     const pair = pairs.find((p) => p.id === b.pair) as BulletPair;
     return { pair: b.pair, line: b.line, text: b.text, source: sameWords(b.text, pair.text) ? sourceLineOnly(pair.line) : sourceLine(pair.line, pair.text) };
   });
-  return { shown, dropped: checked.dropped.length };
+  return { shown, dropped };
 }
 
 export function bulletsAsText(bullets: { text: string }[]): string {
@@ -99,9 +108,9 @@ export type BulletsPhase =
 
 type Post = (body: unknown, signal: AbortSignal) => Promise<PostResult>;
 
-// The real sender: postJson with the abort signal given to the browser's call. `source: "ad"` opens the code box of the ad, as the ad reading does.
+// The real sender: postJson with the abort signal given to the browser's call. `source: "bullets"` opens the code box of this block, next to its button.
 export function makePost(opts: { fetch?: typeof fetch; store?: Parameters<typeof postJson>[2]["store"] } = {}): Post {
-  return (body, signal) => postJson("/api/bullets", body, { source: "ad", fetch: fetchWithSignal(signal, opts.fetch), store: opts.store });
+  return (body, signal) => postJson("/api/bullets", body, { source: "bullets", fetch: fetchWithSignal(signal, opts.fetch), store: opts.store });
 }
 
 const failed = (line: string): BulletsOutcome => ({ kind: "failed", line });
@@ -135,7 +144,7 @@ export async function askBullets(pairs: BulletPair[], deps: { post?: Post; timeo
       }
       const parsed = bulletsResponseSchema.safeParse(data);
       if (!parsed.success) return failed(BULLETS_FAILED_LINE);
-      const checked = checkAnswer({ bullets: parsed.data.bullets }, pairs);
+      const checked = checkAnswer({ bullets: parsed.data.bullets, dropped: parsed.data.dropped }, pairs);
       return checked.shown.length > 0 ? { kind: "shown", bullets: checked.shown, dropped: checked.dropped } : { kind: "none-passed" };
     } catch {
       return failed(BULLETS_FAILED_LINE);

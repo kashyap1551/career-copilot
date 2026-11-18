@@ -19,6 +19,7 @@ import {
   REPORT_COPIED,
   REPORT_COPY_FAILED,
 } from "@/lib/saved/messages";
+import AccessBox from "./AccessBox";
 import { bulletCandidatesSafe, bulletsAsText, createBulletsRunner, type BulletsOutcome, type BulletsPhase } from "./bullets";
 import { copyReport, shownCopyStatus, type CopyRecord, type CopyStatus } from "./roadmapReport";
 
@@ -105,6 +106,7 @@ export function BulletsBody({
         </button>
       </div>
       <p className={quiet}>{bulletsNotice(MAX_PAIRS)}</p>
+      <AccessBox source="bullets" />
     </div>
   );
 }

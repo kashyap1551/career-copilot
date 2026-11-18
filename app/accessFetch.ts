@@ -17,7 +17,7 @@ import {
 //    page's own message (the person presses the button again; a real AI call is never repeated behind their back).
 //  - This file never imports the server-only access module (a guard test checks every client file).
 
-export type AccessSource = "cv" | "ad";
+export type AccessSource = "cv" | "ad" | "bullets"; // "bullets": the CV bullets block has its own box, next to its button (docs/PLAN-8.3.md 0.27)
 type TabStore = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 
 const STORAGE_KEY = "career-copilot.access-code";
