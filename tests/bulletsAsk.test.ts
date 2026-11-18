@@ -38,7 +38,7 @@ const memoryStore = () => {
 describe("T22: the page re-checks every returned bullet against its own pair's line (D9)", () => {
   it("T22: a bullet the route sent that fails the checks is not shown, and counts as dropped with the route's own dropped pairs", () => {
     const got = checkAnswer(
-      { bullets: [{ pair: 1, text: "Kept the stock sheet up to date in Excel" }, { pair: 2, text: "Helped customers at the counter since 2021" }] },
+      { bullets: [{ pair: 1, text: "Kept the stock sheet up to date in Excel" }, { pair: 2, text: "Helped customers at the counter since 2021" }], dropped: [] },
       TWO,
     );
     expect(got.shown).toEqual([
@@ -49,7 +49,10 @@ describe("T22: the page re-checks every returned bullet against its own pair's l
 
   it("T22: five pairs, the route kept 3 and dropped 2; the page drops one of the 3: 2 shown, 3 dropped (every dropped pair counts, whoever dropped it)", () => {
     const got = checkAnswer(
-      { bullets: [{ pair: 1, text: "Kept the books in Excel" }, { pair: 2, text: "Wrote 40 SQL queries" }, { pair: 3, text: "Wrote Python scripts" }] },
+      {
+        bullets: [{ pair: 1, text: "Kept the books in Excel" }, { pair: 2, text: "Wrote 40 SQL queries" }, { pair: 3, text: "Wrote Python scripts" }],
+        dropped: [{ pair: 4, reason: "new-word" }, { pair: 5, reason: "missing" }], // the route's own dropped list (completed: the route names the pairs it dropped)
+      },
       FIVE,
     );
     expect(got.shown.map((b) => b.pair)).toEqual([1, 3]);
@@ -58,23 +61,79 @@ describe("T22: the page re-checks every returned bullet against its own pair's l
   });
 
   it("T22: at most 3 bullets are shown, in pair order", () => {
-    const answer = { bullets: FIVE.map((p) => ({ pair: p.id, text: p.text })) };
+    const answer = { bullets: FIVE.map((p) => ({ pair: p.id, text: p.text })), dropped: [] }; // a defensive case: the real route never sends more than 3
     expect(checkAnswer(answer, FIVE).shown.map((b) => b.pair)).toEqual([1, 2, 3]);
   });
 
   it("T22: a bullet that equals its line (lower-case, spaces collapsed) shows the source once: 'from your CV line N' with no quote", () => {
-    const got = checkAnswer({ bullets: [{ pair: 2, text: "helped  CUSTOMERS at the counter" }, { pair: 1, text: "Kept the stock sheet up to date in Excel" }] }, TWO);
+    const got = checkAnswer({ bullets: [{ pair: 2, text: "helped  CUSTOMERS at the counter" }, { pair: 1, text: "Kept the stock sheet up to date in Excel" }], dropped: [] }, TWO);
     expect(got.shown.find((b) => b.pair === 2)?.source).toBe("from your CV line 5");
     expect(got.shown.find((b) => b.pair === 1)?.source).toBe(`from your CV line 4: "${L4}"`);
   });
 
   it("T22: a pair that was not asked is ignored; a pair answered twice is dropped", () => {
     const got = checkAnswer(
-      { bullets: [{ pair: 9, text: "Helped customers at the counter" }, { pair: 1, text: "Kept the stock sheet up to date in Excel" }, { pair: 1, text: "Kept the stock sheet up to date in Excel" }] },
+      {
+        bullets: [{ pair: 9, text: "Helped customers at the counter" }, { pair: 1, text: "Kept the stock sheet up to date in Excel" }, { pair: 1, text: "Kept the stock sheet up to date in Excel" }],
+        dropped: [{ pair: 2, reason: "missing" }], // completed: the pair the AI skipped is on the route's dropped list
+      },
       TWO,
     );
     expect(got.shown).toEqual([]);
     expect(got.dropped).toBe(2);
+  });
+});
+
+describe("D1 (0.27): W8 counts only the pairs a CHECK dropped, never a pair the cap of 3 left out", () => {
+  const ok = (ids: number[]) => ids.map((id) => ({ pair: id, text: FIVE[id - 1].text }));
+  const ids = (r: { shown: { pair: number }[] }) => r.shown.map((b) => b.pair);
+
+  it("D1 a: five valid pairs, the route returns 1, 2 and 3 (the cap), dropped []: shown 1, 2, 3; dropped 0 (pairs 4 and 5 were only left out by the cap)", () => {
+    const got = checkAnswer({ bullets: ok([1, 2, 3]), dropped: [] }, FIVE);
+    expect(ids(got)).toEqual([1, 2, 3]);
+    expect(got.dropped).toBe(0);
+  });
+  it("D1 b: the route returns 1, 3 and 4 (all valid) and dropped [{ pair 2, new-number }]: shown 1, 3, 4; dropped 1", () => {
+    const got = checkAnswer({ bullets: ok([1, 3, 4]), dropped: [{ pair: 2, reason: "new-number" }] }, FIVE);
+    expect(ids(got)).toEqual([1, 3, 4]);
+    expect(got.dropped).toBe(1);
+  });
+  it("D1 c: the route returns 1, 2, 3 where pair 2 is 'Wrote 40 SQL queries' (the page rejects it) and dropped [{ pair 4, new-word }]: shown 1, 3; dropped 2 (pair 4 by the route, pair 2 by the page); pair 5 is not counted", () => {
+    const bullets = ok([1, 2, 3]);
+    bullets[1] = { pair: 2, text: "Wrote 40 SQL queries" };
+    const got = checkAnswer({ bullets, dropped: [{ pair: 4, reason: "new-word" }] }, FIVE);
+    expect(ids(got)).toEqual([1, 3]);
+    expect(got.dropped).toBe(2);
+  });
+  it("D1 d: the T22 five-pairs case with the route's dropped list [{ pair 4 }, { pair 5 }]: 2 shown, dropped 3 (this is the test above, unchanged in its expected values)", () => {
+    const got = checkAnswer(
+      { bullets: [{ pair: 1, text: "Kept the books in Excel" }, { pair: 2, text: "Wrote 40 SQL queries" }, { pair: 3, text: "Wrote Python scripts" }], dropped: [{ pair: 4, reason: "new-word" }, { pair: 5, reason: "missing" }] },
+      FIVE,
+    );
+    expect(ids(got)).toEqual([1, 3]);
+    expect(got.dropped).toBe(3);
+  });
+  it("D1 e: the route's dropped list names a pair id that was not asked (9): ignored, not counted", () => {
+    const got = checkAnswer({ bullets: ok([1, 2, 3]), dropped: [{ pair: 9, reason: "new-word" }] }, FIVE);
+    expect(got.dropped).toBe(0);
+  });
+  it("D1 f: the route's dropped list names pair 2 twice: counted once", () => {
+    const got = checkAnswer({ bullets: ok([1, 3, 4]), dropped: [{ pair: 2, reason: "new-number" }, { pair: 2, reason: "new-number" }] }, FIVE);
+    expect(got.dropped).toBe(1);
+  });
+  it("D1 g: two pairs, two valid bullets, nothing dropped: dropped 0", () => {
+    const got = checkAnswer({ bullets: [{ pair: 1, text: "Kept the stock sheet up to date in Excel" }, { pair: 2, text: "Helped customers at the counter" }], dropped: [] }, TWO);
+    expect(ids(got)).toEqual([1, 2]);
+    expect(got.dropped).toBe(0);
+  });
+  it("D1: through askBullets, a route answer of 3 bullets for 5 valid pairs shows 3 and says nothing was dropped", async () => {
+    const res = json({ bullets: ok([1, 2, 3]), asked: 5, dropped: [] });
+    const out = await askBullets(FIVE, { post: async () => ({ kind: "answer", res }) });
+    expect(out.kind).toBe("shown");
+    if (out.kind === "shown") {
+      expect(out.bullets.map((b) => b.pair)).toEqual([1, 2, 3]);
+      expect(out.dropped).toBe(0);
+    }
   });
 });
 
@@ -196,13 +255,13 @@ describe("T41: the answer, and every way it can be wrong, as a plain line", () =
 });
 
 describe("T40: a 401 behaves as for the other two AI calls", () => {
-  afterEach(() => showAccess("ad", null));
-  it("T40: no code kept: the code box of the ad opens with the 'enter the code' message, nothing else is shown by the block, no code header is sent", async () => {
+  afterEach(() => showAccess("cv", null));
+  it("T40: no code kept: the code box of the BLOCK opens with the 'enter the code' message, nothing else is shown by the block, no code header is sent", async () => {
     const store = memoryStore();
     const fetchFake = vi.fn(async () => json({ error: "x" }, 401));
     const out = await askBullets(TWO, { post: makePost({ fetch: fetchFake as never, store }) });
     expect(out).toEqual({ kind: "access" });
-    expect(getAccessUi()).toEqual({ source: "ad", message: NEED_CODE_MESSAGE });
+    expect(getAccessUi()).toEqual({ source: "bullets", message: NEED_CODE_MESSAGE }); // the block has its own access source (0.27): the box opens next to the button
     expect(fetchFake).toHaveBeenCalledTimes(1);
     const [url, init] = fetchFake.mock.calls[0] as unknown as [string, { headers: Record<string, string>; body: string }];
     expect(url).toBe("/api/bullets");
@@ -250,7 +309,8 @@ describe("T39: nothing is stored by the block", () => {
 
 describe("the check uses the real vocabulary", () => {
   it("a bullet that names a skill of another line is dropped by the page (new-skill)", () => {
-    const got = checkAnswer({ bullets: [{ pair: 1, text: "Kept the books in Excel and SQL" }] }, FIVE.slice(0, 2));
+    // completed: the pair the AI skipped (pair 2) is on the route's dropped list, as the real route answers
+    const got = checkAnswer({ bullets: [{ pair: 1, text: "Kept the books in Excel and SQL" }], dropped: [{ pair: 2, reason: "missing" }] }, FIVE.slice(0, 2));
     expect(got.shown).toEqual([]);
     expect(got.dropped).toBe(2);
     expect(skills.length).toBeGreaterThan(100);

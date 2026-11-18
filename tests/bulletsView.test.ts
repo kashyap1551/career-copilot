@@ -7,6 +7,8 @@ import { bulletsAsText, type BulletsPhase } from "@/app/bullets";
 import { buildProfile, type ConfirmState } from "@/lib/cv/profile";
 import type { CvSkill } from "@/lib/engine/fromCv";
 import type { Job, Requirement } from "@/lib/engine/types";
+import { showAccess } from "@/app/accessFetch";
+import { ACCESS_LABEL, NEED_CODE_MESSAGE } from "@/lib/ai/accessMessages";
 import * as messages from "@/lib/saved/messages";
 import { ad } from "./support/roadmapFixtures";
 import { adsViaPage } from "./support/viaPage";
@@ -153,5 +155,33 @@ describe("T28 and T42: the block on the page's ads", () => {
     expect(() => (html = view(broken, withExcel))).not.toThrow();
     expect(paras(html).map((p) => p.text)).toEqual([messages.BULLETS_FAILED_LINE]);
     expect(buttons(html)).toEqual([]);
+  });
+});
+
+describe("D2 (0.27): the block has its own access code box, next to its button", () => {
+  it("D2: after a 401 (showAccess for the source 'bullets') the closed block, the block after nothing passed and the block after a failure contain the box; nothing set: none", () => {
+    showAccess("cv", null); // nothing set for the block
+    for (const phase of [{ kind: "idle" }, { kind: "none-passed" }, { kind: "failed", line: messages.BULLETS_TIMEOUT_LINE }] as BulletsPhase[]) {
+      expect(body(phase), phase.kind).not.toContain(ACCESS_LABEL);
+    }
+    showAccess("bullets", NEED_CODE_MESSAGE);
+    try {
+      for (const phase of [{ kind: "idle" }, { kind: "none-passed" }, { kind: "failed", line: messages.BULLETS_TIMEOUT_LINE }] as BulletsPhase[]) {
+        const html = body(phase);
+        expect(html, phase.kind).toContain(ACCESS_LABEL);
+        expect(decode(html), phase.kind).toContain(NEED_CODE_MESSAGE);
+        expect(html.indexOf(ACCESS_LABEL), "the box comes after the notice").toBeGreaterThan(html.indexOf("We store nothing"));
+      }
+    } finally {
+      showAccess("cv", null);
+    }
+  });
+  it("D2: the box of the CV and the box of the ad are not shown inside the block (a 401 of another call does not open this one)", () => {
+    showAccess("ad", NEED_CODE_MESSAGE);
+    try {
+      expect(body({ kind: "idle" })).not.toContain(ACCESS_LABEL);
+    } finally {
+      showAccess("cv", null);
+    }
   });
 });
