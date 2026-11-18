@@ -2,7 +2,7 @@
 
 For the owner. Plain words, one small action per step. Each step has **Do**, **Expect** and **Report**. If what you see is not what is written under Expect, stop, write down the step number and what you saw, and send it to the reviewer. Do not try to fix anything. The design is `docs/PLAN-8.1.md` (sections 1, 6 and 9).
 
-Every text and number under **Expect** was worked out by hand from the invented CV and the ten invented ads, before any run (the hand cases R3 of `docs/PLAN-8.1.md` section 6). Nothing was copied from a run.
+Every text and number under **Expect** was worked out by hand from the invented CV and the ten invented ads, before any run (the hand cases R3 of `docs/PLAN-8.1.md` section 6). The lines were worked out by hand in the plan before any code existed (case R3), test T3a holds the same lines, and a dry run showed that the real code produces them.
 
 ## Before you start
 
@@ -43,6 +43,8 @@ Timeline from skills in progress:
 These counts assume you learn each skill by its expected date.
 By 2027-06-01 (SQL): 10 more Strong matches (Tally Clerk, Larch Wharf Ltd; Survey Assistant, Juniper Hall Ltd; Ledger Clerk, Ivy Gate Ltd; Order Analyst, Heath Row Ltd; Billing Clerk, Gorse Lane Ltd; Stock Analyst, Fern Dock Ltd; Finance Clerk, Elm Court Ltd; Sales Analyst, Cedar Mill Ltd; Data Assistant, Birch Yard Ltd; Report Clerk, Alder Works Ltd).
 ```
+
+   On the page the line starting `Asked as` may look indented or smaller instead of showing four spaces; the four spaces belong to the copied text of step 5.
 
    (Hand count: with SQL not on the CV every ad misses its one must-have, SQL; none is Strong; all ten are reachable. SQL is in progress and covers all ten: it unlocks 10 jobs, total 10. SQL is asked as a must-have by all 10 of the 10 ads, and by none as a nice-to-have, so that part is left out. Nothing is blocked. The timeline at 2027-06-01 covers all ten.)
    **Also compare:** the report's ranking line (the one starting `1. SQL`) and its timeline line (the one starting `By 2027-06-01`) with the same two lines in the "What to learn" box just above. They must be **the same sentences, word for word**.
