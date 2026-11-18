@@ -1,4 +1,4 @@
-STATUS: DRAFT v1 (2026-11-18). No code, no tests yet. Waiting for the owner's OK (careful lane). Branch step-8.2, cut from step-8.1 (3831e02).
+STATUS: DRAFT v2 (2026-11-18; v1 was e3db48a). No code, no tests yet. Waiting for the owner's OK (careful lane). Branch step-8.2, cut from step-8.1 (3831e02).
 
 # Plan for step 8.2: analytics across the saved ads
 
@@ -20,6 +20,14 @@ STATUS: DRAFT v1 (2026-11-18). No code, no tests yet. Waiting for the owner's OK
 **The smallest useful version** is therefore: one button under the report, `Show my analytics`, that opens (a) five count lines for the fit levels, with one plain bar each, and (b) two plain lists of skills with counts: all asked skills, and the ones you have. No ranking, no blocked jobs, no timeline, no job names (so no employer name is ever shown), no copy button. Everything else of the sprint line is already on the page. If the owner thinks level counts alone are enough, section 12 (Q1) names an even smaller version.
 
 ## 1. Status and scope
+
+**Changes since v1** (reviewer's five changes, 2026-11-18):
+1. **D9, the composition** (section 4 D9, section 6, tests T24 to T27 in section 8): the page calls ONE pure function that works out the inputs once and returns the box, the report and the analytics outcomes, each keeping today's failure behaviour exactly.
+2. **Six more breaks** B16 to B21 (section 9): the more-skills count, the your-skills cut, the several-skills note shown always and never (two breaks), and the gate ignored by the box wrapper and by the composition (two breaks).
+3. **Manual outline** (section 10): the all-three-skills state (R3d) is checked first, right after 8.1 step 2; R3 after 8.1 step 3; then the date change; then Hide; the "tick SQL again" step is gone; the one-sitting order must be re-derived when the 8.2 manual check is written.
+4. **Heading wording** (A14, A15; Q10): `Skills of yours that are asked for in your 4 saved ads` and `Skills of yours that are asked for in your 3 saved ads: none.`; every hand text and test literal updated.
+5. **A9b**, a proposed note under the "No level" line (Q11): `No level means the app had nothing to judge for those ads; the saved ads list says why for each.` Shown only when the No level count is above 0; the owner decides, because it is wording about a person's chances.
+Also corrected while editing: two cross-references of v1 (section 2 said "section 6" for the hand cases, which are in section 7; the manual-step numbers in the edge-case table).
 
 **What it needs from what exists** (every item read in this run, section 3).
 - `roadmapInputs` and `ReadyInputs` (app/roadmap.ts:76-125): which ads count (M), the engine's view of each, the engine jobs with the SAVED-AD id (P0), the gap list, the name function.
@@ -43,7 +51,7 @@ A new block under the roadmap report (app/page.tsx:253), mounted by the page **o
 1. Closed: one button `Show my analytics`.
 2. Open: the button reads `Hide the analytics`; under it, in this order: the title; the basis line; the not-counted line when there is one; the fit-level block; the asked-skills block; the your-skills block.
 
-The four-ad example of PLAN-7.1 section 1 / PLAN-8.1 case R1, gate set to 4 (hand case R1 of section 6; `|n of m|` marks the bar drawn under a line):
+The four-ad example of PLAN-7.1 section 1 / PLAN-8.1 case R1, gate set to 4 (hand case R1 of section 7; `|n of m|` marks the bar drawn under a line):
 
 ```
 Your analytics
@@ -60,7 +68,7 @@ Python (not on your profile): must-have in 2 ads, nice-to-have in 1 ad
 Tableau (you are learning it, expected 2027-03-01): must-have in 1 ad, nice-to-have in 2 ads
 Excel (on your profile): must-have in 1 ad, nice-to-have in 1 ad
 Power BI (not on your profile): nice-to-have in 1 ad
-Skills of yours asked across your 4 saved ads
+Skills of yours that are asked for in your 4 saved ads
 SQL (on your profile): must-have in 3 ads
 Excel (on your profile): must-have in 1 ad, nice-to-have in 1 ad
 ```
@@ -78,20 +86,21 @@ Excel (on your profile): must-have in 1 ad, nice-to-have in 1 ad
 | A7 | under A6 | `(These are the levels shown on your saved ads, counted against the profile in use.)` | new constant `LEVELS_NOTE` (a parenthesis, like `GAP_SUBTITLE`) |
 | A8 | one line per level, always the four, in the order Strong, Good, Stretch, Long shot | `Strong: 1 of your 4 saved ads` (`1 of your 1 saved ad` for one) | the name is `levelName(level)` (explain.ts:23), not retyped; the line is new `levelCountLine(name, n, M)` |
 | A9 | a fifth line, only when its count is above 0 | `No level: 3 of your 3 saved ads` | new constant `NO_LEVEL_NAME` = `No level`, same function as A8 |
+| A9b | one line under the "No level" line, only when the No level count is above 0 (a PROPOSAL, Q11) | `No level means the app had nothing to judge for those ads; the saved ads list says why for each.` | new constant `NO_LEVEL_NOTE`; no digit |
 | A10 | asked-skills heading | `Skills asked across your 4 saved ads` | new function `askedTitle(M)` (the pattern of `gapTitle`, messages.ts:88) |
 | A11 | one line per skill | `Python (not on your profile): must-have in 2 ads, nice-to-have in 1 ad` | `gapRowText(name, note, must, nice)` (messages.ts:93), not retyped; the note is `learningNote(date)` (messages.ts:90) when learning, `NO_CV_LINE_NOTE` (messages.ts:91) when on the profile without a CV line, and two NEW constants ` (on your profile)` and ` (not on your profile)` |
 | A12 | under the asked list, only when a counted requirement accepts several skills | `A requirement that accepts several skills is counted once for each of them.` | `ALTERNATIVES_NOTE` (messages.ts:100), not retyped |
 | A13 | under a list, only when rows of that list were cut | `3 more skills are asked in your saved ads and are not shown.` (`1 more skill is asked ... and is not shown.`) | new function `moreSkillsLine(n)` |
-| A14 | your-skills heading | `Skills of yours asked across your 4 saved ads` | new function `yoursTitle(M)` |
-| A15 | the same, when there is none | `Skills of yours asked across your 3 saved ads: none.` | new function `yoursNoneLine(M)` |
+| A14 | your-skills heading (wording a PROPOSAL, Q10) | `Skills of yours that are asked for in your 4 saved ads` | new function `yoursTitle(M)` |
+| A15 | the same, when there is none | `Skills of yours that are asked for in your 3 saved ads: none.` | new function `yoursNoneLine(M)` |
 | A16 | instead of the button, after a throw | `The analytics could not be worked out.` | new constant `ANALYTICS_FAILED_LINE` |
 
-**New constants and functions for lib/saved/messages.ts:** A1, A2, A3, A6, A7, A8, A9, A10, A13, A14, A15, A16 and the two notes of A11. Everything else is imported. The view writes no sentence.
+**New constants and functions for lib/saved/messages.ts:** A1, A2, A3, A6, A7, A8, A9, A9b, A10, A13, A14, A15, A16 and the two notes of A11. Everything else is imported. The view writes no sentence.
 
 ### The shape of the analytics, and how it is drawn
 
 - `Analytics = { title: string; lines: AnalyticsLine[] }`, `AnalyticsLine = { text: string; kind: "basis" | "note" | "heading" | "level" | "skill" | "plain"; bar: { n: number; of: number } | null }`. The title is not among the lines. `bar` is not null only on the level lines (A8, A9).
-- `analyticsSafe(...)` returns `{ kind: "none" } | { kind: "ready"; analytics } | { kind: "failed"; line }` (the shape of `ReportOutcome`, app/roadmapReport.ts:21).
+- `AnalyticsOutcome` is `{ kind: "none" } | { kind: "ready"; analytics } | { kind: "failed"; line }` (the shape of `ReportOutcome`, app/roadmapReport.ts:21); it is the third part of what `screenOutcomes` returns (D9), which catches a throw; there is no separate safe wrapper.
 - **Drawing.** One `<section aria-label="Your analytics">`; a `<p>` with the title; the lines as one `<ul>` of `<li>` in order, a heading line as `<li data-kind="heading">`. A level line carries a bar: a `<div aria-hidden="true">` track with an inner element whose width is `n/of`, drawn in plain CSS (Tailwind), one neutral colour, with its own dark-mode colour. **The bar is decoration; the printed line says the same thing in words and numbers**, so nothing is carried by colour or length alone (D6). The view prints no `%`.
 - **No bar on the asked lists** (D7): each of their rows has two numbers (must-have and nice-to-have); one bar would hide one of them, and a two-colour bar would put meaning in colour.
 
@@ -127,12 +136,12 @@ Excel (on your profile): must-have in 1 ad, nice-to-have in 1 ad
 - **D1. No AI, no clock.** *Reason:* every line is a count or an engine sentence; AI-written words wait for the Groq retention terms and the owner's D2 privacy answer (HANDOFF.md:159, DECISIONS.md:52-53).
 - **D2. What 8.2 shows: the three new things of section 0 and nothing else.** No ranking, no blocked jobs, no timeline, no job names. *Reason:* the report already holds them; repeating them is "the box shown a third time" (PLAN-8.1 D3), and leaving out job names means no employer name is on this block at all.
 - **D3. New counting code goes into a new file, lib/engine/analytics.ts, with two pure functions:** `tallyLevels(levels: (FitLevel | null)[])` returning `{ strong, good, stretch, longShot, none }`, and `askedSkills(profile, jobs, nameOf)` returning one row per skill asked, with `mustAds`, `niceAds` and `standing` (`"have" | "learning:<date>" | "no-cv-line" | "none"`), sorted as the gap rows are. The file imports nothing from app/. *Reason:* CLAUDE.md rule 1 says counts come from lib/engine; the level itself is still produced by `profileReport` (app/), which the function receives as plain values, so lib/engine never imports app/. No existing file of lib/engine changes.
-- **D4. A section of the SAME page, not a new route.** *Reason:* browser storage is per address, not per route, so a second route could read the saved ads. But the profile in use can be one that was read and confirmed in memory and never saved (F2); a second route would not see it and would disagree with the box. A route would also need an empty-state page, a way to open the saved profile, and navigation on a one-page app. The sprint's word "page" is met by the block on the page; the deviation goes to DECISIONS (section 14).
-- **D5. The same gate as the report** (10 counted ads and a profile in use); below it, nothing is drawn. *Reason:* one gate to explain; the box's own line already says how many ads are missing (`thresholdLine`) or that a profile is needed. Open question Q2.
+- **D4. A section of the SAME page, not a new route (OWNER'S DECISION, Q12).** *Reason:* browser storage is per address, not per route, so a second route could read the saved ads. But the profile in use can be one that was read and confirmed in memory and never saved (F2); a second route would not see it and would disagree with the box. A route would also need an empty-state page, a way to open the saved profile, and navigation on a one-page app. The sprint's word "page" is met by the block on the page; the deviation goes to DECISIONS (section 14).
+- **D5. The same gate as the report** (10 counted ads and a profile in use); below it, nothing is drawn. *Reason:* one gate to explain; the box's own line already says how many ads are missing (`thresholdLine`) or that a profile is needed. OWNER'S DECISION, Q2.
 - **D6. No chart library, no new dependency (rule 7); plain HTML bars only, and only for the fit levels.** *Reason:* five numbers that add up to M are a fair bar chart; a list of skills with two numbers each is clearer as lines than as bars. A sentence is clearer than a chart for the asked lists, so they are lines. Each bar is `aria-hidden` with the number printed in the line beside it; one neutral colour with a dark-mode colour; a track so a zero still shows an empty bar; text wraps (`break-words`) at phone width. Contrast of bar against track is estimated by hand at about 3.7 to 1 in light and about 6 to 1 in dark (zinc-500 on zinc-200; zinc-400 on zinc-800); to be confirmed in the manual check, not asserted here.
 - **D7. Bars only on the level lines.** *Reason:* see D6; each asked row has two numbers (must-have, nice-to-have), and a union count (ads asking either way) is a third number the engine does not produce.
 - **D8. Nothing leaves the device and nothing is stored or copied.** No `fetch`, no storage, no clipboard, no file, no `useEffect`, no clock, no `@/lib/ai`. *Reason:* the same as D1 and PLAN-8.1 section 10. Proved by a source guard (T19) and by the Network step of the manual check.
-- **D9. The page computes `roadmapInputs` ONCE per change and gives it to the box, the report and the analytics.** A first commit alone ("refactor: compute the roadmap inputs once"): new `roadmapBoxFrom(inputs, fromJobs)`, `roadmapReportFrom(inputs, fromJobs)` and a safe wrapper that catches a throw in `roadmapInputs`; the old `roadmapBox`, `roadmapReport`, `roadmapBoxSafe` and `roadmapReportSafe` keep their signatures and become thin wrappers (call `roadmapInputs`, then the `From` function), so **all 1,681 existing tests pass unedited**. This also closes the "twice per change" point of 8.1 (STATE-2026-11-18 section E; PLAN-8.1 section 13, last line). *Reason:* a third call would be the same duplication that allowed P0; the wrappers avoid changing a signature any test uses.
+- **D9. The page calls ONE pure function that works out the inputs once and returns the three outcomes.** New file app/screenOutcomes.ts: `screenOutcomes(built, ads, skills, fromJobs = ROADMAP_FROM_JOBS, top = ANALYTICS_TOP)` returns `{ box: RoadmapBox; report: ReportOutcome; analytics: AnalyticsOutcome }`. Inside it: (1) `roadmapInputs` runs once, inside a try. If it throws, the three failure outcomes are returned: the box `{ noProfile: null, partA: [ROADMAP_FAILED_LINE], partB: [], counted: 0, alreadyStrongIds: [], timeline: [] }` (the very value `roadmapBoxSafe` returns today, app/roadmap.ts:250), the report `{ kind: "failed", line: REPORT_FAILED_LINE }` and the analytics `{ kind: "failed", line: ANALYTICS_FAILED_LINE }`; never an error page. (2) Otherwise each outcome is built from the same inputs by `roadmapBoxFrom(inputs, fromJobs)`, `roadmapReportFrom(inputs, fromJobs)` and `analyticsFrom(inputs, built, skills, top, fromJobs)`, **each in its own try**, so a throw after the inputs fails only the outcome that threw, as today (today each safe function wraps its whole work separately). For the same inputs the box and report outcomes are identical to those of the old `roadmapBoxSafe` and `roadmapReportSafe` (T24). The old `roadmapBox`, `roadmapReport`, `roadmapBoxSafe` and `roadmapReportSafe` keep their signatures and become thin wrappers (call `roadmapInputs`, then the `From` function), so **all 1,681 existing tests pass unedited**; the page stops calling them. The page then has ONE `useMemo` over `screenOutcomes(profile, roadmapAdList, skills)` and reads `.box`, `.report` and `.analytics` (T22). This is built in two commits: the first alone ("refactor: compute the roadmap inputs once") adds `roadmapBoxFrom`, `roadmapReportFrom` and `screenOutcomes` returning `{ box, report }` and rewires the page; the analytics slot is added by the commit that adds `analyticsFrom`. It also closes the "twice per change" point of 8.1 (STATE-2026-11-18 section E; PLAN-8.1 section 13, last line). *Reason:* a third call would be the same duplication that allowed P0; one function that owns the failure behaviour keeps the three outcomes from drifting, and the wrappers avoid changing a signature any test uses.
 - **D10. Every number test builds ads the way the page does** (P0 lesson): new helper `inputsViaPage(built, jobs, savedIds, jobIdOf)` in tests/support/viaPage.ts (one new export; nothing existing changes), used by every test that builds ads, with one test (T13) proving ids `"pasted-ad"` and distinct ids give the same lines.
 - **D11. A level that cannot be worked out fails the whole block** (the line A16), not a silent "No level". *Reason:* the saved-ads list marks such a row with its own error line; counting it as "No level" would hide an error behind a number. "No level" means only what the list already says: the engine had nothing to judge.
 - **D12. The lists show at most 10 rows, but never split a tie:** show the first 10 rows, plus any following rows whose (must-have, nice-to-have) counts equal the tenth row's; then A13 says how many more skills there are. *Reason:* an arbitrary cut among equal counts would depend on alphabetical order and look like a ranking. The number 10 is a constant (`ANALYTICS_TOP`), a parameter in tests. The your-skills list is cut from its OWN full list, so a skill of yours ranked 15th overall still appears there.
@@ -148,7 +157,7 @@ Excel (on your profile): must-have in 1 ad, nice-to-have in 1 ad
 | 9 counted ads at the real gate | no block; exactly 10: the block | T6, T3 |
 | zero counted ads (all excluded) | no block | T6 |
 | some saved ads not counted | A5 after the basis line; levels and asked counts are over the counted ads only; M in every line is the counted number | T1 variant in T10 |
-| a profile with no skills | every counted ad has "no level"; the line `No level: 3 of your 3 saved ads`; the asked list still works; the your-skills list says none | R6 / T4 |
+| a profile with no skills | every counted ad has "no level"; the line `No level: 3 of your 3 saved ads` and, under it, the A9b note; the asked list still works; the your-skills list says none | R6 / T4 |
 | every counted ad Strong | `Strong: M of your M saved ads`, other lines 0, no "No level" line | R3d / T3 |
 | a Long shot caused by an unclosable conflict | counted under Long shot (a blocked ad has a level) | R2 / T2 |
 | a blocked ad's skills | still counted in the asked lists (as in the gap list) | R2 / T2 |
@@ -159,24 +168,27 @@ Excel (on your profile): must-have in 1 ad, nice-to-have in 1 ad
 | more than 10 asked skills | the first 10 and any ties, then A13 | R1 with a limit of 2, 3, 4 and R6 with 1 / T7 |
 | a skill in progress with a past date | the date is shown as stored (no clock) | as R3b of 8.1, shown by T3 variant |
 | ads sharing the id `pasted-ad` | every test builds ads that way; counts read the saved-ad ids | T13 |
-| numbers change while the block is open (a date edited) | the block redraws; it has no state beyond open/closed | manual step 6 |
-| the block disappears and returns | it returns closed (the page unmounts it) | manual step 9 |
-| a throw while working out the block | `{ kind: "failed" }` and A16; no error page | T9 |
+| numbers change while the block is open (a profile or a date edited) | the block redraws; it has no state beyond open/closed | manual steps 3 and 5 |
+| the block disappears and returns | it returns closed (the page unmounts it) | manual step 8 (its optional part) |
+| a throw while working out the inputs | the box shows its failure line, the report and the analytics their failed outcomes; no error page | T25 |
+| a throw only in the analytics' own step (a level) | only the analytics outcome fails; the box and the report are unaffected, as today | T9, T25 |
+| the gate number given to the page's composition or to the box wrapper | honoured by both, never the constant 10 by accident | T27, U3 |
 | a skill name with `<`, `&` or a very long word | React escapes it; the line wraps | T17 |
 
 ## 6. Files
 
 | File | Change |
 |---|---|
-| `app/roadmap.ts` | commit 1 alone (D9): add `roadmapBoxFrom(inputs, fromJobs)` and a safe inputs wrapper; `roadmapBox` and `roadmapBoxSafe` call them; no text and no field changes |
-| `app/roadmapReport.ts` | commit 1 alone: add `roadmapReportFrom(inputs, fromJobs)`; `roadmapReport` and `roadmapReportSafe` call it; no text changes |
+| `app/roadmap.ts` | commit 1 alone (D9): add `roadmapBoxFrom(inputs, fromJobs)`; `roadmapBox` and `roadmapBoxSafe` become thin wrappers around it; no text and no field changes |
+| `app/roadmapReport.ts` | commit 1 alone: add `roadmapReportFrom(inputs, fromJobs)`; `roadmapReport` and `roadmapReportSafe` become thin wrappers; no text changes |
+| `app/screenOutcomes.ts` (new) | `screenOutcomes(built, ads, skills, fromJobs, top)` -> `{ box, report, analytics }` (D9); commit 1 returns `{ box, report }`; owns the failure behaviour of all three |
 | `lib/engine/analytics.ts` (new) | `tallyLevels`, `askedSkills` (D3); imports only `lib/engine` types; no `app/`, no clock |
-| `app/analytics.ts` (new) | `analyticsFrom(inputs, built, skills, top)` -> `Analytics \| null`; `analyticsSafe`; gets each counted ad's level from `profileReport(ad.job, built, skills, []).level` (the unlisted names are not needed for a level) and calls the two engine functions; writes lines only with the messages constants |
+| `app/analytics.ts` (new) | `analyticsFrom(inputs, built, skills, top, fromJobs)` -> `Analytics \| null` (no safe wrapper: `screenOutcomes` catches); gets each counted ad's level from `profileReport(ad.job, built, skills, []).level` (the unlisted names are not needed for a level) and calls the two engine functions; writes lines only with the messages constants |
 | `app/AnalyticsView.tsx` (new, client) | the shell (open/closed only) and the pure open component; draws the bars |
-| `app/page.tsx` | one `useMemo` for the inputs; the box, the report and the analytics are made from it; the view mounted only while the report exists |
+| `app/page.tsx` | ONE `useMemo` over `screenOutcomes`; the box, the report and the analytics read its three parts; no other call of `roadmapInputs`, `roadmapBoxSafe` or `roadmapReportSafe`; the analytics view mounted only while the report exists |
 | `lib/saved/messages.ts` | the new constants and functions (section 2) |
 | `tests/support/viaPage.ts` | one new export, `inputsViaPage` (D10) |
-| `tests/analytics.test.ts`, `tests/analyticsEngine.test.ts`, `tests/analyticsView.test.ts` (new); `tests/roadmapGuards.test.ts` (a new `describe` appended) | section 8 |
+| `tests/analytics.test.ts`, `tests/analyticsEngine.test.ts`, `tests/analyticsView.test.ts`, `tests/screenOutcomes.test.ts` (new); `tests/roadmapGuards.test.ts` (a new `describe` appended) | section 8 |
 | `lib/engine/*` (existing files), `lib/ai/*`, `app/api/*`, `app/RoadmapView.tsx`, `app/RoadmapReportView.tsx`, `app/fitReport.ts`, `app/savedAdRows.ts` | **NOT changed** |
 | `docs/MANUAL-CHECK-8.2.md` (later) | section 10 |
 
@@ -189,7 +201,7 @@ The person: SQL (CV line 2) and Excel (line 4) had, Tableau in progress 2027-03-
 ### R1: the four-ad example (gate set to 4)
 
 Levels. a1: SQL met, Tableau in progress (not met): one missing must, no conflict: **Good**. a2: Python missing: **Good**. a3: Excel met, nothing missing: **Strong**. a4: SQL met, Python missing; the set-aside must is not judged and the ad still has judged musts, so it keeps a level: **Good**. Tally: Strong 1, Good 3, Stretch 0, Long shot 0, no level 0 (sum 4 = M). Cross-check: Already Strong in the box and the report is 1 (Data Clerk) = Strong 1.
-Asked (all counted ads, each ad once per skill and importance): SQL must a1, a2, a4 = 3, nice 0. Python must a2, a4 = 2, nice a3 = 1. Tableau must a1 = 1, nice a2, a4 = 2. Excel must a3 = 1, nice a1 = 1. Power BI must 0, nice a3 = 1. Order (must, then nice, then name): SQL (3,0), Python (2,1), Tableau (1,2), Excel (1,1), Power BI (0,1). Standing: SQL have; Python none; Tableau learning 2027-03-01; Excel have; Power BI none. Your-skills list (have only): SQL, Excel. No requirement accepts several skills: no A12.
+Asked (all counted ads, each ad once per skill and importance): SQL must a1, a2, a4 = 3, nice 0. Python must a2, a4 = 2, nice a3 = 1. Tableau must a1 = 1, nice a2, a4 = 2. Excel must a3 = 1, nice a1 = 1. Power BI must 0, nice a3 = 1. Order (must, then nice, then name): SQL (3,0), Python (2,1), Tableau (1,2), Excel (1,1), Power BI (0,1). Standing: SQL have; Python none; Tableau learning 2027-03-01; Excel have; Power BI none. Your-skills list (have only): SQL, Excel. No requirement accepts several skills: no A12. No No level line, so no A9b note (as in R2, R3 and R3d).
 Cross-check with the report of 8.1 (R1): Python "must-have in 2 ..., nice-to-have in 1" and Tableau "must-have in 1 ..., nice-to-have in 2": the same numbers as the asked rows.
 
 ```
@@ -207,7 +219,7 @@ Python (not on your profile): must-have in 2 ads, nice-to-have in 1 ad
 Tableau (you are learning it, expected 2027-03-01): must-have in 1 ad, nice-to-have in 2 ads
 Excel (on your profile): must-have in 1 ad, nice-to-have in 1 ad
 Power BI (not on your profile): nice-to-have in 1 ad
-Skills of yours asked across your 4 saved ads
+Skills of yours that are asked for in your 4 saved ads
 SQL (on your profile): must-have in 3 ads
 Excel (on your profile): must-have in 1 ad, nice-to-have in 1 ad
 ```
@@ -231,7 +243,7 @@ Stretch: 0 of your 10 saved ads
 Long shot: 0 of your 10 saved ads
 Skills asked across your 10 saved ads
 SQL (you are learning it, expected 2027-06-01): must-have in 10 ads
-Skills of yours asked across your 10 saved ads: none.
+Skills of yours that are asked for in your 10 saved ads: none.
 ```
 Numbers list (12): `[10,0,10,10,10,0,10,0,10,10,10,10]` (basis 10; Strong 0,10; Good 10,10; Stretch 0,10; Long shot 0,10; asked heading 10; SQL 10; yours line 10).
 
@@ -249,14 +261,14 @@ Stretch: 0 of your 10 saved ads
 Long shot: 0 of your 10 saved ads
 Skills asked across your 10 saved ads
 SQL (on your profile): must-have in 10 ads
-Skills of yours asked across your 10 saved ads
+Skills of yours that are asked for in your 10 saved ads
 SQL (on your profile): must-have in 10 ads
 ```
 Numbers list (13): `[10,10,10,0,10,0,10,0,10,10,10,10,10]`.
 
 ### R6: no skills on the profile; a tie; alternatives (gate 3)
 
-The person has no skills, nothing in progress, Berlin. Three ads (Berlin, hybrid): p1 one must that accepts SQL or Python; p2 must Python; p3 must SQL (the ads of PLAN-8.1 R6). With no skills on the profile every counted ad has **no level** (judgeable.ts:38), though each is counted. Tally: no level 3, the four levels 0 (sum 3 = M). Asked: Python must p1, p2 = 2; SQL must p1, p3 = 2 (p1's alternatives count for each); both (2,0); tie broken by name: Python, then SQL. Standing: none for both. A requirement accepts several skills: A12 shown. Your-skills: none. Cross-check with the report of 8.1 (R6): "Asked as a must-have in 2 of your 3 saved ads" for Python and for SQL = these rows.
+The person has no skills, nothing in progress, Berlin. Three ads (Berlin, hybrid): p1 one must that accepts SQL or Python; p2 must Python; p3 must SQL (the ads of PLAN-8.1 R6). With no skills on the profile every counted ad has **no level** (judgeable.ts:38), though each is counted. Tally: no level 3, the four levels 0 (sum 3 = M). Asked: Python must p1, p2 = 2; SQL must p1, p3 = 2 (p1's alternatives count for each); both (2,0); tie broken by name: Python, then SQL. The No level line is followed by the A9b note (its count is above 0). Standing: none for both. A requirement accepts several skills: A12 shown. Your-skills: none. Cross-check with the report of 8.1 (R6): "Asked as a must-have in 2 of your 3 saved ads" for Python and for SQL = these rows.
 ```
 Your analytics
 Based on 3 saved ads we could judge and the profile in use. Every number was counted by the app from them; none is a prediction.
@@ -267,17 +279,18 @@ Good: 0 of your 3 saved ads
 Stretch: 0 of your 3 saved ads
 Long shot: 0 of your 3 saved ads
 No level: 3 of your 3 saved ads
+No level means the app had nothing to judge for those ads; the saved ads list says why for each.
 Skills asked across your 3 saved ads
 Python (not on your profile): must-have in 2 ads
 SQL (not on your profile): must-have in 2 ads
 A requirement that accepts several skills is counted once for each of them.
-Skills of yours asked across your 3 saved ads: none.
+Skills of yours that are asked for in your 3 saved ads: none.
 ```
-Numbers list (15): `[3,0,3,0,3,0,3,0,3,3,3,3,2,2,3]` (basis 3; four level lines 0,3; No level 3,3; asked heading 3; Python 2; SQL 2; yours line 3).
+Numbers list (15): `[3,0,3,0,3,0,3,0,3,3,3,3,2,2,3]` (basis 3; four level lines 0,3; No level 3,3; the A9b note has no digit; asked heading 3; Python 2; SQL 2; yours line 3). Unchanged by v2 (recounted by hand and by a script).
 
 ### R9: one name twice in one ad (gate 1)
 
-The person has no skills. One ad "Solo Analyst, Invented Co Six" (Berlin, hybrid) with three requirements: must SQL-or-Python, must Python, nice Python. Counted (it has judgeable musts); level: no skills, so **no level** 1. Asked: Python: must in this ad once (it is named by two must-haves, the ad counts once) = 1; nice 1. SQL: must 1 (from the alternatives), nice 0. Order: Python (1,1), SQL (1,0). A12 shown. Your-skills: none.
+The person has no skills. One ad "Solo Analyst, Invented Co Six" (Berlin, hybrid) with three requirements: must SQL-or-Python, must Python, nice Python. Counted (it has judgeable musts); level: no skills, so **no level** 1. Asked: Python: must in this ad once (it is named by two must-haves, the ad counts once) = 1; nice 1. SQL: must 1 (from the alternatives), nice 0. Order: Python (1,1), SQL (1,0). The No level line is followed by the A9b note. A12 shown. Your-skills: none.
 ```
 Your analytics
 Based on 1 saved ad we could judge and the profile in use. Every number was counted by the app from them; none is a prediction.
@@ -288,18 +301,19 @@ Good: 0 of your 1 saved ad
 Stretch: 0 of your 1 saved ad
 Long shot: 0 of your 1 saved ad
 No level: 1 of your 1 saved ad
+No level means the app had nothing to judge for those ads; the saved ads list says why for each.
 Skills asked across your 1 saved ad
 Python (not on your profile): must-have in 1 ad, nice-to-have in 1 ad
 SQL (not on your profile): must-have in 1 ad
 A requirement that accepts several skills is counted once for each of them.
-Skills of yours asked across your 1 saved ad: none.
+Skills of yours that are asked for in your 1 saved ad: none.
 ```
-Numbers list (16): `[1,0,1,0,1,0,1,0,1,1,1,1,1,1,1,1]` (basis 1; four level lines 0,1; No level 1,1; asked heading 1; Python 1,1; SQL 1; yours line 1).
+Numbers list (16): `[1,0,1,0,1,0,1,0,1,1,1,1,1,1,1,1]` (basis 1; four level lines 0,1; No level 1,1; the A9b note has no digit; asked heading 1; Python 1,1; SQL 1; yours line 1). Unchanged by v2 (recounted).
 
 ### The cut cases (D12), from R1 and R6
 
 R1's asked order is SQL (3,0), Python (2,1), Tableau (1,2), Excel (1,1), Power BI (0,1).
-- limit 2: rows SQL, Python (the third, Tableau (1,2), differs from Python (2,1)); then `3 more skills are asked in your saved ads and are not shown.`
+- limit 2: rows SQL, Python (the third, Tableau (1,2), differs from Python (2,1)); then `3 more skills are asked in your saved ads and are not shown.` The your-skills list is cut from ITS OWN full list (SQL, Excel: two rows), so with limit 2 it shows SQL and Excel and no more-line, although Excel is fourth in the overall order (D12).
 - limit 3: SQL, Python, Tableau; then `2 more skills are asked in your saved ads and are not shown.`
 - limit 4: SQL, Python, Tableau, Excel; then `1 more skill is asked in your saved ads and is not shown.`
 - limit 5 (and the real 10): all five rows, no more-line.
@@ -308,7 +322,7 @@ R1's asked order is SQL (3,0), Python (2,1), Tableau (1,2), Excel (1,1), Power B
 
 ## 8. Tests, tests first
 
-Expected texts and number lists are literal strings from section 7, never imported from code. Every test that builds ads uses `inputsViaPage` (id `pasted-ad`, distinct saved ids, through `roadmapAds`) unless marked ENGINE or SOURCE.
+Expected texts and number lists are literal strings from section 7 (and, for the composition, from the box's and report's own existing hand-worked tests), never imported from code. Every test that builds ads uses `inputsViaPage` (id `pasted-ad`, distinct saved ids, through `roadmapAds`) unless marked ENGINE or SOURCE.
 
 | # | Test | File | Form |
 |---|---|---|---|
@@ -318,23 +332,27 @@ Expected texts and number lists are literal strings from section 7, never import
 | T4 | R6: no level 3; tie order Python before SQL; A12 shown; your-skills none | same | page's way |
 | T5 | R9: Python named twice as must and once as nice in one ad counts must 1, nice 1; SQL must 1 | same | page's way |
 | T6 | `null` for: no profile; no saved ads; 9 counted ads at the real gate; zero counted ads; and NOT null with exactly 10 (the boundary) | same | page's way |
-| T7 | the cut cases of section 7 (limits 2, 3, 4, 5 on R1; limit 1 on R6; limit 1 on R1's your-skills list) | same | page's way, `top` as parameter |
+| T7 | the cut cases of section 7 (limits 2, 3, 4, 5 on R1, each for the asked list AND the your-skills list: with limit 2 the your-skills list shows SQL and Excel and no more-line; limit 1 on R6; limit 1 on R1's your-skills list) | same | page's way, `top` as parameter |
 | T8 | the number checker on the hand lists: `reportNumbers` of R1, R2, R3, R3d, R6, R9 (literal lines) equals the hand numbers lists | same | helper only |
-| T9 | `analyticsSafe`: after a throw (a record the level cannot be worked out for): `{ kind: "failed", line: "The analytics could not be worked out." }`; healthy: `{ kind: "ready" }`; none: `{ kind: "none" }` | same | the S1 form of tests/roadmap.test.ts |
+| T9 | the analytics outcome alone: healthy `{ kind: "ready" }`; nothing to show `{ kind: "none" }`; when only the analytics' own step throws (a level that cannot be worked out) `{ kind: "failed", line: "The analytics could not be worked out." }` while the box and the report are still ready. If no real record makes only that step throw (to be found at stage 2), the test passes a throwing level function to `analyticsFrom` | same | the S1 form of tests/roadmap.test.ts |
 | T10 | overlap with the BOX: for R1, R2, R3, R3d, R6, R9: `M` of the analytics basis line = the box's `counted`; the Strong bucket = `alreadyStrongIds.length` of the box (1, 1, 0, 10, 0, 0); the five buckets sum to M | same | page's way, both sides |
 | T11 | overlap with the REPORT and the gap list: for every ranked skill of the report of R1, R2, R3, R6 the numbers of its "Asked as ..." line equal the must and nice numbers of its asked row (R1 Python 2/1, Tableau 1/2; R3 SQL 10/0; R6 Python 2/0, SQL 2/0); and for every gap row of the box's gap list the asked row has the same two numbers (R1, R2, R3, R6) | same | page's way, both sides |
 | T12 | overlap with the SAVED-ADS LIST: the tally equals the counts of `rankedAdRows` levels (the list's own ranks 0 to 3 and 4) for the same ads, for R1, R2, R3, R6 | same | page's way, list side |
 | T13 | P0: R1 built with every job id "pasted-ad" and with distinct job ids gives the same lines, equal to T1's | same | page's way vs distinct |
 | T14 | property over 8 combinations (4 invented people x the ads of R1 and R2): the analytics numbers equal an independent naive count written in the test (a plain loop over each counted job's requirements, and `profileReport` levels), and every asked row is at least the gap row for the same skill; labelled a property, its expectation is not hand-worked | same | ENGINE (direct calls) |
 | T15 | `tallyLevels` and `askedSkills` on literal inputs: sums, sort order (must, nice, name, id), alternatives counted for each, one ad once per skill and importance, `standing` of each kind (have, learning with date, no CV line, none) | tests/analyticsEngine.test.ts | ENGINE |
-| T16 | the constants and functions are exactly the texts of section 2: A1 to A3, A6 to A10, A13 to A16 (both grammars; `1 of your 1 saved ad`; one more skill / more skills), and the two new notes | tests/analytics.test.ts | pure |
+| T16 | the constants and functions are exactly the texts of section 2: A1 to A3, A6 to A10 (including A9b), A13 to A16 (both grammars; `1 of your 1 saved ad`; one more skill / more skills; the heading of A14 for one ad and for several), and the two new notes | tests/analytics.test.ts | pure |
 | T17 | the closed shell draws one button with `Show my analytics` and nothing else; the open body draws the lines as list items in order; a level line carries `data-bar="1/4"`-style attributes and an `aria-hidden` bar; asked lines carry no bar; `<`, `&` and `'` in a skill name come out as the same text; nothing for `{ kind: "none" }`; A16 for `{ kind: "failed" }` | tests/analyticsView.test.ts (react-dom/server) | markup only |
 | T18 | the bar matches its line: for every level line the bar's `n` and `of` equal the two numbers printed in the line; the drawn width is `n/of`; no printed text contains `%` | same | markup only |
 | T19 | guard (SOURCE): app/analytics.ts, app/AnalyticsView.tsx and lib/engine/analytics.ts contain no `fetch(`, `localStorage`, `sessionStorage`, `indexedDB`, `saveJob`, `deleteJob`, `useEffect`, `clipboard`, `Blob`, `createObjectURL`, no `@/lib/ai` import, no `Date.now` / `new Date`; lib/engine/analytics.ts imports nothing from `app/` | tests/roadmapGuards.test.ts (new `describe`) | source |
 | T20 | guard (SOURCE): no sentence literal of four or more words in the two new app files; the view maps lines with an index key; no `<form`; the view has exactly one `onClick` | same | source |
 | T21 | guard (SOURCE): app/RoadmapView.tsx still has no `onClick`; the existing report-view tests pass unedited | same | source |
-| T22 | guard (SOURCE) for D9: app/page.tsx makes ONE call that works out the inputs, and no longer calls `roadmapBoxSafe` or `roadmapReportSafe`; plus T23 | same | source |
-| T23 | wrapper equivalence (commit 1): `roadmapBoxFrom(inputs, g)` equals `roadmapBox(...)` and `roadmapReportFrom` equals `roadmapReport(...)` for R1, R2, R3, R6; and all 1,681 existing tests pass unedited (the count is reported) | tests/analytics.test.ts and all existing | page's way |
+| T22 | guard (SOURCE) for D9: app/page.tsx makes ONE call, `screenOutcomes`, and contains no call of `roadmapInputs`, `roadmapBoxSafe`, `roadmapReportSafe`, `roadmapBoxFrom` or `roadmapReportFrom` | same | source |
+| T23 | wrapper equivalence (commit 1, ENGINE-free): `roadmapBoxFrom(inputs, g)` equals `roadmapBox(...)` and `roadmapReportFrom` equals `roadmapReport(...)` for R1, R2, R3, R6; and all 1,681 existing tests pass unedited (the count is reported) | tests/analytics.test.ts and all existing | page's way |
+| T24 | the composition equals the old safe functions: for R1 (gate 4), R2 (gate 4), R3 (gate 10) and R6 (gate 3), `screenOutcomes(...).box` equals `roadmapBoxSafe(...)` and `.report` equals `roadmapReportSafe(...)`, deep equal | tests/screenOutcomes.test.ts | page's way, both sides |
+| T25 | the throw case: the record of S1 and T9 (a reading with no `requirements`) beside a healthy ad: no exception; `.box` is `{ noProfile: null, partA: ["What to learn could not be worked out."], partB: [], counted: 0, alreadyStrongIds: [], timeline: [] }`, `.report` is `{ kind: "failed", line: "The roadmap report could not be worked out." }`, `.analytics` is `{ kind: "failed", line: "The analytics could not be worked out." }` (literals) | same | page's way |
+| T26 | the four edges through the composition, literal expectations. **No ads:** box `{ noProfile: null, partA: [], partB: [], counted: 0, alreadyStrongIds: [], timeline: [] }`, report `none`, analytics `none`. **No profile (four ads, profile null):** `box.noProfile` is `What to learn needs a profile in use. Read and confirm a CV, or press "Use this profile" if one is saved on this device.`, `partA` and `partB` empty, report and analytics `none`. **9 counted ads at gate 10 (R3 minus one ad):** `box.counted` 9, `box.partB` `["The roadmap shows from 10 saved ads we could judge. You have 9. Save 1 more to see it."]`, report and analytics `none`. **Exactly 10 (R3):** `box.counted` 10, `box.partB[0]` `Already Strong: none`, report `ready`, analytics `ready` | same | page's way |
+| T27 | the gate number is honoured: R1 at gate 4: `box.partB[0]` is `Already Strong: 1 job (Data Clerk, Example Wharf Ltd)`, report and analytics `ready`; the same four ads at gate 5: `box.partB` is `["The roadmap shows from 5 saved ads we could judge. You have 4. Save 1 more to see it."]`, report and analytics `none` | same | page's way |
 
 ## 9. Deliberate breaks, to run at stage 4 (each must fail the NAMED test)
 
@@ -355,21 +373,30 @@ Expected texts and number lists are literal strings from section 7, never import
 | B13 | put a sentence of four words in the view | T20 |
 | B14 | count the Good bucket into Strong | T10, T1 |
 | B15 | drop the your-skills filter (show "not on your profile" rows too) | T1, T3 (R3d) |
+| B16 | the more-skills count off by one (hidden rows counted as total minus shown, plus or minus 1) | T7 (R1 limits 2, 3, 4 and the your-skills limit 1: `3`, `2`, `1`, `1`). T16 would see only a wrong text of `moreSkillsLine(n)` given n, not a wrong n, so it is not the named test |
+| B17 | cut the your-skills list from the OVERALL list instead of from its own full list | T7 (R1 limit 2: the your-skills list must show SQL and Excel; the break shows SQL only) |
+| B18 | the several-skills note (A12) always shown | T1, T2, T3 (R1, R2, R3 and R3d have no requirement with several skills; none may show the note) |
+| B19 | the several-skills note (A12) never shown | T4, T5 (R6 and R9 expect it) |
+| B20 | the box's wrapper (`roadmapBox` through `roadmapBoxFrom`) ignores the gate number it is given (always 10) | tests/roadmap.test.ts U3 (the four-ad box at gate 4), T23, T27 |
+| B21 | the composition (`screenOutcomes`) ignores the gate number it is given for the report or the analytics | T27, T24 (R1, R2 at gate 4; R6 at gate 3) |
+
+B18 and B19 are two breaks because each is caught by different tests (the note's presence and its absence); B20 and B21 are two because they are different code (the box's wrapper and the composition) with different named tests. So v2 adds six breaks (B16 to B21), not four.
 
 ## 10. Manual-check outline (for docs/MANUAL-CHECK-8.2.md; every step NOT RUN YET)
 
-Needs **no extra AI reads** when run in the sitting of 7.3 and 8.1 (same profile, same ten saved ads: 11 reads in all); on its own, 11 reads on a new preview address. Invented data only. It is a third part of the one-sitting order, after 8.1 step 5 and before the single deletion.
-1. Look under the report. **Expect:** next to the report's button, one more button `Show my analytics`, no analytics text yet.
-2. With SQL in progress at 2027-06-01 (the profile of 8.1 step 3), press it. **Expect:** the lines of R3, exactly (no job names anywhere), with the bar of `Good` full-length and the other three empty.
-3. **Compare:** the first sentence with the first sentence of the report: the same words. `Good: 10 of your 10 saved ads` with the ten rows of the "Saved ads" list, each `Fit: Good ...`.
-4. With the block open, change the date to 2027-03-01 on the confirm screen. **Expect:** the SQL line reads `(you are learning it, expected 2027-03-01)`; nothing else changes.
-5. Tick SQL again and remove SQL in progress (the profile of 7.3 step 1). **Expect:** the lines of R3d: `Strong: 10 of your 10 saved ads`, `SQL (on your profile): must-have in 10 ads` in both lists; and the box says `Already Strong: 10 jobs`.
+Needs **no extra AI reads** when run in the one sitting of 7.3 and 8.1 (same profile, same ten saved ads: 11 reads in all); on its own, 11 reads on a new preview address. Invented data only. Each step names where it sits relative to the steps of MANUAL-CHECK-8.1.
+1. **Right after 8.1 step 2** (the state of 7.3 step 1: SQL, Tableau and Excel all had, nothing in progress, so no profile change is needed). Look under the box. **Expect:** the report's button `Make my roadmap report` and, under the report's place, one more button `Show my analytics`; no analytics text yet.
+2. Press `Show my analytics`. **Expect:** the lines of **R3d**, exactly (no job names anywhere): `Strong: 10 of your 10 saved ads`, the other three level lines `0 of your 10 saved ads`, no "No level" line, `SQL (on your profile): must-have in 10 ads` under both skill headings. **Compare:** the box above says `Already Strong: 10 jobs`; every row of the "Saved ads" list reads `Fit: Strong ...`. The `Strong` bar is full-length, the other three empty.
+3. **Right after 8.1 step 3** (SQL unticked, SQL in progress at 2027-06-01; the analytics block stays open and redraws). **Expect:** the lines of **R3**, exactly: `Strong: 0 ...`, `Good: 10 of your 10 saved ads`, `SQL (you are learning it, expected 2027-06-01): must-have in 10 ads`, and `Skills of yours that are asked for in your 10 saved ads: none.`; the `Good` bar full-length.
+4. **Compare** (the report is open from 8.1 step 3): the first sentence of the analytics with the first sentence of the report: the same words. `Good: 10 of your 10 saved ads` with the ten rows of the "Saved ads" list, each `Fit: Good ...`.
+5. **Right after 8.1 step 6** (the date changed to 2027-03-01, analytics still open). **Expect:** the SQL line reads `(you are learning it, expected 2027-03-01)`; nothing else changes.
 6. Press `Hide the analytics`. **Expect:** the lines vanish; the button reads `Show my analytics`.
-7. Make the browser window phone-narrow (about 375 px wide) and, separately, switch the computer to dark appearance. **Expect:** lines wrap, no sideways scrolling, the bars are visible against their track in both.
-8. After the single deletion of the sitting (nine ads left). **Expect:** both buttons and the analytics are gone.
-9. Network (filter `api`, cleared before step 1, Preserve log ticked). **Expect:** no `/api/` request for any step.
+7. Make the browser window phone-narrow (about 375 px wide) and, separately, switch the computer to dark appearance, with the block open. **Expect:** lines wrap, no sideways scrolling, the bars are visible against their track in both.
+8. After the single deletion of the sitting (nine ads left). **Expect:** both buttons and the analytics are gone. *Optional, one more AI read:* read and save the ad again: the button is back and the analytics are closed.
+9. Network (filter `api`, cleared at the start of the sitting, Preserve log ticked). **Expect:** no `/api/` request for any step (apart from the optional read of step 8).
 10. Console. **Expect:** no red errors of ours.
-Log table: ten rows, NOT RUN YET. The order of the one sitting is extended in `docs/MANUAL-CHECK-8.1.md` or in a new order file at merge time (the owner decides).
+The "No level" line and its note (R6, R9) are not reached by hand (they need a profile with no skills; covered by T4 and T5). Log table: ten rows, NOT RUN YET.
+**The one-sitting order of 7.3 and 8.1 must be re-derived when docs/MANUAL-CHECK-8.2.md is written**, because 7.3 step 6 saves the profile and reloads the page and removes the confirm screen: every analytics step that edits skills (steps 3 and 5 above) must come before it, as the 8.1 steps 3 to 6 do (MANUAL-CHECK-8.1.md, section "One sitting for 7.3 and 8.1", items 6 and 7 against item 10). Step 2 needs no profile change and may sit anywhere before item 4 of that order.
 
 ## 11. Privacy and safety
 
@@ -381,20 +408,23 @@ Log table: ten rows, NOT RUN YET. The order of the one sitting is extended in `d
 ## 12. Open questions for the reviewer, each with a recommendation
 
 1. **Q1. Is the fit-level spread alone enough?** The smallest possible 8.2 would be the level lines only (section 0 item 1). *Recommend* the full version of this plan: items 2 and 3 are the only way to see skills you already have, which the sprint names.
-2. **Q2. The gate.** Same as the report (10 counted ads), or show the level lines from the first ad? *Recommend* the same gate: one rule, and "most-asked" from three ads says little. Level counts alone could show earlier; that would split the block in two gates, which is more to test and explain.
+2. **Q2. The gate (OWNER'S DECISION).** Same as the report (10 counted ads), or show the level lines from the first ad? *Recommend* the same gate: one rule, and "most-asked" from three ads says little. Level counts alone could show earlier; that would split the block in two gates, which is more to test and explain. Why it is the owner's: it decides what a person with fewer than 10 usable ads sees (nothing, with the box's own line saying how many are missing).
 3. **Q3. Lists as sentences or as real table columns?** *Recommend* sentences (the box's words reused, so the numbers cannot differ from the box by construction). The sprint's "table view" is met by the lines under each bar; real columns would need new wording and a new overlap test.
 4. **Q4. Where the level comes from.** `profileReport(...).level` (the saved-ads list's own value, D3 / F6) or the roadmap's engine jobs? *Recommend* `profileReport`, so the tally equals the list by construction (T12) and equals the box's Strong count (T10). **Open risk, to settle at stage 2:** the box drops an unlisted alternative from a requirement before counting (`listedAlternatives`, roadmapJobs.ts:35) while the saved-ad level does not; for an ad with one listed and one unlisted alternative the box's "Already Strong" could differ from the list's "Strong". A stage-2 probe (section 15) must show whether any case differs; if one does, STOP and report; do not change an expectation.
 5. **Q5. The top-10 cut and its tie rule** (D12). *Recommend* yes; 10 is a constant.
-6. **Q6. Grammar of the your-skills heading** (settled in v1). The heading was reworded to `Skills of yours asked across your 4 saved ads`, the same noun phrase as A10, so it needs no verb agreement for one ad. *Recommend* keep.
+6. **Q6. Grammar of the your-skills heading** (v1: superseded by Q10). v1 used `Skills of yours asked across your 4 saved ads`; v2 proposes a better wording in Q10.
 7. **Q7. A count of your skills that no ad asks** ("2 skills on your profile are asked in none of your saved ads"). *Recommend* not now: it is a new number and a new sentence; leave to a later step.
 8. **Q8. Copy button.** *Recommend* no (D13).
 9. **Q9. Cost.** The block calls `profileReport` once per counted ad per change, as the saved-ads list already does. *Recommend* accept (by reasoning, not measured); if a later step wants it, the list's levels can be shared.
+10. **Q10. The your-skills heading (a PROPOSAL).** `Skills of yours that are asked for in your 4 saved ads`, and, when there is none, `Skills of yours that are asked for in your 3 saved ads: none.` It needs no verb agreement with the number of ads (`in your 1 saved ad` reads right) and says "asked for", which is what an ad does. *Recommend* yes. Every hand text of section 2 and 7 and every test literal carries it.
+11. **Q11. A note under the "No level" line, A9b (a PROPOSAL; the owner decides, because it is wording about a person's chances).** `No level means the app had nothing to judge for those ads; the saved ads list says why for each.` One line, no digit, shown only when the No level count is above 0 (so not in R1, R2, R3 or R3d). *Recommend* yes: without it a line `No level: 3 of your 3 saved ads` can be read as a verdict. Two cautions for the owner: (a) for the no-skills reason (R6, R9) the list's own label says the profile has no skills, so "nothing to judge" is looser than the list; an alternative wording is `No level means the app could not judge those ads; the saved ads list says why for each.`; (b) the claim "the saved ads list says why for each" must be true for all three reasons (no requirements, no must-have we could judge, no skills): the stage-2 probe of section 15 checks it, and if one reason shows no words in the list, the note is changed before any code.
+12. **Q12. Same page or a separate route (D4; OWNER'S DECISION).** *Recommend* the same page. Reasons: the profile in use can be one read and confirmed in memory and never saved, which a second route cannot see, so a route would show other numbers than the box; the saved ads would be readable from a route (browser storage is per address), but then the route needs an empty-state page, a way to choose the saved profile, and navigation on a one-page app. Why it is the owner's: it departs from the sprint's word "page" and fixes where a person looks for the numbers; the departure goes to DECISIONS (section 14).
 
 ## 13. Two paragraphs
 
 **(a) What 8.2 depends on, and what happens if the manual checks find a defect.** By content 8.2 needs: from **7.1** the inputs, the gap list, the P0 saved-id fix, the gate and the not-counted line (all through `roadmapInputs`); from **6.2** the level of each ad (`profileReport`, `rankedAdRows`) and the saved-ads list that T12 compares with; from **8.1** `roadmapInputs`/`ReadyInputs` as extracted, the button-and-view pattern, `reportBasisLine`, the number checker and the T14 guard form; from **7.3** nothing except being in the same chain (no timeline is used). By construction the branch is cut from step-8.1, so it carries all of them. If a manual check finds a defect: **in 7.1** (a wrong gap or ranking number) the 8.2 tests cannot see it, because they take their numbers from the same inputs; 8.2 must not merge until it is fixed on the chain, and the hand cases of section 7 are the independent check; **in 6.2** (a wrong level) the tally inherits it and T12 would not catch it for the same reason; the fix goes to step-6.2 and 8.2 follows; **in 8.1** (the page wiring, the extraction of `roadmapInputs`) the refactor commit of D9 sits on exactly that code, so 8.2 is rebased after the fix; **in 7.3** nothing changes for 8.2. Order of merges stays 7.1, then 7.3, then 8.1, then 8.2, each after its own manual check; stage 1 (tests red) can be written meanwhile, but no code of stage 3 starts before 8.1's sitting has passed.
 
-**(b) Careful lane or fast lane?** **Careful lane.** 8.2 adds new counting code in lib/engine (D3), changes shared page code that P0 showed to be fragile (D9), and puts a count of "Strong / Good / Stretch / Long shot" in front of a person, which is wording about their chances; CLAUDE.md puts all three in the careful lane. The sentences of the page that are wording about a person's chances, each named so that none is changed without the owner: **A7** (`These are the levels shown on your saved ads, counted against the profile in use.`: it says the levels are the list's own); **A8** (the four level lines, `Strong: n of your M saved ads`, `Good: ...`, `Stretch: ...`, `Long shot: ...`, whose level names are the engine's `levelName`, never retyped); **A9** (`No level: n of your M saved ads`: it says the engine had nothing to judge, not that the person has no chance); **A6** (the heading `Fit levels across your saved ads`); **A14/A15** (the your-skills heading and its none line, which must not say a skill is "worth", "best" or "will help you get" anything: it says only that ads ask for it); **A4** (reused: `none is a prediction`). The asked rows (A11) say only how many ads ask for a skill and the profile's own state; they say nothing about chances. Neither the box's nor the report's sentences ("Already Strong", "can become a Strong match by skills alone", "Blocked jobs") nor the saved-ads list's `Long shot because of ...` reasons change. A step that mixes lanes is careful lane (CLAUDE.md), so the refactor of D9, though mechanical, goes through the same plan, tests and breaks.
+**(b) Careful lane or fast lane?** **Careful lane.** 8.2 adds new counting code in lib/engine (D3), changes shared page code that P0 showed to be fragile (D9), and puts a count of "Strong / Good / Stretch / Long shot" in front of a person, which is wording about their chances; CLAUDE.md puts all three in the careful lane. The sentences of the page that are wording about a person's chances, each named so that none is changed without the owner (v2 adds A9b): **A7** (`These are the levels shown on your saved ads, counted against the profile in use.`: it says the levels are the list's own); **A8** (the four level lines, `Strong: n of your M saved ads`, `Good: ...`, `Stretch: ...`, `Long shot: ...`, whose level names are the engine's `levelName`, never retyped); **A9** (`No level: n of your M saved ads`: it says the engine had nothing to judge, not that the person has no chance); **A9b** (a proposal, Q11: `No level means the app had nothing to judge for those ads; the saved ads list says why for each.`, which keeps A9 from being read as a verdict); **A6** (the heading `Fit levels across your saved ads`); **A14/A15** (the your-skills heading `Skills of yours that are asked for in your M saved ads` and its none line, a proposal, Q10, which must not say a skill is "worth", "best" or "will help you get" anything: it says only that ads ask for it); **A4** (reused: `none is a prediction`). The asked rows (A11) say only how many ads ask for a skill and the profile's own state; they say nothing about chances. Neither the box's nor the report's sentences ("Already Strong", "can become a Strong match by skills alone", "Blocked jobs") nor the saved-ads list's `Long shot because of ...` reasons change. A step that mixes lanes is careful lane (CLAUDE.md), so the refactor of D9, though mechanical, goes through the same plan, tests and breaks.
 
 ## 14. For DECISIONS at merge time
 
@@ -405,18 +435,19 @@ Log table: ten rows, NOT RUN YET. The order of the one sitting is extended in `d
 - 2026-11-18: New counting code lives in lib/engine/analytics.ts (`tallyLevels`, `askedSkills`) and takes the level as a plain value from `profileReport`, the same value the saved-ads list shows. Reason: counts come from lib/engine (rule 1); the tally equals the list by construction and is cross-checked with the box's Already Strong count.
 - 2026-11-18: Bars are drawn only for the fit levels, in plain HTML with no new dependency; the asked lists are lines. Each bar is decoration and the printed line carries the same numbers. Reason: five counts that add up to M make an honest bar; a skill row has two numbers, and meaning must not sit in length or colour alone.
 - 2026-11-18: The lists show the first 10 skills and every later skill that ties the tenth; a line says how many more exist. Reason: a cut inside a tie would look like a ranking decided by the alphabet.
-- 2026-11-18: The page computes the roadmap inputs once per change and gives them to the box, the report and the analytics; the older functions stay as wrappers. Reason: a third call would repeat the duplication behind P0; this also settles the "twice per change" point of 8.1.
+- 2026-11-18: The page calls one pure function (`screenOutcomes`) that works out the roadmap inputs once per change and returns the box, the report and the analytics outcomes, each with today's failure behaviour; the older functions stay as wrappers. Reason: a third call would repeat the duplication behind P0; this also settles the "twice per change" point of 8.1.
 - 2026-11-18: A level that cannot be worked out fails the whole analytics block with its own line; it is not counted as "No level". Reason: counting it would hide an error behind a number.
-- (If answered as recommended) 2026-11-18: The analytics show under the same gate as the report (10 counted ads and a profile in use). Reason: one rule to explain.
+- (If answered as recommended, Q11) 2026-11-18: A line under "No level" says the app had nothing to judge for those ads and that the saved ads list says why. Reason: a bare "No level: 3 of your 3" can be read as a verdict on the person.
+- (If answered as recommended, Q2) 2026-11-18: The analytics show under the same gate as the report (10 counted ads and a profile in use). Reason: one rule to explain.
 
 ## 15. Engine confirmation of the counts (stage 2, to be done before any code)
 
-A temporary script (deleted afterwards; no AI call; no code of 8.2 exists) will run the engine's own `roadmapInputs`, `profileReport` and `gapList` on R1, R2, R3, R3d, R6 and R9 with saved-ad ids and report: the level of each ad, the tally, the asked counts by a plain loop, and whether the box's Already Strong count equals the Strong bucket. It must also probe the open risk of Q4: an ad with one listed and one unlisted alternative in one must-have, with and without `listedAlternatives`. It must also confirm that the list's no-level label starts with the words `No level` (fitLabelText, used at app/fitReport.ts:233), since A9 reuses those words without retyping the reason. Every disagreement with the hand work is reported; **no expectation is changed to fit the engine** (CLAUDE.md careful lane).
+A temporary script (deleted afterwards; no AI call; no code of 8.2 exists) will run the engine's own `roadmapInputs`, `profileReport` and `gapList` on R1, R2, R3, R3d, R6 and R9 with saved-ad ids and report: the level of each ad, the tally, the asked counts by a plain loop, and whether the box's Already Strong count equals the Strong bucket. It must also probe the open risk of Q4: an ad with one listed and one unlisted alternative in one must-have, with and without `listedAlternatives`. It must also confirm that the list's no-level label starts with the words `No level` (fitLabelText, used at app/fitReport.ts:233), since A9 reuses those words without retyping the reason, and that the label carries a reason for each of the three no-level causes (no requirements, no must-have we could judge, no skills on the profile), since A9b says the list "says why for each". It must also confirm, for R6 and R9, that the level really is `null` for every counted ad (no skills on the profile), by printing `profileReport(...).level` for each counted ad. Every disagreement with the hand work is reported; **no expectation is changed to fit the engine** (CLAUDE.md careful lane).
 
 ## 16. For HANDOFF at merge time
 
 (A later list; not written to docs/HANDOFF.md.)
 1. What the page shows after 8.2: under the report, `Show my analytics` opens the level counts, the asked skills and the person's own skills that ads ask for; counts only, no job names.
-2. The inputs are computed once per change (the 8.1 "twice per change" tidy is closed).
-3. The wording-about-chances sentences are A6 to A9, A14 and A15 (section 13 (b)); change none without the owner.
+2. The inputs are computed once per change, by one function that returns the box, the report and the analytics outcomes (the 8.1 "twice per change" tidy is closed).
+3. The wording-about-chances sentences are A6 to A9b, A14 and A15 (section 13 (b)); change none without the owner.
 4. Ideas, not planned: a count of the person's skills that no saved ad asks for (Q7); a copy button for the analytics; sharing the saved-ads list's levels instead of recomputing (Q9); an AI-written reading of the analytics only after the Groq retention terms are recorded and the owner agrees to the D2 privacy answer.
