@@ -50,3 +50,10 @@ export const bulletsAnswerSchema = z.object({
 });
 
 export type BulletsAnswer = z.infer<typeof bulletsAnswerSchema>;
+
+// What /api/bullets answers (the page checks the shape before it trusts a word of it).
+export const bulletsResponseSchema = z.object({
+  bullets: z.array(z.object({ pair: z.number(), text: z.string() })),
+  asked: z.number(),
+  dropped: z.array(z.object({ pair: z.number(), reason: z.string() })),
+});

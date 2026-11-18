@@ -19,6 +19,8 @@ import { roadmapAds } from "./roadmap";
 import RoadmapReportView from "./RoadmapReportView";
 import { screenOutcomes } from "./screenOutcomes";
 import AnalyticsView from "./AnalyticsView";
+import BulletsView from "./BulletsView";
+import { blockKey } from "./bullets";
 import RoadmapView from "./RoadmapView";
 import { openedReadings, reportFor } from "./savedAdRows";
 import ReportView from "./ReportView";
@@ -303,6 +305,9 @@ export default function Home() {
               ) : null
             }
           />
+
+          {/* Step 8.3: the CV bullets for the ad on screen; mounted with a key so it starts closed for every ad and every profile. */}
+          {profile && <BulletsView key={blockKey(result.job, profile)} job={result.job} built={profile} />}
 
           <section className="flex flex-col gap-3">
             <h2 className="mt-4 font-semibold">What the AI read</h2>

@@ -15,7 +15,7 @@ import { adsViaPage } from "./support/viaPage";
 // 0.2 win), the markup of each state, the copy text, and the block as a whole on the page's own ads. react-dom/server, no JSX. Invented text only.
 
 const decode = (t: string) => t.replace(/&#x27;/g, "'").replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
-const buttons = (html: string) => [...html.matchAll(/<button([^>]*)>([\s\S]*?)<\/button>/g)].map((m) => ({ text: decode(m[2]), disabled: /\bdisabled\b/.test(m[1]) }));
+const buttons = (html: string) => [...html.matchAll(/<button([^>]*)>([\s\S]*?)<\/button>/g)].map((m) => ({ text: decode(m[2]), disabled: /\sdisabled=""/.test(m[1]) }));
 const paras = (html: string) => [...html.matchAll(/<p([^>]*)>([\s\S]*?)<\/p>/g)].map((m) => ({ attrs: m[1], text: decode(m[2]) }));
 const items = (html: string) =>
   [...html.matchAll(/<li([^>]*)>([\s\S]*?)<\/li>/g)].map((m) => ({

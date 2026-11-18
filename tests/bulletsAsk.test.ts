@@ -143,7 +143,7 @@ describe("T38: the 30-second timer", () => {
 
   it("T38: an answer that comes AFTER the time is up is ignored: the outcome stays the timeout line", async () => {
     let answer: (r: Response) => void = () => {};
-    const post = (_b: unknown, _s: AbortSignal) => new Promise<{ kind: "answer"; res: Response }>((resolve) => (answer = (res) => resolve({ kind: "answer", res })));
+    const post = () => new Promise<{ kind: "answer"; res: Response }>((resolve) => (answer = (res) => resolve({ kind: "answer", res })));
     const p = askBullets(TWO, { post });
     await vi.advanceTimersByTimeAsync(30_000);
     expect(await p).toEqual({ kind: "failed", line: BULLETS_TIMEOUT_LINE });

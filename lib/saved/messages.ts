@@ -179,3 +179,31 @@ export const moreSkillsLine = (n: number): string =>
 export const yoursTitle = (counted: number): string => `Skills of yours that are asked for in your ${counted} saved ${noun(counted, "ad", "ads")}`;
 export const yoursNoneLine = (counted: number): string => `${yoursTitle(counted)}: none.`;
 export const ANALYTICS_FAILED_LINE = "The analytics could not be worked out.";
+
+// ---- Step 8.3 (docs/PLAN-8.3.md v2): the words of the bullets block ----------------------------------------------------------------------------------------
+// The texts of W4, W6, W8 and W9 were decided by the owner (0.2) and win over any other wording. W12 is REPORT_COPIED and REPORT_COPY_FAILED above. The route's own
+// plain messages are shown as the route sends them.
+export const BULLETS_BUTTON_OPEN = "Write CV bullets for this ad"; // W1
+export const BULLETS_BUTTON_WAITING = "Writing bullets..."; // W2
+export const BULLETS_BUTTON_CLOSE = "Hide the bullets"; // W3
+export const bulletsNotice = (maxLines: number) =>
+  `This sends the ad's requirement lines and up to ${maxLines} lines of your own CV to the AI service (Groq). We store nothing and do not log the text.`; // W4
+export const BULLETS_TITLE = "CV bullets for this ad"; // W5
+export const BULLETS_INTRO = "Each bullet is built from the words of the CV line shown under it. Read each one before you use it."; // W6
+export const sourceLine = (line: number, text: string) => `from your CV line ${line}: "${text}"`; // W7
+export const sourceLineOnly = (line: number) => `from your CV line ${line}`; // W7 when the bullet equals its line: the line is shown once (0.21)
+export const droppedLine = (dropped: number) =>
+  dropped <= 0
+    ? ""
+    : dropped === 1
+      ? "1 bullet was dropped by the checks: it did not stay close enough to your CV line."
+      : `${dropped} bullets were dropped by the checks: they did not stay close enough to your CV line.`; // W8
+export const BULLETS_NONE_PASSED = "No bullet passed the checks, so none is shown. You can try again, or use your CV lines as they are."; // W9
+export const BULLETS_NOTHING_TO_WRITE = "No requirement of this ad is met by a line of your CV, so there is nothing to write from."; // W10
+export const BULLETS_COPY = "Copy bullets as text"; // W11
+export const BULLETS_TIMEOUT_LINE = "The AI did not answer in time. Please try again."; // W14
+// Plain lines the plan had not worded (0.26): the text of the page's own lines for a lost connection and an error answer, and the analogue of
+// ROADMAP_FAILED_LINE and ANALYTICS_FAILED_LINE for an unexpected throw or an answer in a wrong shape.
+export const COULD_NOT_REACH_LINE = "Could not reach the server. Check your connection and try again.";
+export const serverErrorLine = (status: number) => `The server returned an error (${status}).`;
+export const BULLETS_FAILED_LINE = "The CV bullets could not be worked out.";
