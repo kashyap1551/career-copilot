@@ -60,7 +60,7 @@ export function waitForTokens(
   return (parseDuration(limits["x-ratelimit-reset-tokens"]) ?? fallbackMs) + 500;
 }
 
-const statusOf = (error: unknown): number | undefined =>
+export const statusOf = (error: unknown): number | undefined =>
   typeof error === "object" && error !== null && "status" in error
     ? (error as { status?: number }).status
     : undefined;
@@ -68,7 +68,7 @@ const statusOf = (error: unknown): number | undefined =>
 // The reader words an AI service error as "... (status 500)" and answers 502;
 // the code in the words is the service's own. "Not in the expected shape" is
 // not retried: the model did answer and tokens were spent.
-function serverErrorCode(error: unknown): number | undefined {
+export function serverErrorCode(error: unknown): number | undefined {
   const message = error instanceof Error ? error.message : "";
   if (/not in the expected shape/.test(message)) return undefined;
   const quoted = /\(status (\d{3})\)/.exec(message);
@@ -77,7 +77,7 @@ function serverErrorCode(error: unknown): number | undefined {
 }
 
 // The reason never contains the CV text or the error's own message.
-function reasonFor(error: unknown): string {
+export function reasonFor(error: unknown): string {
   const message = error instanceof Error ? error.message : "";
   const quoted = /\(status (\d{3})\)/.exec(message);
   const status = quoted ? Number(quoted[1]) : statusOf(error);

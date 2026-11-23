@@ -19,7 +19,7 @@ export type BulletPair = {
   text: string; // that line, as the profile holds it
 };
 
-function hasLearningMarker(text: string): boolean {
+export function hasLearningMarker(text: string): boolean {
   return foldText(text)
     .split(/[^\p{L}\p{N}]+/u)
     .some((w) => LEARNING_MARKERS.has(w));
