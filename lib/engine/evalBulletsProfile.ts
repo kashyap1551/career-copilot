@@ -13,7 +13,7 @@ import type { Job, Profile, ProfileSkill, Skill } from "./types";
 
 export type EvalLang = "en" | "de";
 export type EvalCv = { id: string; key: CvKey; lines: string[]; lang: EvalLang };
-export type BulletsEvalItem = { cv: string; job: string; lang: EvalLang; pairs: BulletPair[] };
+export type BulletsEvalItem = { cv: string; job: string; lang: EvalLang; pairs: BulletPair[]; set?: "main" | "edge" }; // `set` only on the manifest's runs (0.30)
 
 export function profileFromKey(key: CvKey, lines: string[], vocabulary: Skill[]): Profile {
   const skills: ProfileSkill[] = [];

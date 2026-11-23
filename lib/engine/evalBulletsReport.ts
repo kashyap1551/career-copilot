@@ -118,15 +118,18 @@ export function formatBulletsReport(run: BulletsEvalRun, counted: boolean): stri
   return L.join("\n") + "\n";
 }
 
+// The run's name in the saved files: an EDGE run is marked (0.30); a row with no set (the older material) is not.
+const runLabel = (r: { cv: string; job: string; set?: "main" | "edge" }) => `${r.cv} x ${r.job}${r.set === "edge" ? " (EDGE)" : ""}`;
+
 // One line for each of the runs, for the saved file (not printed).
 export function perRunLines(run: BulletsEvalRun): string[] {
   const out: string[] = [];
   for (const r of run.rows) {
     const reasons = r.dropped.length === 0 ? "none" : r.dropped.map((d) => `pair ${d.pair} ${d.reason}`).join(", ");
-    out.push(`${r.cv} x ${r.job} (${r.lang}): asked ${r.asked}, accepted ${acceptedOf(r)}, shown ${shownOf(r)}, dropped ${r.dropped.length} (${reasons}), ${r.usage ? `${r.usage.inputTokens} in, ${r.usage.outputTokens} out` : "no usage"}, ${r.seconds} s`);
+    out.push(`${runLabel(r)} (${r.lang}): asked ${r.asked}, accepted ${acceptedOf(r)}, shown ${shownOf(r)}, dropped ${r.dropped.length} (${reasons}), ${r.usage ? `${r.usage.inputTokens} in, ${r.usage.outputTokens} out` : "no usage"}, ${r.seconds} s`);
   }
-  for (const r of run.noPairs) out.push(`${r.cv} x ${r.job}: no pair, no call`);
-  for (const r of run.failed) out.push(`${r.cv} x ${r.job}: FAILED (${r.reason})`);
+  for (const r of run.noPairs) out.push(`${runLabel(r)}: no pair, no call`);
+  for (const r of run.failed) out.push(`${runLabel(r)}: FAILED (${r.reason})`);
   return out;
 }
 
@@ -144,7 +147,7 @@ export function droppedLines(run: BulletsEvalRun): string[] {
   const out: string[] = [];
   for (const r of run.rows) {
     for (const d of r.droppedDetail ?? []) {
-      out.push(`DROPPED ${r.cv} x ${r.job} | pair ${d.pair} | ${d.reason} | AI text: ${shownText(d.texts)} | cited ${citedLine(r, d.pair)}`);
+      out.push(`DROPPED ${runLabel(r)} | pair ${d.pair} | ${d.reason} | AI text: ${shownText(d.texts)} | cited ${citedLine(r, d.pair)}`);
     }
   }
   return out;
@@ -165,7 +168,7 @@ export function reviewSheet(run: BulletsEvalRun): string {
     for (const b of r.accepted) {
       const p = r.pairs.find((x) => x.id === b.pair);
       const cited = p === undefined ? "(line not found)" : `line ${p.line}: "${cell(p.text)}"`;
-      L.push(`| ${r.cv} x ${r.job} | ${b.pair} | ${cited} | "${cell(b.text)}" |  |  |`);
+      L.push(`| ${runLabel(r)} | ${b.pair} | ${cited} | "${cell(b.text)}" |  |  |`);
     }
   }
   // Second section (amendment 0.29): every dropped bullet with the AI's own text, so a rule that is too strict can be told from a bad bullet, and wrong-line facts
@@ -181,9 +184,61 @@ export function reviewSheet(run: BulletsEvalRun): string {
         const text = d.texts.length === 0 ? "(none)" : d.texts.map((t) => `"${cell(t)}"`).join(" ; ");
         const p = r.pairs.find((x) => x.id === d.pair);
         const cited = p === undefined ? "(line not found)" : `line ${p.line}: "${cell(p.text)}"`;
-        L.push(`| ${r.cv} x ${r.job} | ${d.pair} | ${d.reason} | ${text} | ${cited} |  |`);
+        L.push(`| ${runLabel(r)} | ${d.pair} | ${d.reason} | ${text} | ${cited} |  |`);
       }
     }
   }
+  return L.join("\n") + "\n";
+}
+
+// ---- Step 8.3, stage 5c (amendment 0.30): the report of the manifest's run, MAIN and EDGE apart ------------------------------------------------------------------
+
+// A row, a no-pair run or a failed run with no set (the older material) is a MAIN run.
+const inSet = (set: "main" | "edge", x: { set?: "main" | "edge" }) => (x.set ?? "main") === set;
+function subRun(run: BulletsEvalRun, set: "main" | "edge"): BulletsEvalRun {
+  return {
+    rows: run.rows.filter((r) => inSet(set, r)),
+    noPairs: run.noPairs.filter((r) => inSet(set, r)),
+    failed: run.failed.filter((r) => inSet(set, r)),
+    complete: run.complete,
+  };
+}
+
+function reasonsText(byReason: Record<string, number>): string {
+  const known = REASON_ORDER.filter((k) => (byReason[k] ?? 0) > 0);
+  const others = Object.keys(byReason).filter((k) => !REASON_ORDER.includes(k)).sort();
+  const list = [...known, ...others].map((k) => `${k} ${byReason[k]}`);
+  return list.length === 0 ? "none" : list.join(", ");
+}
+
+// At most 12 lines, whatever happens (the script prints this, a fingerprint line and two "saved" lines: 15 at most). The yield lines and the runs-with-a-bullet
+// numbers are over the MAIN set only; the EDGE set has its own line and is not in any yield denominator; M1 is by hand for both.
+export function formatBulletsReportBySet(run: BulletsEvalRun, counted: boolean): string {
+  const main = summarizeBullets(subRun(run, "main"));
+  const edge = summarizeBullets(subRun(run, "edge"));
+  const all = summarizeBullets(run);
+  const L: string[] = [];
+  L.push(counted ? "BULLETS EVAL (counted run): MAIN and EDGE" : "BULLETS EVAL: CALIBRATION RUN (not counted): MAIN and EDGE");
+  L.push(`MAIN: runs ${main.runs} | calls ${main.calls} | no pairs, no call ${main.noPairs} | failed ${main.failed} | asked ${main.asked} | accepted ${main.accepted} (before the cap of ${MAX_SHOWN}) | shown ${main.shown} | dropped ${main.dropped}`);
+  L.push(`M3 MAIN DROPPED BY REASON: ${reasonsText(main.byReason)}`);
+  const lang = (name: string, x: LangSummary) =>
+    `M4 MAIN ${name}: accepted ${x.accepted} of ${x.asked} asked, shown ${x.shown} | runs with an accepted bullet ${x.runsWithAccepted} of ${x.calls}`;
+  L.push(lang("ENGLISH", main.en));
+  L.push(lang("GERMAN", main.de));
+  L.push(`M4 MAIN ALL: runs with an accepted bullet ${main.runsWithAccepted} of ${main.runs} | UNCHANGED ${main.unchanged} of ${main.accepted} accepted`);
+  L.push(
+    `YIELD LINES (MAIN only): accepted 20 or more: ${yn(main.passLines.accepted20)} | accepted at least 40% of asked: ${yn(main.passLines.yield40)} | 10 or more main runs with an accepted bullet: ${yn(main.passLines.runs10)}`,
+  );
+  L.push(`EDGE (not in the yield): runs ${edge.runs} | calls ${edge.calls} | asked ${edge.asked} | accepted ${edge.accepted} | shown ${edge.shown} | dropped ${edge.dropped} (${reasonsText(edge.byReason)}) | UNCHANGED ${edge.unchanged}`);
+  L.push("M1 INVENTED: counted by hand from the review sheet for MAIN and EDGE alike (this script cannot count it)");
+  L.push(`M5: calls ${all.calls} | tokens ${n0(all.tokensIn + all.tokensOut)} (${n0(all.tokensIn)} in, ${n0(all.tokensOut)} out) | seconds ${all.seconds}`);
+  if (run.failed.length > 0) {
+    const shown = run.failed.slice(0, 3).map((f) => `${runLabel(f)} (${f.reason})`);
+    const more = run.failed.length > 3 ? `; and ${run.failed.length - 3} more` : "";
+    L.push(`FAILED: ${shown.join("; ")}${more}`);
+  }
+  if (!run.complete) L.push("VERDICT: the run is INCOMPLETE and cannot count");
+  else if (!counted) L.push("VERDICT: calibration run, not counted (the yield lines are for information)");
+  else L.push(`VERDICT: MAIN yield lines ${main.passLines.accepted20 && main.passLines.yield40 && main.passLines.runs10 ? "met" : "NOT met"}; M1 (MAIN and EDGE) and the verdict are the reviewer's, from the review sheet`);
   return L.join("\n") + "\n";
 }

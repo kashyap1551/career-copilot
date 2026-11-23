@@ -2,8 +2,8 @@ import { jobs } from "../fixtures/jobs";
 import { skills } from "../fixtures/skills";
 import { cvFixtures } from "../fixtures/synthetic-cvs";
 import { checkCvKey } from "../lib/engine/cvKey";
-import { buildEvalItems, evalCvs, type BulletsEvalItem } from "../lib/engine/evalBulletsProfile";
-import { droppedLines, formatBulletsReport, perRunLines, reviewSheet } from "../lib/engine/evalBulletsReport";
+import { buildEvalItems, evalCvs, type BulletsEvalItem, type EvalCv } from "../lib/engine/evalBulletsProfile";
+import { droppedLines, formatBulletsReport, formatBulletsReportBySet, perRunLines, reviewSheet } from "../lib/engine/evalBulletsReport";
 import { runBulletsEval, type BulletsWriter } from "../lib/engine/evalBulletsRun";
 import { missingGuard, mismatchGuard } from "../lib/engine/evalCvGuard";
 
@@ -27,6 +27,9 @@ export type BulletsMainDeps = {
   save: (name: string, text: string) => string; // saves under eval-runs/ and returns the path to show
   out: (text: string) => void;
   err: (text: string) => void;
+  // The runs of the manifest (docs/PLAN-8.3.md 0.30), built by the entry: when given, these runs are used and the report separates MAIN and EDGE. When absent, every
+  // old CV runs against every old job and the report is the older one (stage 5).
+  material?: { cvs: EvalCv[]; items: BulletsEvalItem[] };
 };
 
 // Returns the exit code. It never prints an error's own message: it could carry text from a CV.
@@ -50,7 +53,7 @@ export async function evalBulletsMain(deps: BulletsMainDeps): Promise<number> {
       return 1;
     }
 
-    const cvs = evalCvs(cvFixtures);
+    const cvs = deps.material?.cvs ?? evalCvs(cvFixtures);
     for (const c of cvs) {
       const problems = checkCvKey(c.key, c.lines);
       if (problems.length > 0) {
@@ -58,7 +61,7 @@ export async function evalBulletsMain(deps: BulletsMainDeps): Promise<number> {
         return 1;
       }
     }
-    const items = buildEvalItems(cvs, jobs, skills);
+    const items = deps.material?.items ?? buildEvalItems(cvs, jobs, skills);
 
     const fingerprint = await deps.fingerprint(items);
     if (onlyFingerprint) {
@@ -80,7 +83,7 @@ export async function evalBulletsMain(deps: BulletsMainDeps): Promise<number> {
       backoffsMs: [15000, 45000],
     });
 
-    const report = formatBulletsReport(run, counted) + fingerprint.line;
+    const report = (deps.material ? formatBulletsReportBySet(run, counted) : formatBulletsReport(run, counted)) + fingerprint.line;
     const stamp = new Date(deps.now()).toISOString().replace(/[:.]/g, "-");
     const dropped = droppedLines(run);
     const full = report + "\n" + perRunLines(run).join("\n") + "\n" + (dropped.length > 0 ? "\n" + dropped.join("\n") + "\n" : "");

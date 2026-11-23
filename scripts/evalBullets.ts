@@ -2,6 +2,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { INSTRUCTIONS_BULLETS, writeBulletsForEval } from "../lib/ai/writeBullets";
 import { captureBulletsRequestBody } from "../lib/ai/bulletsRequestBody";
+import { bulletEvalCvFixtures, bulletEvalJobs, manifest } from "../fixtures/bullet-eval";
+import { skills } from "../fixtures/skills";
+import { evalCvs } from "../lib/engine/evalBulletsProfile";
+import { buildManifestItems } from "../lib/engine/evalBulletsManifest";
 import { evalFingerprint, fingerprintLine, requestHash } from "../lib/engine/evalFingerprint";
 import { vocabHash } from "../lib/engine/vocabHash";
 import { evalBulletsMain } from "./evalBulletsMain";
@@ -14,7 +18,12 @@ import { evalBulletsMain } from "./evalBulletsMain";
 
 const root = process.cwd();
 
+// The runs of the counted eval: the manifest of fixtures/bullet-eval (15 MAIN and 3 EDGE runs; docs/PLAN-8.3.md 0.30).
+const cvs = evalCvs(bulletEvalCvFixtures);
+const material = { cvs, items: buildManifestItems(manifest, cvs, bulletEvalJobs, skills) };
+
 evalBulletsMain({
+  material,
   args: process.argv.slice(2),
   env: process.env,
   // Load the settings from .env.local into this process (a Node built-in). The file's contents are never printed.

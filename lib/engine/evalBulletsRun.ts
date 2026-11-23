@@ -40,12 +40,13 @@ export type BulletsEvalRow = {
   droppedDetail?: DroppedDetail[]; // for the full output and the review sheet only; never printed
   usage?: { inputTokens: number; outputTokens: number };
   seconds: number;
+  set?: "main" | "edge"; // only on the manifest's runs (0.30)
 };
 
 export type BulletsEvalRun = {
   rows: BulletsEvalRow[];
-  noPairs: { cv: string; job: string }[];
-  failed: { cv: string; job: string; reason: string }[];
+  noPairs: { cv: string; job: string; set?: "main" | "edge" }[];
+  failed: { cv: string; job: string; reason: string; set?: "main" | "edge" }[];
   complete: boolean;
 };
 
@@ -78,7 +79,7 @@ export async function runBulletsEval(items: BulletsEvalItem[], deps: BulletsRunD
 
   for (const item of items) {
     if (item.pairs.length === 0) {
-      run.noPairs.push({ cv: item.cv, job: item.job });
+      run.noPairs.push({ cv: item.cv, job: item.job, ...(item.set ? { set: item.set } : {}) });
       continue;
     }
     if (attempts > 0) {
@@ -95,6 +96,7 @@ export async function runBulletsEval(items: BulletsEvalItem[], deps: BulletsRunD
         cv: item.cv,
         job: item.job,
         lang: item.lang,
+        ...(item.set ? { set: item.set } : {}),
         pairs: item.pairs.map((p) => ({ id: p.id, requirement: p.requirement, line: p.line, text: p.text })),
         asked: out.asked,
         accepted: out.bullets.map((b) => ({ pair: b.pair, text: b.text })),
@@ -107,7 +109,7 @@ export async function runBulletsEval(items: BulletsEvalItem[], deps: BulletsRunD
       if (out.limits) lastLimits = out.limits;
     } catch (error) {
       // The reason never contains the CV text or the error's own message.
-      run.failed.push({ cv: item.cv, job: item.job, reason: reasonFor(error) });
+      run.failed.push({ cv: item.cv, job: item.job, reason: reasonFor(error), ...(item.set ? { set: item.set } : {}) });
       run.complete = false;
     }
   }
