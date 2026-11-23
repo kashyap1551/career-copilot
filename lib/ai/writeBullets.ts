@@ -1,7 +1,7 @@
 import { generateText, Output } from "ai";
 import { skills } from "@/fixtures/skills";
 import type { BulletPair } from "@/lib/engine/bulletPairs";
-import { bulletsFrom, MAX_SHOWN, type DropReason } from "@/lib/engine/bulletsFrom";
+import { bulletsFrom, bulletsFromDetailed, MAX_SHOWN, type DropReason, type DroppedDetail } from "@/lib/engine/bulletsFrom";
 import { bulletsAnswerSchema, type BulletRequestPair } from "@/lib/schemas/bullets";
 import { toReadError } from "./errors";
 import { getModel } from "./model";
@@ -59,12 +59,10 @@ export type WrittenBullets = {
 const toPairs = (pairs: BulletRequestPair[]): BulletPair[] =>
   pairs.map((p) => ({ id: p.id, requirement: p.requirement, skillId: "", line: p.id, text: p.line }));
 
-// `show` is how many accepted bullets come back: 3 for the page and the route (they pass nothing); the eval passes the number of pairs, so it can count every
-// accepted bullet before the cap (docs/PLAN-8.3.md 0.27 and 0.28). It is not part of the request: what is sent to the AI does not depend on it.
-export async function writeBullets(pairs: BulletRequestPair[], show: number = MAX_SHOWN): Promise<WrittenBullets> {
-  let output: { bullets: { pair: number; text: string }[] };
-  let usage: WrittenBullets["usage"];
-  let limits: WrittenBullets["limits"];
+type Answered = { output: { bullets: { pair: number; text: string }[] }; usage: WrittenBullets["usage"]; limits: WrittenBullets["limits"] };
+
+// The one call to the AI, shared by `writeBullets` (the route) and `writeBulletsForEval` (the eval): the request does not depend on which of them asks.
+async function askBullets(pairs: BulletRequestPair[]): Promise<Answered> {
   try {
     const result = await generateText({
       model: getModel(),
@@ -73,17 +71,42 @@ export async function writeBullets(pairs: BulletRequestPair[], show: number = MA
       ...GENERATION_SETTINGS,
       prompt: `Write one bullet for each pair.\n\n<pairs>\n${formatPairs(pairs)}\n</pairs>`,
     });
-    output = result.output;
-    usage = { inputTokens: result.usage.inputTokens ?? 0, outputTokens: result.usage.outputTokens ?? 0 };
-    limits = pickRateLimitHeaders(result.response?.headers);
+    return {
+      output: result.output,
+      usage: { inputTokens: result.usage.inputTokens ?? 0, outputTokens: result.usage.outputTokens ?? 0 },
+      limits: pickRateLimitHeaders(result.response?.headers),
+    };
   } catch (error) {
     throw toReadError(error, "bullets");
   }
+}
+
+// `show` is how many accepted bullets come back: 3 for the page and the route (they pass nothing); the eval passes the number of pairs, so it can count every
+// accepted bullet before the cap (docs/PLAN-8.3.md 0.27 and 0.28). It is not part of the request: what is sent to the AI does not depend on it.
+export async function writeBullets(pairs: BulletRequestPair[], show: number = MAX_SHOWN): Promise<WrittenBullets> {
+  const { output, usage, limits } = await askBullets(pairs);
   const checked = bulletsFrom(output, toPairs(pairs), skills, show);
   return {
     bullets: checked.bullets.map((b) => ({ pair: b.pair, text: b.text })),
     asked: checked.asked,
     dropped: checked.dropped,
+    usage,
+    limits,
+  };
+}
+
+// FOR THE EVAL ONLY (amendment 0.29): the same call and the same checks as `writeBullets`, and also the AI's own text of every dropped bullet, so the reviewer can
+// tell a rule that is too strict from a bad bullet. The route and the page do not import this; `writeBullets` never returns a dropped bullet's text.
+export type WrittenBulletsForEval = WrittenBullets & { droppedDetail: DroppedDetail[] };
+
+export async function writeBulletsForEval(pairs: BulletRequestPair[], show: number = MAX_SHOWN): Promise<WrittenBulletsForEval> {
+  const { output, usage, limits } = await askBullets(pairs);
+  const checked = bulletsFromDetailed(output, toPairs(pairs), skills, show);
+  return {
+    bullets: checked.bullets.map((b) => ({ pair: b.pair, text: b.text })),
+    asked: checked.asked,
+    dropped: checked.dropped,
+    droppedDetail: checked.droppedDetail,
     usage,
     limits,
   };

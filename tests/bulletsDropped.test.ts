@@ -51,8 +51,7 @@ describe("T36: the dropped bullets, with the AI's own text, for the eval", () =>
     expect(d.asked).toBe(5);
     expect(d.ignored).toBe(1);
     expect(d.dropped).toEqual(DETAIL.map((x) => ({ pair: x.pair, reason: x.reason })));
-    const { droppedDetail: _detail, ...rest } = d;
-    expect(rest).toEqual(bulletsFrom(ANSWER, PAIRS, skills, 5)); // the same verdicts: bulletsFrom itself is not changed and has no text of a dropped bullet
+    expect({ bullets: d.bullets, asked: d.asked, dropped: d.dropped, ignored: d.ignored }).toEqual(bulletsFrom(ANSWER, PAIRS, skills, 5)); // the same verdicts: bulletsFrom itself is not changed and has no text of a dropped bullet
     expect(JSON.stringify(bulletsFrom(ANSWER, PAIRS, skills, 5))).not.toContain("Wrote 300");
   });
 

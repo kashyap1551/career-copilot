@@ -43,3 +43,19 @@ export function bulletsFrom(answer: BulletAnswer, pairs: BulletPair[], vocabular
   }
   return { bullets: accepted.slice(0, Math.max(0, show)), asked: pairs.length, dropped, ignored };
 }
+
+// For the eval only (amendment 0.29): the same verdicts as `bulletsFrom` (it calls it), plus the AI's own text(s) of every dropped pair, in the AI's order (two for a
+// repeated pair, none for a missing one). The route and the page never call this: their result has no text of a dropped bullet.
+export type DroppedDetail = { pair: number; reason: DropReason; texts: string[] };
+export type BulletsDetailed = BulletsResult & { droppedDetail: DroppedDetail[] };
+
+export function bulletsFromDetailed(answer: BulletAnswer, pairs: BulletPair[], vocabulary: Skill[], show: number = MAX_SHOWN): BulletsDetailed {
+  const result = bulletsFrom(answer, pairs, vocabulary, show);
+  const given = Array.isArray(answer?.bullets) ? answer.bullets : [];
+  const droppedDetail = result.dropped.map((d) => ({
+    pair: d.pair,
+    reason: d.reason,
+    texts: given.filter((b) => b?.pair === d.pair).map((b) => String(b.text)),
+  }));
+  return { ...result, droppedDetail };
+}

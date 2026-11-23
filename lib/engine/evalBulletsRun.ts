@@ -1,4 +1,4 @@
-import type { DropReason } from "./bulletsFrom";
+import type { DropReason, DroppedDetail } from "./bulletsFrom";
 import type { BulletsEvalItem, EvalLang } from "./evalBulletsProfile";
 import { reasonFor, serverErrorCode, statusOf, waitForTokens } from "./evalCvRun";
 
@@ -12,6 +12,7 @@ export type WriterOutcome = {
   bullets: { pair: number; text: string }[]; // every accepted bullet: the eval asks for show = the number of pairs
   asked: number;
   dropped: { pair: number; reason: DropReason }[];
+  droppedDetail?: DroppedDetail[]; // the AI's own text of every dropped bullet (amendment 0.29); only the eval's writer gives it
   usage?: { inputTokens: number; outputTokens: number };
   limits?: Record<string, string>;
 };
@@ -36,6 +37,7 @@ export type BulletsEvalRow = {
   asked: number;
   accepted: { pair: number; text: string }[]; // every accepted bullet, before the cap of 3
   dropped: { pair: number; reason: DropReason }[];
+  droppedDetail?: DroppedDetail[]; // for the full output and the review sheet only; never printed
   usage?: { inputTokens: number; outputTokens: number };
   seconds: number;
 };
@@ -97,6 +99,7 @@ export async function runBulletsEval(items: BulletsEvalItem[], deps: BulletsRunD
         asked: out.asked,
         accepted: out.bullets.map((b) => ({ pair: b.pair, text: b.text })),
         dropped: out.dropped.map((d) => ({ pair: d.pair, reason: d.reason })),
+        droppedDetail: out.droppedDetail?.map((d) => ({ pair: d.pair, reason: d.reason, texts: [...d.texts] })),
         usage: out.usage,
         seconds,
       });

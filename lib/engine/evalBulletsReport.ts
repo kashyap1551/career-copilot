@@ -133,6 +133,23 @@ export function perRunLines(run: BulletsEvalRun): string[] {
 // A table cell keeps the text word for word (spaces included); only a pipe or a line break, which would break the table, is replaced.
 const cell = (s: string) => s.replace(/\|/g, "/").replace(/[\r\n]+/g, " ");
 
+// One line for each dropped bullet, for the saved full output (never printed): the run, the pair, the reason code, the AI's own text and the cited CV line, both word
+// for word (amendment 0.29). A row with no captured text (an older writer) adds nothing.
+const shownText = (texts: string[]) => (texts.length === 0 ? "(none)" : texts.map((t) => `"${t}"`).join(" ; "));
+const citedLine = (r: BulletsEvalRow, pair: number) => {
+  const p = r.pairs.find((x) => x.id === pair);
+  return p === undefined ? "(line not found)" : `line ${p.line}: "${p.text}"`;
+};
+export function droppedLines(run: BulletsEvalRun): string[] {
+  const out: string[] = [];
+  for (const r of run.rows) {
+    for (const d of r.droppedDetail ?? []) {
+      out.push(`DROPPED ${r.cv} x ${r.job} | pair ${d.pair} | ${d.reason} | AI text: ${shownText(d.texts)} | cited ${citedLine(r, d.pair)}`);
+    }
+  }
+  return out;
+}
+
 // The review sheet: every accepted bullet (before the cap of 3) next to the CV line it came from, with two empty columns for the reviewer. The text is invented, so
 // it may be read and pasted; the folder is never committed.
 export function reviewSheet(run: BulletsEvalRun): string {
@@ -149,6 +166,23 @@ export function reviewSheet(run: BulletsEvalRun): string {
       const p = r.pairs.find((x) => x.id === b.pair);
       const cited = p === undefined ? "(line not found)" : `line ${p.line}: "${cell(p.text)}"`;
       L.push(`| ${r.cv} x ${r.job} | ${b.pair} | ${cited} | "${cell(b.text)}" |  |  |`);
+    }
+  }
+  // Second section (amendment 0.29): every dropped bullet with the AI's own text, so a rule that is too strict can be told from a bad bullet, and wrong-line facts
+  // (M2, not counted by the script) can be read by eye. Left out when no row carries the text.
+  if (run.rows.some((r) => (r.droppedDetail ?? []).length > 0)) {
+    L.push("");
+    L.push("## Dropped bullets: the AI's own text next to the reason code and the cited CV line (read them for a rule that is too strict, and for wrong-line facts by eye)");
+    L.push("");
+    L.push("| run | pair | reason | AI's own text | cited CV line | rule too strict? (yes/no) |");
+    L.push("| --- | --- | --- | --- | --- | --- |");
+    for (const r of run.rows) {
+      for (const d of r.droppedDetail ?? []) {
+        const text = d.texts.length === 0 ? "(none)" : d.texts.map((t) => `"${cell(t)}"`).join(" ; ");
+        const p = r.pairs.find((x) => x.id === d.pair);
+        const cited = p === undefined ? "(line not found)" : `line ${p.line}: "${cell(p.text)}"`;
+        L.push(`| ${r.cv} x ${r.job} | ${d.pair} | ${d.reason} | ${text} | ${cited} |  |`);
+      }
     }
   }
   return L.join("\n") + "\n";

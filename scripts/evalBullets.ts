@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { INSTRUCTIONS_BULLETS, writeBullets } from "../lib/ai/writeBullets";
+import { INSTRUCTIONS_BULLETS, writeBulletsForEval } from "../lib/ai/writeBullets";
 import { captureBulletsRequestBody } from "../lib/ai/bulletsRequestBody";
 import { evalFingerprint, fingerprintLine, requestHash } from "../lib/engine/evalFingerprint";
 import { vocabHash } from "../lib/engine/vocabHash";
@@ -43,7 +43,7 @@ evalBulletsMain({
       line: fingerprintLine(request, INSTRUCTIONS_BULLETS.length, full, vocabulary),
     };
   },
-  write: (pairs, show) => writeBullets(pairs, show),
+  write: (pairs, show) => writeBulletsForEval(pairs, show), // the eval-only writer: it also returns the AI's text of the dropped bullets
   sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
   now: () => Date.now(),
   save: (name, text) => {

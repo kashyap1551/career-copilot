@@ -3,7 +3,7 @@ import { skills } from "../fixtures/skills";
 import { cvFixtures } from "../fixtures/synthetic-cvs";
 import { checkCvKey } from "../lib/engine/cvKey";
 import { buildEvalItems, evalCvs, type BulletsEvalItem } from "../lib/engine/evalBulletsProfile";
-import { formatBulletsReport, perRunLines, reviewSheet } from "../lib/engine/evalBulletsReport";
+import { droppedLines, formatBulletsReport, perRunLines, reviewSheet } from "../lib/engine/evalBulletsReport";
 import { runBulletsEval, type BulletsWriter } from "../lib/engine/evalBulletsRun";
 import { missingGuard, mismatchGuard } from "../lib/engine/evalCvGuard";
 
@@ -82,7 +82,8 @@ export async function evalBulletsMain(deps: BulletsMainDeps): Promise<number> {
 
     const report = formatBulletsReport(run, counted) + fingerprint.line;
     const stamp = new Date(deps.now()).toISOString().replace(/[:.]/g, "-");
-    const full = report + "\n" + perRunLines(run).join("\n") + "\n";
+    const dropped = droppedLines(run);
+    const full = report + "\n" + perRunLines(run).join("\n") + "\n" + (dropped.length > 0 ? "\n" + dropped.join("\n") + "\n" : "");
     const fullPath = deps.save(`bullets-${stamp}.txt`, full);
     const sheetPath = deps.save(`bullets-review-${stamp}.md`, reviewSheet(run));
     deps.out(report + `(saved to ${fullPath})\n(review sheet: ${sheetPath})\n`);
