@@ -1,7 +1,7 @@
 import { generateText, Output } from "ai";
 import { skills } from "@/fixtures/skills";
 import type { BulletPair } from "@/lib/engine/bulletPairs";
-import { bulletsFrom, type DropReason } from "@/lib/engine/bulletsFrom";
+import { bulletsFrom, MAX_SHOWN, type DropReason } from "@/lib/engine/bulletsFrom";
 import { bulletsAnswerSchema, type BulletRequestPair } from "@/lib/schemas/bullets";
 import { toReadError } from "./errors";
 import { getModel } from "./model";
@@ -48,7 +48,7 @@ export function formatPairs(pairs: BulletRequestPair[]): string {
 }
 
 export type WrittenBullets = {
-  bullets: { pair: number; text: string }[]; // the bullets that passed every check, at most 3, in pair order
+  bullets: { pair: number; text: string }[]; // the bullets that passed every check, at most `show` (3 unless the caller says more), in pair order
   asked: number;
   dropped: { pair: number; reason: DropReason }[];
   usage?: { inputTokens: number; outputTokens: number };
@@ -59,7 +59,9 @@ export type WrittenBullets = {
 const toPairs = (pairs: BulletRequestPair[]): BulletPair[] =>
   pairs.map((p) => ({ id: p.id, requirement: p.requirement, skillId: "", line: p.id, text: p.line }));
 
-export async function writeBullets(pairs: BulletRequestPair[]): Promise<WrittenBullets> {
+// `show` is how many accepted bullets come back: 3 for the page and the route (they pass nothing); the eval passes the number of pairs, so it can count every
+// accepted bullet before the cap (docs/PLAN-8.3.md 0.27 and 0.28). It is not part of the request: what is sent to the AI does not depend on it.
+export async function writeBullets(pairs: BulletRequestPair[], show: number = MAX_SHOWN): Promise<WrittenBullets> {
   let output: { bullets: { pair: number; text: string }[] };
   let usage: WrittenBullets["usage"];
   let limits: WrittenBullets["limits"];
@@ -77,7 +79,7 @@ export async function writeBullets(pairs: BulletRequestPair[]): Promise<WrittenB
   } catch (error) {
     throw toReadError(error, "bullets");
   }
-  const checked = bulletsFrom(output, toPairs(pairs), skills);
+  const checked = bulletsFrom(output, toPairs(pairs), skills, show);
   return {
     bullets: checked.bullets.map((b) => ({ pair: b.pair, text: b.text })),
     asked: checked.asked,
