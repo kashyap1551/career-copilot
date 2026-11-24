@@ -51,16 +51,16 @@ For the owner. Plain words, one small action per step. Each step has **Do** and 
 
 | Step | Result | What was seen |
 |---|---|---|
-| 1 | NOT RUN YET | |
-| 2 | NOT RUN YET | |
-| 3 | NOT RUN YET | |
-| 4 | NOT RUN YET | |
-| 5 | NOT RUN YET | |
-| 6 | NOT RUN YET | |
-| 7 | NOT RUN YET | |
-| 8 | NOT RUN YET | |
-| 9 | NOT RUN YET | |
-| 10 | NOT RUN YET | |
-| 11 | NOT RUN YET | |
-| 12 | NOT RUN YET | |
-| 13 | NOT RUN YET | |
+| 1 | passed | Satisfied: ACCESS_CODE was set in Vercel before the build (HANDOFF item 21). Source: owner's report, Incognito window, step-6.2 preview 5a52739, 2026-11-17 (docs/MANUAL-CHECK-ORDER.md) |
+| 2 | passed | Source: owner's report, Incognito window, step-6.2 preview 5a52739, 2026-11-17 (docs/MANUAL-CHECK-ORDER.md). OPEN again on the live address after the merge. |
+| 3 | passed | Source: owner's report, Incognito window, step-6.2 preview 5a52739, 2026-11-17 (docs/MANUAL-CHECK-ORDER.md) |
+| 4 | passed | Source: owner's report, Incognito window, step-6.2 preview 5a52739, 2026-11-17 (docs/MANUAL-CHECK-ORDER.md) |
+| 5 | passed | Source: owner's report, Incognito window, step-6.2 preview 5a52739, 2026-11-17 (docs/MANUAL-CHECK-ORDER.md) |
+| 6 | passed | Source: owner's report, Incognito window, step-6.2 preview 5a52739, 2026-11-17 (docs/MANUAL-CHECK-ORDER.md) |
+| 7 | passed | Source: owner's report, Incognito window, step-6.2 preview 5a52739, 2026-11-17 (docs/MANUAL-CHECK-ORDER.md) |
+| 8 | passed | Source: owner's report, Incognito window, step-6.2 preview 5a52739, 2026-11-17 (docs/MANUAL-CHECK-ORDER.md) |
+| 9 | passed | Source: owner's report, Incognito window, step-6.2 preview 5a52739, 2026-11-17 (docs/MANUAL-CHECK-ORDER.md) |
+| 10 | OPEN | After the merge, on the live address. |
+| 11 | OPEN | After the merge, on the live address. |
+| 12 | NOT RECORDED | Done inside 6.2 step 9; no result is written in any file. |
+| 13 | OPEN | Last, on the live address. |

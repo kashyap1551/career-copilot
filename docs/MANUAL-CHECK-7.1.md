@@ -137,6 +137,8 @@ For each step: "passed", or the step number and what you saw instead. For steps 
 
 ## Manual check log
 
+Combined sitting 2026-11-24 on build 0ac2632 (invented material): the whole 7.1 check was run as Part A and passed; step 10 (the ten ads) was not part of it and runs in the later sitting on the step-8.2 build.
+
 | Step | Result | What was seen |
 |---|---|---|
 | 1 | NOT RUN YET | |

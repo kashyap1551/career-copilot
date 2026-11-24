@@ -52,7 +52,7 @@ Imaginary Pages Ltd. We are a friendly small team that likes good coffee.
 
 1. **Do:** open a **new private (Incognito) window** and the page. Paste the invented CV, press **Send for reading**, keep the three skills ticked, type **Berlin** in "Cities you can work in", press **Save on this device**.
    **Expect:** "Saved on this device."
-2. **Do:** read and save ads A, B and C, one after the other (**Read this ad**, then **Save this ad**; wait a minute between reads if the site says it is busy).
+2. **Do:** read and save ads A, C and B, one after the other (**Read this ad**, then **Save this ad**; wait a minute between reads if the site says it is busy).
    **Expect:** three rows in "Saved ads". Because the profile you just confirmed is in use, they already show levels.
 3. **Do:** look at the list.
    **Expect:** this order, not the date order: first "Reporting Analyst, Northlake Foods Ltd" with the line "Fit: Strong (judged: skills, location)"; then "Operations Coordinator, Harbor Light Stationery" with "Fit: Long shot (judged: skills, location)" and, under it, the quiet line "Long shot because of location: The job is in Exampleville; the cities on your profile are: Berlin. That can't be closed soon."; then "Customer Helper, Imaginary Pages Ltd" with "Fit: No level (no requirements found in this ad)". (If the AI read a requirement in ad C, write down what the row says instead.)
