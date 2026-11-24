@@ -148,7 +148,7 @@ describe("the demo through the page's own code (PLAN-9.1 sections 2.3, 3; A4)", 
   });
 
   // D6 (section 6, A4 "With Tableau unticked"): the untick case.
-  it("D6: with Tableau unticked the counts are Strong 2, Good 4, Stretch 3, Long shot 1 and Part A has the three rows of A4", async () => {
+  it("D6: with Tableau unticked the counts are Strong 2, Good 4, Stretch 3, Long shot 1, Part A has the three rows of A4, and Part B has the Skills to build and blocked lines", async () => {
     const { built, opened } = await world(["sql", "excel"]);
     const { rows } = rankedAdRows(opened, built, skills);
     ADS.forEach((_, i) => {
@@ -167,6 +167,16 @@ describe("the demo through the page's own code (PLAN-9.1 sections 2.3, 3; A4)", 
       "1 of your 10 counted saved ads is held back by something other than skills (location), so learning the skills above may not open it.",
     ]);
     expect(box.partB[0]).toBe("Already Strong: 2 jobs (Records Clerk, Marrowby Freight Ltd; Revenue Analyst, Tarnbridge Mills Ltd)");
+    // Hand-worked by the reviewer (prompt B1). The names inside a line follow the order the ads were saved, newest first.
+    expect(box.partB.slice(1)).toEqual([
+      "Skills to build, in order:",
+      "1. Python: unlocks 2 jobs (BI Engineer, Pellwick Print Ltd; Budget Analyst, Ostrander Glass Ltd). Total so far: 2 jobs.",
+      "2. Power BI: unlocks 3 jobs (Data Platform Engineer, Fenwick Quarry Ltd; Management Reporting Lead, Haldane Paper Ltd; Campaign Analyst, Yarrowdale Games Ltd). Total so far: 5 jobs.",
+      "3. Tableau: unlocks 2 jobs (Insight Analyst, Quillon Foods Ltd; Dashboard Specialist, Corvane Tools Ltd). Total so far: 7 jobs.",
+      "Blocked jobs (skills alone can't make these Strong): 1",
+      "- Site Coordinator, Wexcombe Textiles Ltd: blocked by 1 thing; it can't be closed soon",
+      "(can't be closed soon) The job is in Exampleville; the cities on your profile are: Berlin.",
+    ]);
   });
 
   // D7 (section 6, lesson of defect P0, A5): shared job ids, distinct saved ids, the fixed times, no repeated name.
