@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { APICallError } from "ai";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -212,5 +212,62 @@ describe("M6: the shape of the doc", () => {
   it("M6c: the questions per bullet and the guard words are in the steps", () => {
     for (const q of ["every word from the line", "line's order", "limiting word", "new fact"]) expect(doc).toContain(q);
     expect(doc).toMatch(/ready, tailored, improve, boost, optimise/);
+  });
+});
+
+// ---- Stage 7b (two defects found in review): the request names the owner counts at step 17, and the step that must not clear the list.
+// HAND TABLE (worked out before any edit; the page's `postJson` sends even with no code kept, so a first press gets a 401):
+//   cv      : 2 lines: 401 (step 3, first press, no code kept yet), 200 (step 3, second press)
+//   read    : 2 lines: 200 (step 4), 200 (step 16)
+//   bullets : 5 lines: 200 twice (steps 6 and 13), 401 twice (step 11: the press after "Forget the code", the press after the wrong words), one failed line (step 12, offline)
+//   no line for Hide, Copy, the narrow window or the words search.
+// The names are the folders under app/api (the Network list names a request by the last part of its path).
+function stepText(n: number): string {
+  const steps = doc.split(/\n(?=\d+\. \*\*)/).filter((s) => /^\d+\. \*\*/.test(s));
+  const step = steps.find((s) => s.startsWith(`${n}. **`));
+  expect(step, `step ${n} exists`).toBeDefined();
+  return step as string;
+}
+
+describe("M7: the request names and the Network list (stage 7b)", () => {
+  const folders = readdirSync(join(process.cwd(), "app/api"), { withFileTypes: true })
+    .filter((d) => d.isDirectory())
+    .map((d) => d.name)
+    .sort();
+
+  it("M7a: the names step 17 counts are exactly the folders under app/api (bullets, cv, read); `ad` is not offered as a request name", () => {
+    expect(folders).toEqual(["bullets", "cv", "read"]);
+    const s17 = stepText(17);
+    const offered = [...s17.matchAll(/\(`([a-z]+)` in the name\)|requests? to `([a-z]+)`|\*\*`([a-z]+)`\*\*/g)].map((m) => m[1] ?? m[2] ?? m[3]);
+    for (const f of folders) expect(s17, `step 17 names ${f}`).toContain(`\`${f}\``);
+    expect(s17).not.toMatch(/`ad`/);
+    expect(s17).not.toMatch(/\(`ad` in the name\)/);
+    for (const o of offered) expect(folders).toContain(o);
+  });
+
+  it("M7b: step 1 tells the owner to clear the list, and step 5 does not (and no other step clears it before step 17)", () => {
+    expect(stepText(1)).toMatch(/press the clear button so the list is empty/);
+    expect(stepText(5)).not.toMatch(/clear/i);
+    for (let n = 2; n <= 16; n++) expect(stepText(n), `step ${n}`).not.toMatch(/(?<!not )clear (the )?(Network )?list|press the clear button/i);
+  });
+
+  it("M7c: step 17 holds the hand-worked counts: cv 401 and 200, read 200 twice, bullets 200 twice, bullets 401 twice, one failed offline line; nothing for Hide, Copy, the narrow window, the words search", () => {
+    const s17 = stepText(17).replace(/\s+/g, " ");
+    expect(s17).toMatch(/`cv`[^.]*: \*\*2\*\* lines?[^.]*\b401\b[^.]*\b200\b/);
+    expect(s17).toMatch(/`read`[^.]*: \*\*2\*\* lines?[^.]*both\s+(\*\*)?200/i);
+    expect(s17).toMatch(/`bullets`[^.]*: \*\*5\*\* lines?/);
+    expect(s17).toMatch(/200 twice/);
+    expect(s17).toMatch(/401 twice/);
+    expect(s17).toMatch(/one failed line/);
+    expect(s17).toMatch(/No line for Hide, Copy, the narrow window or the words search/);
+    // the send-back line asks for the counts of cv, read and bullets by status
+    expect(s17).toMatch(/Send back:\*\* the counts of `cv`, `read` and `bullets` by status/);
+  });
+
+  it("M7d: \"Before you start\" explains `Text:`: before words in backticks it means those exact words appear on the page", () => {
+    const start = docLines.findIndex((l) => /^## Before you start/.test(l));
+    const end = docLines.findIndex((l, i) => i > start && /^## /.test(l));
+    const section = docLines.slice(start, end).join("\n");
+    expect(section).toMatch(/In an Expect line, `Text:` before words in backticks means those exact words appear on the page\./);
   });
 });
