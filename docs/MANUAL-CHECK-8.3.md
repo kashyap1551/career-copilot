@@ -14,6 +14,7 @@ Every number and sentence under **Expect** was worked out by hand before any run
 - **One window, one address, the whole sitting.** Use **one new private (Incognito) window** in Chrome, and stay on that one address until the end. The browser keeps its storage for each address apart, and a private window forgets everything when you close it.
 - **The access code.** The first AI call asks for it. Type it into the app's **own code box only**, press the button next to it, then press the button you were pressing before. Do not write the code anywhere else and do not send it to anyone, the reviewer included.
 - AI calls this check needs: **5**. The CV once, AD A once, AD B once, and the bullets button twice (steps 3, 4, 6, 13 and 16). The free tier of the AI service allows only a limited amount of text a minute, so **wait about a minute between two AI calls**. A call made too soon may answer with the busy line (see the table at the end); that is not a defect, wait and try once more. A press that the server turns away because of the access code (step 11) is **not** an AI call.
+- **A note on the Expect lines.** In an Expect line, `Text:` before words in backticks means those exact words appear on the page.
 - **Developer tools:** Cmd+Option+I. The **Network** tab is the list of every request the page sends. Its **Fetch/XHR** button filters the list to the page's own requests; you only count lines, you never open a line.
 - **What this block is.** Under the report of the ad on screen, a block called `CV bullets for this ad`. It starts **closed**: one button and one sentence. Pressing the button sends the ad's requirement sentences and up to 5 lines of your CV to the AI, which writes one short bullet for each. The app then **checks** every bullet by plain code against the CV line it came from, and **drops** (throws away, never repairs) a bullet that the checks do not accept. At most 3 bullets are shown.
 - **Words you will meet.**
@@ -133,8 +134,8 @@ Worked out by hand from the CV and AD A, with no AI: the order is the must-haves
    **Send back:** "passed", or what you see, and the three evidence line numbers.
 
 5. **The closed block, before any click.**
-   **Do:** look under the report. Do not press the bullets button yet. Clear the Network list (the clear button).
-   **Expect:** the closed block and nothing else of it: a button Text: `Write CV bullets for this ad` and, under it, one sentence, Text: `This sends the ad's requirement lines and up to 5 lines of your own CV to the AI service (Groq). We store nothing and do not log the text.` No bullet is on screen. The Network list is still empty.
+   **Do:** look under the report. Do not press the bullets button yet, and leave the Network list as it is.
+   **Expect:** the closed block and nothing else of it: a button Text: `Write CV bullets for this ad` and, under it, one sentence, Text: `This sends the ad's requirement lines and up to 5 lines of your own CV to the AI service (Groq). We store nothing and do not log the text.` No bullet is on screen. No line whose name holds `bullets` exists yet in the Network list (the list still holds the lines of steps 3 and 4).
    **Send back:** the two on-screen texts as you see them, and "passed" or what differs.
 
 6. **Press once: the waiting text, the disabled button, and the count of requests (AI call 3 of 5; wait about a minute after step 4).**
@@ -198,9 +199,9 @@ Worked out by hand from the CV and AD A, with no AI: the order is the must-haves
     **Send back:** "passed", or what you see.
 
 17. **Count the requests.**
-    **Do:** look at the **Network** list (Fetch/XHR, with **Preserve log** on since step 1). Clear the name filter and count by name.
-    **Expect:** answer with numbers. Requests to the CV read (`cv` in the name): **1**. Requests to the ad read (`ad`): **2** (steps 4 and 16). Requests to `bullets` that came back with status 200: **2** (steps 6 and 13). Requests to `bullets` turned away with status 401: up to 2 (step 11). One failed request to `bullets` from the offline step is expected. **No request** for Hide, Copy, switching the ad, the narrow window or the words search.
-    **Send back:** the four numbers (cv, ad, bullets with 200, bullets with 401).
+    **Do:** look at the **Network** list (Fetch/XHR, with **Preserve log** on since step 1; nothing has been cleared since). Make sure the name filter box is empty, then count the lines by name. The names are `cv`, `read` and `bullets`.
+    **Expect:** the list holds every request since step 1. `cv`: **2** lines: status 401 (step 3, first press, no code kept yet), status 200 (step 3, second press). `read`: **2** lines, both 200 (steps 4 and 16). `bullets`: **5** lines: 200 twice (steps 6 and 13), 401 twice (step 11: the press after "Forget the code" and the press after the wrong words), one failed line (step 12, offline; it shows in red). No line for Hide, Copy, the narrow window or the words search. (A 401 line is a request the server turned away for want of a good code; it was not an AI call. The AI calls are the 200 lines: one `cv`, two `read`, two `bullets`.)
+    **Send back:** the counts of `cv`, `read` and `bullets` by status (200, 401, failed).
 
 18. **Reload: nothing is kept.**
     **Do:** reload the page (Cmd+R). Then in the developer tools open the **Application** tab and, under **Storage**, expand **IndexedDB** (the database names only). **Do not open Session storage.**
@@ -229,7 +230,7 @@ Worked out by hand from the CV and AD A, with no AI: the order is the must-haves
 - For each step: "passed", or the step number and what you saw instead.
 - The on-screen words of each state you reached: step 5 (the button and the notice), step 7 (the title line, the sentence under it, the dropped sentence), step 9 (the word after the copy), step 11 (what the code box said), step 12 (the offline line), step 16 (the nothing-to-write sentence).
 - The per-bullet answers of step 8 and step 13: for each bullet "yes, yes, no, no" or the answers you gave, with the bullet and its source line word for word whenever any answer is not the expected one. (These are invented lines, so pasting them is fine.)
-- The Network counts of step 6 and step 17.
+- The Network counts of step 6 and step 17 (by name and status).
 - Anything odd, however small: a line that looks wrong, a button that did nothing, a wait of more than a minute.
 
 ## What NOT to send back
