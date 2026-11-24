@@ -117,7 +117,7 @@ Goal: a person builds up a list of jobs, each with a clear report.
   Note: Built on the branch step-6.1b-access-code and merged into main with step-7.1. Steps 1 to 9 of docs/MANUAL-CHECK-6.1b.md passed on the step-6.2 preview (5a52739), 2026-11-17; step 12: NOT RECORDED; step 2 on the live address and steps 10, 11 and 13 are OPEN. ACCESS_CODE is set in Vercel (the value is private).
 - [ ] **6.2** Jobs page: paste an ad, check its requirements, save.
   Check: a saved ad shows in the list with its fit level.
-  Note: Built on the branch step-6.2 (docs/PLAN-6.2.md, revision 2) and merged into main with step-7.1; its manual check (docs/MANUAL-CHECK-6.2.md and docs/MANUAL-CHECK-FIT.md) has no recorded result, so it is NOT ticked; on 2026-11-24 the saved-ad levels, their order, the no-profile note and "Delete this profile" were seen again on build 0ac2632. The remove-only list is not built (HANDOFF item 20).
+  Note: Built on the branch step-6.2 (docs/PLAN-6.2.md, revision 2) and merged into main with step-7.1; its manual check (docs/MANUAL-CHECK-6.2.md and docs/MANUAL-CHECK-FIT.md) has no recorded result, so it is NOT ticked; on 2026-11-24 the saved-ad levels, their order, the no-profile note and "Delete this profile" were seen on build 0ac2632. The remove-only list is not built (HANDOFF item 20).
 - [ ] **6.3** Fit report page: the level first, then each must-have with its evidence, conflicts in plain sentences, then nice-to-haves.
   Check: the report matches the day 2 printout for the same data.
 
