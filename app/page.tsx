@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import DemoEntry from "./DemoEntry";
 import { skills } from "@/fixtures/skills";
 import { buildProfile, initialConfirm, type ConfirmState } from "@/lib/cv/profile";
 import { builtFromSaved } from "@/lib/saved/profile";
@@ -167,6 +168,8 @@ export default function Home() {
       <p className="text-zinc-600 dark:text-zinc-400">
         Add your CV, confirm your profile, paste a job ad, and see where you stand.
       </p>
+
+      <DemoEntry />
 
       <SavedOffer
         saved={saved}
