@@ -29,7 +29,7 @@ export type BulletsSummary = {
 
 // The order of M3's list (docs/PLAN-8.3.md section 4), then the two reasons it does not name.
 const REASON_ORDER = [
-  "new-number", "new-date", "new-skill", "new-name", "new-claim", "lost-qualifier", "new-word", "reordered",
+  "new-number", "new-date", "new-skill", "new-name", "new-claim", "lost-qualifier", "new-word", "reordered", "fragment",
   "bad-length", "bad-citation", "check-failed", "repeated-pair", "missing",
 ];
 

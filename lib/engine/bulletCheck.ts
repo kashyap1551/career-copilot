@@ -4,7 +4,7 @@ import type { Skill } from "./types";
 
 // Step 8.3 (docs/PLAN-8.3.md v2, section 3): the verifier of a CV bullet. Pure code: no AI, no network, no clock, nothing from app/ or lib/ai.
 // `checkBullet(bullet, cited, ctx)` says whether a bullet may be shown: every word of it must stand in the cited CV line(s), numbers by value,
-// and the limiting words and the order of the line must be kept. The FIRST failing rule (R1 to R10, in this order) gives the reason. It never
+// and the limiting words and the order of the line must be kept. The FIRST failing rule (R1 to R11, in this order) gives the reason. It never
 // throws and never changes its input. A failing bullet is dropped by the caller, never repaired here.
 
 export type BulletReason =
@@ -18,6 +18,7 @@ export type BulletReason =
   | "lost-qualifier" // R8
   | "new-word" // R9
   | "reordered" // R10
+  | "fragment" // R11
   | "check-failed"; // not a rule: the check itself crashed (the bullet is not shown)
 
 export type BulletVerdict = { ok: true } | { ok: false; reason: BulletReason };
@@ -50,6 +51,17 @@ export const QUALIFIERS = set(
     "not no never without " + // negations
     "nicht kein keine ohne half mithilfe mitarbeit unterstutzte assistierte grundkenntnisse grundlagen etwa circa rund ungefahr fast uber ueber einige mehrere nur " +
     "meist hauptsachlich teilweise gelegentlich manchmal selten stellvertretend stellvertretender stellvertretende assistent assistentin junior praktikum",
+);
+
+// R11 (amendment 0.33): a bullet must not be a broken piece of its line. FOLDED forms ("fur" is "für"). The first and the last whitespace chunk of the bullet must not be a
+// function word; a pronoun needs its antecedent, so a bullet with a pronoun must start where the line starts.
+export const FRAGMENT_FUNCTION_WORDS: ReadonlySet<string> = set(
+  "a an the and or but of in on at by for from to with into onto within against via per as " + // English
+    "und oder aber der die das den dem des ein eine einen einem einer fur mit von in im am an auf zu zur zum bei gegen nach aus um", // German (fur is the folded form of für)
+);
+export const FRAGMENT_PRONOUNS: ReadonlySet<string> = set(
+  "it its them their theirs themselves he she him his her " + // English
+    "es ihn ihm ihnen ihr ihre ihren ihrer sie er", // German
 );
 
 // R4: number words, by value. "one", "a" and "ein" are NOT numbers.
@@ -294,6 +306,16 @@ function check(bullet: string, cited: readonly number[], ctx: BulletContext): Bu
   const lineItems = facts.tokenLists.map(itemsOf);
   const orders = lineItems.length === 2 ? [[...lineItems[0], ...lineItems[1]], [...lineItems[1], ...lineItems[0]]] : [lineItems[0]];
   if (!orders.some((line) => inOrder(bulletItems, line))) return reject("reordered");
+
+  // R11. Fragment (amendment 0.33). a) and b) work on whole whitespace chunks, stripped of leading and trailing characters that are neither a letter nor a digit and folded,
+  // so "A/B" stays "a/b" (never the article "a") and "sign-up" stays whole. c) uses the checker's tokens: a pronoun, and the bullet does not start at the line's first word.
+  const chunks = text.split(/\s+/).filter((c) => c !== "");
+  const chunkWord = (c: string) => foldText(c.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, ""));
+  if (FRAGMENT_FUNCTION_WORDS.has(chunkWord(chunks[0])) || FRAGMENT_FUNCTION_WORDS.has(chunkWord(chunks[chunks.length - 1]))) return reject("fragment");
+  if (words.some((w) => FRAGMENT_PRONOUNS.has(w.f))) {
+    const lineFirst = facts.tokenLists[0].find((t): t is Extract<Token, { k: "word" }> => t.k === "word");
+    if (words[0].f !== lineFirst?.f) return reject("fragment");
+  }
 
   return OK;
 }
