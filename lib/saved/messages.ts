@@ -54,3 +54,81 @@ const OPEN_MESSAGES: Record<OpenKind, string | null> = {
 export function openMessage(kind: OpenKind): string | null {
   return OPEN_MESSAGES[kind];
 }
+
+// 6.2 (docs/PLAN-6.2.md): what the list of saved ads says besides the level. The level text itself is never written here:
+// it is the label the report returns (app/fitReport.ts).
+export const NO_PROFILE_IN_USE_NOTE =
+  'No fit levels yet: no profile is in use. Read and confirm a CV, or press "Use this profile" if one is saved on this device.';
+export const OLD_READING_LINE = "Old reading: open it to read it again.";
+export const LEVEL_FAILED_LINE = "A level could not be worked out for this ad.";
+
+// The held-back line of the "What to learn" box (docs/PLAN-7.1.md, Amendments 1 and 2). Only the WORDS live here;
+// `heldBackLine` in app/roadmap.ts chooses singular or plural and puts them together. Example, for one ad of four:
+// "1 of your 4 counted saved ads is held back by something other than skills (location), so learning the skills above may not open it."
+export const HELD_BACK_OF = "of your";
+export const HELD_BACK_COUNTED = "counted saved";
+export const HELD_BACK_AD = { one: "ad", many: "ads" };
+export const HELD_BACK_IS = { one: "is", many: "are" };
+export const HELD_BACK_REASON = "held back by something other than skills";
+export const HELD_BACK_TAIL = {
+  one: "so learning the skills above may not open it",
+  many: "so learning the skills above may not open them",
+};
+
+// The words of the "What to learn" box (docs/PLAN-7.1.md sections 1, 4, 5 and Amendments 1 to 4). Plain functions and constants,
+// so the exact strings are tested; app/roadmap.ts only chooses and joins them and the view only shows them. The lines of
+// Part B are the ones the command-line report prints (lib/engine/report-text.ts): tests/roadmap.test.ts U12 holds the two
+// together line by line.
+const noun = (n: number, one: string, many: string) => (n === 1 ? one : many);
+
+export const NO_PROFILE_NOTE =
+  'What to learn needs a profile in use. Read and confirm a CV, or press "Use this profile" if one is saved on this device.';
+
+// Part A, the gap list
+export const gapTitle = (counted: number) => `Skills you are missing across your ${counted} saved ${noun(counted, "ad", "ads")}`;
+export const GAP_SUBTITLE = "(Counted against the profile in use. Must-haves and nice-to-haves are counted apart.)";
+export const learningNote = (date: string) => ` (you are learning it, expected ${date})`;
+export const NO_CV_LINE_NOTE = " (on your profile without a CV line, so it does not count)";
+const adsCount = (n: number) => `${n} ${noun(n, "ad", "ads")}`;
+export function gapRowText(name: string, note: string, mustAds: number, niceAds: number): string {
+  const parts = [
+    ...(mustAds > 0 ? [`must-have in ${adsCount(mustAds)}`] : []),
+    ...(niceAds > 0 ? [`nice-to-have in ${adsCount(niceAds)}`] : []),
+  ];
+  return `${name}${note}: ${parts.join(", ")}`;
+}
+export const ALTERNATIVES_NOTE = "A requirement that accepts several skills is counted once for each of them.";
+export const meetEveryLine = (counted: number) =>
+  `You meet every requirement we could judge in your ${counted} saved ${noun(counted, "ad", "ads")}.`;
+export const couldNotJudgeLine = (n: number) =>
+  n === 1
+    ? "1 requirement in your saved ads is not in our skill list yet, so we could not judge it. It is not counted."
+    : `${n} requirements in your saved ads are not in our skill list yet, so we could not judge them. They are not counted.`;
+export function notCountedLine(noRequirements: number, noMustHave: number): string | null {
+  const n = noRequirements + noMustHave;
+  if (n === 0) return null;
+  if (n === 1) {
+    return noRequirements === 1
+      ? "1 saved ad is not counted: the AI found no requirements in it."
+      : "1 saved ad is not counted: the AI found no must-have we could judge in it.";
+  }
+  return `${n} saved ads are not counted (no requirements found, or no must-have we could judge).`;
+}
+
+// Part B, the roadmap
+export const thresholdLine = (have: number, from: number) =>
+  `The roadmap shows from ${from} saved ads we could judge. You have ${have}. Save ${Math.max(from - have, 0)} more to see it.`;
+export const unjudgedCaveat = (n: number) => ` (${n} must-${noun(n, "have", "haves")} not judged)`;
+export const alreadyStrongLine = (labels: string[]) =>
+  labels.length === 0
+    ? "Already Strong: none"
+    : `Already Strong: ${labels.length} ${noun(labels.length, "job", "jobs")} (${labels.join("; ")})`;
+export const RANKING_HEADER = "Skills to build, in order:";
+export const rankingNoneLine = (otherStrong: boolean) =>
+  `Skills to build, in order: none. No ${otherStrong ? "other " : ""}saved job can become a Strong match by skills alone.`;
+export const BLOCKED_NONE = "Blocked jobs: none";
+export const blockedCountLine = (n: number) => `Blocked jobs (skills alone can't make these Strong): ${n}`;
+
+export const WHAT_TO_LEARN = "What to learn";
+
+export const ROADMAP_FAILED_LINE = "What to learn could not be worked out.";

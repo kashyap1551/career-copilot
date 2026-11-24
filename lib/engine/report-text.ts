@@ -11,6 +11,7 @@ import {
   YEARS_NOTE,
 } from "./explain";
 import { match } from "./match";
+import { ROADMAP_FROM_JOBS } from "./roadmapJobs";
 import type { Job, Profile, RequirementResult, Skill } from "./types";
 import {
   classifyJobs,
@@ -21,10 +22,6 @@ import {
 
 // The whole printout for one person as text: every saved job, then the
 // roadmap. Pure: the command-line script only prints what this returns.
-
-// From this many saved jobs the roadmap is shown as a real feature; below
-// it, the printout labels it a test view.
-const ROADMAP_FROM_JOBS = 10;
 
 const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
 

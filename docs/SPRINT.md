@@ -4,10 +4,17 @@ About 4 to 5 focused hours a day. Every day ends with a deploy. Start the next s
 
 ## Fit levels (first version; tune them as real ads come in)
 
-- **Strong:** every must-have met, and no hard conflict.
-- **Good:** one must-have missing or partly met, and no hard conflict.
-- **Stretch:** two must-haves missing, or one conflict that can be closed, such as a language one level short.
-- **Long shot:** three or more must-haves missing, or a conflict that can't be closed soon, such as an on-site job in a city out of reach.
+- **Strong:** every must-have we can judge is met, and there is no conflict (not even one that could be closed).
+- **Good:** exactly one must-have is missing, and there is no conflict.
+- **Stretch:** two gaps. A gap is a missing must-have or a conflict that could be closed soon; one such conflict alone is also Stretch.
+- **Long shot:** three or more gaps, or any conflict that can't be closed soon.
+
+Notes (they match the code on the branch step-6.2: lib/engine/fit.ts, match.ts, rules.ts, judgeable.ts; the fit-level changes were built on step-fit-levels and are in step-6.2, merged into main with step-7.1 on 2026-11-24):
+- A conflict can be closed soon if: a language is one level short (a language missing from the profile can't); total years are one year short; the start is up to 30 days late. A city that is not on the profile, and a work mode the profile does not accept, can't be closed soon; a hybrid job counts as on-site for the city.
+- Nice-to-haves are shown and counted but never change the level.
+- A must-have that is not in our skill list yet is shown as "could not judge" and is not counted; the label says "; N must-have(s) not judged". If the AI found no requirements at all in the ad, if none of the ad's must-haves can be judged, or if the profile or list has no skills, no level is shown (in that order). An ad with only nice-to-haves is Strong.
+- The report says "(skills only)" when no constraint was both set by the person and stated by the ad, and "(judged: skills, ...)" otherwise.
+- When a conflict that can't be closed soon sets the level, the report names it; each constraint that was judged and is fine gets one line.
 
 ## Day 1: A skeleton that's live
 
@@ -65,7 +72,7 @@ Goal: paste an ad, get a fit report on the live link. Rough is fine; working end
   2026-11-16: closed, target not met: 75 and 76 of 100 found on the tuning set against the target of 94 (116 of 128 on all ten ads), see docs/PLAN-3.3.md 'What was learned'; the reading gate is to be written afresh, before the holdout is read, with the coverage view (HANDOFF open item 1).
 - [x] **3.4** A rough page: paste an ad and a list of skills, see the fit report from the rules engine.
   Check: it works on the live link.
-  Note: a requirement whose skills are all unlisted (provisional `new:` ids from step 3.1) counts as not met. The report must say so on its verdict line ("X: not in our skill list yet, so it can't be matched with your CV") and show how many requirements are in that state. The skills a person pastes go through the same name-to-id function as the ad's skills (see docs/PLAN-3.1.md).
+  Note: a requirement whose skills are all unlisted (provisional `new:` ids from step 3.1) counts as not met. The report must say so on its verdict line ("X: not in our skill list yet, so it can't be matched with your CV") and show how many requirements are in that state. The skills a person pastes go through the same name-to-id function as the ad's skills (see docs/PLAN-3.1.md). (Changed 2026-11-17 on the branch step-6.2, merge into main pending: such a requirement is now shown as "could not judge" and is not counted; see DECISIONS 2026-11-17.)
   Note: live check done on the live link: Northwind ad + 6-line list gave Good (skills only), 2 of 3 musts; removing SQL gave Stretch (skills only), 2 of 3 missing, updated at once with no new AI call
 
 ## Day 4: The CV comes in
@@ -102,12 +109,15 @@ Note: until this day's vocabulary exists, skill names are free text, so the same
 
 Goal: a person builds up a list of jobs, each with a clear report.
 
-- [ ] **6.1** Keep the profile and saved jobs in the browser's own database (IndexedDB); no accounts yet.
+- [x] **6.1** Keep the profile and saved jobs in the browser's own database (IndexedDB); no accounts yet.
   Check: 15 saved ads survive a reload.
+  Note: built on main (docs/PLAN-6.1.md). Manual check passed 25 of 25 on the live site, 2026-11-17 (steps 18 and 20 at page level only; log in docs/MANUAL-CHECK-6.1.md). Ticked with the merge of step-7.1 (which contains step-6.2).
 - [ ] **6.1b** Access code on the two AI routes (docs/PLAN-ACCESS-CODE.md).
   Check: section 6 of that plan passes on the live site.
+  Note: Built on the branch step-6.1b-access-code and merged into main with step-7.1. Steps 1 to 9 of docs/MANUAL-CHECK-6.1b.md passed on the step-6.2 preview (5a52739), 2026-11-17; step 12: NOT RECORDED; step 2 on the live address and steps 10, 11 and 13 are OPEN. ACCESS_CODE is set in Vercel (the value is private).
 - [ ] **6.2** Jobs page: paste an ad, check its requirements, save.
   Check: a saved ad shows in the list with its fit level.
+  Note: Built on the branch step-6.2 (docs/PLAN-6.2.md, revision 2) and merged into main with step-7.1; its manual check (docs/MANUAL-CHECK-6.2.md and docs/MANUAL-CHECK-FIT.md) has no recorded result, so it is NOT ticked; on 2026-11-24 the saved-ad levels, their order, the no-profile note and "Delete this profile" were seen on build 0ac2632. The remove-only list is not built (HANDOFF item 20).
 - [ ] **6.3** Fit report page: the level first, then each must-have with its evidence, conflicts in plain sentences, then nice-to-haves.
   Check: the report matches the day 2 printout for the same data.
 
@@ -117,8 +127,9 @@ Goal: the part no chat window offers.
 
 Later: treat closing a closable conflict (language one level, one year of experience) as an unlock candidate, so the roadmap can say 'reach C1 English and N more jobs open up'.
 
-- [ ] **7.1** Gap list across saved jobs: each missing skill with how many jobs ask for it, must and nice counted apart.
+- [x] **7.1** Gap list across saved jobs: each missing skill with how many jobs ask for it, must and nice counted apart.
   Check: the counts match a hand count for one test profile.
+  Note: manual check passed on build 0ac2632, 2026-11-24 (invented material; step 10, the ten ads, runs in the later sitting on the step-8.2 build).
 - [ ] **7.2** Unlock ranking, shown once 10 jobs are saved, as counts.
   Check: the page agrees with the engine.
 - [ ] **7.3** Dated timeline from skills in progress ("by 20 December: 6 more strong matches").

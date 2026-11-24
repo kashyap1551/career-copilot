@@ -12,14 +12,18 @@ import { openJob } from "@/lib/saved/openJob";
 import { loadJob } from "@/lib/saved/saved";
 import type { CvBuildResult } from "@/lib/engine/fromCv";
 import ConfirmBox from "./ConfirmBox";
+import AccessBox from "./AccessBox";
+import { postJson } from "./accessFetch";
 import CvBox from "./CvBox";
-import { profileReport } from "./fitReport";
+import { roadmapAds, roadmapBoxSafe } from "./roadmap";
+import RoadmapView from "./RoadmapView";
+import { openedReadings, reportFor } from "./savedAdRows";
 import ReportView from "./ReportView";
 import { adStatusKey, openView, profileKey } from "@/lib/saved/ui";
 import { AdStatus, SaveAdButton, SaveProfileButton, SavedAdsList, SavedDeleteAll, SavedOffer, SavedStatus } from "./SavedControls";
 import { closeMatchLines, reportNote } from "./reportText";
 import { readSkillList, skillsOnlyReport } from "./skillsOnly";
-import { useSaved } from "./useSaved";
+import { NO_ADS, useSaved } from "./useSaved";
 
 // One page, in this order: your CV, confirm your profile, the job ad, the
 // report (D6; nothing is stored). The AI reads the CV and the ad; plain code
@@ -69,11 +73,10 @@ export default function Home() {
     setFresh(null);
     setRereadOffered(false);
     try {
-      const res = await fetch("/api/read", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
-      });
+      // One helper sends it (app/accessFetch.ts): it adds the access code header; a 401 shows the Access code box instead.
+      const sent = await postJson("/api/read", { text }, { source: "ad" });
+      if (sent.kind === "access") return;
+      const res = sent.res;
       // If the server's answer is not JSON (for example a timeout page),
       // fall back to a plain message instead of crashing.
       const data = await res.json().catch(() => null);
@@ -137,7 +140,7 @@ export default function Home() {
     if (profile) {
       return {
         kind: "cv" as const,
-        view: profileReport(result.job, profile, skills, [...result.unlisted, ...(cvRead?.result.unlisted ?? [])]),
+        view: reportFor(result, profile, skills, cvRead?.result.unlisted ?? []),
       };
     }
     return {
@@ -145,6 +148,15 @@ export default function Home() {
       view: { ...skillsOnlyReport(result.job, list.cvLines, list.lines, skills, result.unlisted), conflicts: [] as string[] },
     };
   }, [result, profile, cvRead, list]);
+
+  // Step 7.1: the "What to learn" box. It reads only what the page already holds (the saved ads from the single read at load, and
+  // the profile in use): no storage read, no AI call. It recomputes when the ads or the profile change.
+  const adList = saved.state.phase === "ready" ? saved.state.ads.list : NO_ADS.list;
+  const adStamps = saved.state.phase === "ready" && saved.state.ctx ? saved.state.ctx.stamps : null;
+  const roadmap = useMemo(
+    () => roadmapBoxSafe(profile, roadmapAds(adStamps ? openedReadings(adList, { stamps: adStamps, skills }) : []), skills),
+    [adList, adStamps, profile],
+  );
 
   // Names the reader matched by close spelling (stage 2): one short line each; exact matches show nothing.
   const closeLines = result ? closeMatchLines(result.job.requirements, (id) => skills.find((k) => k.id === id)?.name ?? id) : [];
@@ -221,6 +233,8 @@ export default function Home() {
         </button>
       </div>
 
+      <AccessBox source="ad" />
+
       {error && (
         <p role="alert" className="rounded border border-red-400 p-3 text-red-600 dark:text-red-400">
           {error}
@@ -228,7 +242,8 @@ export default function Home() {
       )}
 
       <AdStatus saved={saved} adKey={adStatusKey(text)} />
-      <SavedAdsList saved={saved} onOpen={onOpenAd} />
+      <SavedAdsList saved={saved} onOpen={onOpenAd} profile={profile} skills={skills} />
+      <RoadmapView box={roadmap} />
 
       {result && report && (
         <>

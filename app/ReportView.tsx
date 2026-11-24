@@ -1,5 +1,5 @@
 import type { NotCounted } from "@/lib/engine/fromAd";
-import { checkYourselfRows, notCountedSentence } from "./reportText";
+import { checkYourselfRows, couldNotJudgeCounts, couldNotJudgeNote, notCountedSentence } from "./reportText";
 import type { RequirementRow } from "./skillsOnly";
 
 // The fit report as shown on the page: the same for a confirmed CV profile and
@@ -11,9 +11,12 @@ export type ReportViewData = {
   explanation: string;
   counts: { mustsMet: number; mustsTotal: number; nicesMet: number; nicesTotal: number };
   rows: RequirementRow[];
-  unlistedRequirements: number;
+  unlistedRequirements: number; // requirements not in our skill list yet: "could not judge", never counted
+  couldNotJudge?: { musts: number; nices: number };
   notJudged: string[];
   conflicts: string[];
+  satisfied?: string[]; // "Location: fine. ..." one line for each judged kind without a conflict
+
   checkYourself: string[];
 };
 
@@ -31,6 +34,8 @@ export default function ReportView({
   notCounted?: NotCounted[];
 }) {
   const notCountedText = notCountedSentence(notCounted.length);
+  const couldNotJudgeText = couldNotJudgeCounts(report.couldNotJudge?.musts ?? 0, report.couldNotJudge?.nices ?? 0);
+  const couldNotJudgeAmber = couldNotJudgeNote(report.unlistedRequirements);
   const checkRows = checkYourselfRows(report.checkYourself, notCounted);
   return (
     <section className="flex flex-col gap-3">
@@ -40,17 +45,12 @@ export default function ReportView({
       <p className="text-sm">
         Must-haves met: {report.counts.mustsMet} of {report.counts.mustsTotal}. Nice-to-haves met:{" "}
         {report.counts.nicesMet} of {report.counts.nicesTotal}.
+        {couldNotJudgeText ? ` ${couldNotJudgeText}` : ""}
         {notCountedText ? ` ${notCountedText}` : ""}
       </p>
       <p className="text-sm text-zinc-600 dark:text-zinc-400">{note}</p>
 
-      {report.unlistedRequirements > 0 && (
-        <p className="rounded border border-amber-500 p-3 text-sm">
-          {report.unlistedRequirements} of {report.rows.length}{" "}
-          {report.rows.length === 1 ? "requirement is" : "requirements are"} not in our skill list yet, so they
-          count as not met.
-        </p>
-      )}
+      {couldNotJudgeAmber && <p className="rounded border border-amber-500 p-3 text-sm">{couldNotJudgeAmber}</p>}
 
       {report.conflicts.length > 0 && (
         <div className="text-sm">
@@ -58,6 +58,17 @@ export default function ReportView({
           <ul className="list-disc pl-5">
             {report.conflicts.map((c, i) => (
               <li key={i}>{c}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {report.satisfied && report.satisfied.length > 0 && (
+        <div className="text-sm">
+          <p className="font-medium">Checked and fine:</p>
+          <ul className="list-disc pl-5">
+            {report.satisfied.map((l, i) => (
+              <li key={i}>{l}</li>
             ))}
           </ul>
         </div>
@@ -75,7 +86,7 @@ export default function ReportView({
                   <p className="text-sm text-zinc-600 dark:text-zinc-400">&ldquo;{r.quote}&rdquo;</p>
                   <p className="text-sm">
                     <span className="font-medium">
-                      {r.status === "met" ? "Met" : r.status === "unlisted" ? "Not met" : "Missing"}
+                      {r.status === "met" ? "Met" : r.status === "unlisted" ? "Could not judge" : "Missing"}
                     </span>{" "}
                     &mdash; {r.detail}
                   </p>

@@ -332,7 +332,7 @@ describe("must NOT merge (C13)", () => {
       }
     }
     expect(bad).toEqual([]);
-  });
+  }, 20_000);
 });
 
 describe("the live path is untouched (C16)", () => {

@@ -1,16 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { BuiltProfile } from "@/lib/cv/profile";
 import { KINDS, KIND_WORDS } from "@/lib/cv/profile";
 import { skills } from "@/fixtures/skills";
+import { forgetCodeOnDeleteAll } from "./accessFetch";
 import { deleteStatus, SAVE_NOTICE, saveStatus } from "@/lib/saved/messages";
 import { summarizeProfile } from "@/lib/saved/profile";
 import type { SavedReading } from "@/lib/saved/types";
 import { deleteAll, deleteJob, deleteProfile, listJobs, saveJob, saveProfile } from "@/lib/saved/saved";
-import { adStatusKey, canSaveAd, jobRows, listNotice, profileKey, statusVisible } from "@/lib/saved/ui";
+import { adStatusKey, canSaveAd, listNotice, profileKey, statusVisible } from "@/lib/saved/ui";
 import type { ExtractedAd } from "@/lib/schemas/job";
 import type { SavedProfile } from "@/lib/saved/types";
+import type { Skill } from "@/lib/engine/types";
+import { openedReadings, rankedAdRows } from "./savedAdRows";
 import { NO_ADS, type Saved } from "./useSaved";
 
 // 6.1 part 3b: the profile controls on the page, in the style of the existing page. Display and wiring only: every decision
@@ -203,6 +206,7 @@ export function SavedDeleteAll({ saved, onForget }: { saved: Saved; onForget: ()
   // Click handler (the second step, "Yes, delete everything"): the ONLY place everything is deleted.
   async function onDeleteAll() {
     setConfirming(false);
+    forgetCodeOnDeleteAll(); // the access code kept in this tab goes first, whether or not the delete works (PLAN-ACCESS-CODE section 3)
     setStatus("Deleting…");
     const result = await deleteAll(ctx);
     setStatus(deleteStatus(result, "everything"));
@@ -291,15 +295,31 @@ export function SaveAdButton({
 }
 
 // "Saved ads": shown when there is at least one saved ad or something to say about the list. Each row: the label, the date,
+// and (6.2, docs/PLAN-6.2.md) the fit level of the profile IN USE: the very profile the report uses, passed in as `profile`,
+// never read from storage here. The level text is the report's own label (app/savedAdRows.ts), never written here.
 // "Open" and "Delete". No cap on the number of ads.
-export function SavedAdsList({ saved, onOpen }: { saved: Saved; onOpen: (id: string) => void }) {
+export function SavedAdsList({
+  saved,
+  onOpen,
+  profile,
+  skills,
+}: {
+  saved: Saved;
+  onOpen: (id: string) => void;
+  profile: BuiltProfile | null;
+  skills: Skill[];
+}) {
   const { state, setAdStatus, setAds } = saved;
+  const adList = state.phase === "ready" ? state.ads.list : NO_ADS.list;
+  const stamps = state.phase === "ready" && state.ctx ? state.ctx.stamps : null;
+  // Step 1 depends on the ads and the stamps only; step 2 also on the profile in use (so the rows follow the confirm screen).
+  const opened = useMemo(() => (stamps ? openedReadings(adList, { stamps, skills }) : []), [adList, stamps, skills]);
+  const view = useMemo(() => rankedAdRows(opened, profile, skills), [opened, profile, skills]);
   if (state.phase !== "ready" || !state.available || !state.ctx) return null;
   const ctx = state.ctx;
   const ads = state.ads;
-  const rows = jobRows(ads.list);
   const notice = listNotice(ads.corrupted, ads.newer);
-  if (rows.length === 0 && notice === null) return null;
+  if (view.rows.length === 0 && notice === null) return null;
 
   // Click handler: delete ONE saved ad; the list is updated from the result.
   async function onDeleteAd(id: string) {
@@ -311,6 +331,7 @@ export function SavedAdsList({ saved, onOpen }: { saved: Saved; onOpen: (id: str
   return (
     <div className="flex flex-col gap-2 rounded border border-zinc-300 p-3 text-sm dark:border-zinc-700">
       <p className="font-medium">Saved ads</p>
+      {view.note && <p className={quiet}>{view.note}</p>}
       {notice && (
         <ul className={`list-disc pl-5 ${quiet}`}>
           {notice.map((line) => (
@@ -318,12 +339,18 @@ export function SavedAdsList({ saved, onOpen }: { saved: Saved; onOpen: (id: str
           ))}
         </ul>
       )}
-      <ul className="flex flex-col gap-1">
-        {rows.map((r) => (
+      <ul className="flex flex-col gap-2">
+        {view.rows.map((r) => (
           <li key={r.id} className="flex flex-wrap items-center gap-2">
-            <span>
-              {r.label} <span className={quiet}>({r.date})</span>
-            </span>
+            <div className="flex flex-col">
+              <span>
+                {r.titleLine} <span className={quiet}>({r.date})</span>
+              </span>
+              {r.levelLine && <span>{r.levelLine}</span>}
+              {r.namedReason && <span className={quiet}>{r.namedReason}</span>}
+              {r.oldReadingLine && <span className={quiet}>{r.oldReadingLine}</span>}
+              {r.errorLine && <span className={quiet}>{r.errorLine}</span>}
+            </div>
             <button className={button} onClick={() => onOpen(r.id)}>
               Open
             </button>

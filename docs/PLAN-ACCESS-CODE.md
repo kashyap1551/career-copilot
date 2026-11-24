@@ -93,7 +93,7 @@ The typed code is trimmed and capped at 128 characters; the input is `type="pass
 - `sessionStorage`, key `career-copilot.access-code`, every access inside try/catch. It is cleared when the tab closes, and other tabs do not see it.
 - NEVER `localStorage` and never IndexedDB. The saved profile and ads are kept on the device on purpose, and the notice says anyone who uses the browser can see them; a code is a credential and must not outlive the tab.
 - If `sessionStorage` is unavailable or throws, the code is kept in the page's memory only (until reload); the app still works.
-- "Delete everything saved on this device" also forgets the code (proposed). The message stays "Everything saved on this device was deleted." (no new wording; the person is simply asked again at the next 401).
+- "Delete everything saved on this device" also forgets the code (decided by the reviewer, 2026-11-17): the code is forgotten **as soon as the person presses "Yes, delete everything"**, BEFORE the delete is attempted, **even if the delete itself fails**. Never on Cancel (Cancel only closes the question). The message stays "Everything saved on this device was deleted." (no new wording; the person is simply asked again at the next 401).
 
 **A wrong code.** On a 401 that followed a send WITH a code, the kept code is removed (no stale code is sent again), the message "That access code was not accepted..." shows, the box stays open with the input empty. There is no counter and no lockout in the page (non-goal; the server and the Firewall rule do the limiting).
 
@@ -115,7 +115,7 @@ Steps:
 3. In the rule's action list choose **Rate Limit**. When the pricing dialog appears, STOP: read it, send its words to the reviewer, and press Continue only after the reviewer says nothing is bought.
 4. Condition "Request Path" "starts with" `/api/`; key: IP address; a fixed window; default action 429.
 5. Starting value: **10 requests per 60 seconds per address.** Reason: several people on one network share one address, and one real use of the page is one CV read and a few ad reads a minute.
-6. Afterwards the check in section 6 step 12: a normal minute (one CV and three ads, four requests) never gets 429; a loop does.
+6. Afterwards the check in section 6 step 13: a normal minute (one CV and three ads, four requests) never gets 429; a loop does.
 7. Record the result in docs/DECISIONS.md and HANDOFF (offered: yes/no; the values; what the pricing dialog said).
 
 Because every 401 is also a request to `/api/*`, the same rule limits guessing of the code.
@@ -167,7 +167,7 @@ Setup, for both routes in turn (one parametrised test file): `ACCESS_CODE` is a 
 | A18 | every case above | | no `console.*` call received an argument containing the right code or the sent value |
 | A19 | one-off: a code with a trailing wrong character or the right code minus its last character | 401 | the same body |
 
-Page and helper tests (plain functions, no browser): (P1) `accessHeaders(null)` is `{}`, `accessHeaders("abc")` is `{ "x-access-code": "abc" }`; (P2) the message table of section 3: (401, nothing sent) gives the "Enter the access code..." sentence, (401, code sent) gives the "not accepted" sentence; (P3) with a fake `sessionStorage`: save, read, forget round-trip; a fake that throws on every call gives `null` and a memory fallback, never an exception; (P4) `postJson` with a fake `fetch`: the address passed has no `?` and no code in it, the header is present when a code is kept, absent when not; (P5) a 401 after a send with a code removes the kept code, a 401 after a send without one keeps nothing; (P6) the delete-everything effect list includes forgetting the code; (P7) source guards: no file under `app/` imports `lib/ai/accessCode`; no source file contains `NEXT_PUBLIC_ACCESS`; `app/accessFetch.ts` contains neither `localStorage` nor `indexedDB`; (P8) source guard, one for every route: every file matching `app/api/**/route.ts` calls `checkAccess(` (the allow-list is EMPTY), so a future route cannot forget it.
+Page and helper tests (plain functions, no browser): (P1) `accessHeaders(null)` is `{}`, `accessHeaders("abc")` is `{ "x-access-code": "abc" }`; (P2) the message table of section 3: (401, nothing sent) gives the "Enter the access code..." sentence, (401, code sent) gives the "not accepted" sentence; (P3) with a fake `sessionStorage`: save, read, forget round-trip; a fake that throws on every call gives `null` and a memory fallback, never an exception; (P4) `postJson` with a fake `fetch`: the address passed has no `?` and no code in it, the header is present when a code is kept, absent when not; (P5) a 401 after a send with a code removes the kept code, a 401 after a send without one keeps nothing; (P6) `forgetCodeOnDeleteAll` forgets the code from the tab storage and from memory (also with a blocked storage), and a source guard checks that `app/SavedControls.tsx` calls it inside `onDeleteAll` BEFORE `await deleteAll(` and nowhere else (so not in the Cancel handler); (P7) source guards: no file under `app/` imports `lib/ai/accessCode`; no source file contains `NEXT_PUBLIC_ACCESS`; `app/accessFetch.ts` contains neither `localStorage` nor `indexedDB`; (P8) source guard, one for every route: every file matching `app/api/**/route.ts` calls `checkAccess(` (the allow-list is EMPTY), so a future route cannot forget it.
 
 **The existing route tests run as `NODE_ENV` "test" with `ACCESS_CODE` unset, so they stay open and must pass WITHOUT any edit** (tests/cvRoute.test.ts, tests/readRoute.test.ts, tests/readCacheRoute.test.ts, tests/readCache.test.ts, tests/readExtraction.test.ts, tests/noStoreHeader.test.ts, and any other that calls a route). If one of them needs an edit when this is built, STOP and tell the reviewer why before changing it.
 
@@ -195,6 +195,7 @@ Page and helper tests (plain functions, no browser): (P1) `accessHeaders(null)` 
 | b18 | a wrong code stays kept | P5 |
 | b19 | open for every `NODE_ENV` that is not "production" | A8d and A8e |
 | b20 | a new route file under `app/api/` without the check | P8 |
+| b21 | the delete-everything click does not forget the code first (call removed, moved after the delete on success only, or also in Cancel) | the P6 wiring guard |
 
 Hand-work discipline as always: expectations come from the tables above; if a test fails, I say whether the code or the hand count is wrong and never change the expectation. A test that passes at once is reported as a guard. Counts before and after, the three hashes (ad 85357f8fac, CV 193e02ee3f, vocabulary e96370fe4c) and READING_VERSION "3" stay unchanged: this step does not touch the reading.
 
@@ -212,7 +213,8 @@ Use the invented CV and ads of docs/MANUAL-CHECK-6.1.md only. Chrome, a normal w
 9. **Do:** enter the right code again, then close the whole Incognito window, open a new one, paste the CV and press Send. **Expect:** asked again (the code did not outlive the tab).
 10. **Do (optional, in a terminal; no AI call is made):** `curl -i -X POST <the live site>/api/read -H 'content-type: application/json' -d '{"text":"x"}'` **Expect:** `HTTP/2 401`, `cache-control: no-store`, and the one-line message.
 11. **Do:** in the Vercel dashboard open the project's **Logs** for those requests. **Expect (to be confirmed by looking, not assumed):** paths and statuses, no header values and no code.
-12. **Do (Firewall, section 4; no AI call is made, because every request is refused before the AI):** in a terminal, replacing the placeholder with the site address:
+12. **Do:** with a code kept and a profile saved, press **Delete everything saved on this device**, then **Yes, delete everything**. **Expect:** "Everything saved on this device was deleted." and the next send asks for the access code again (the code is forgotten as soon as you confirm, even if the delete itself fails).
+13. **Do (Firewall, section 4; no AI call is made, because every request is refused before the AI):** in a terminal, replacing the placeholder with the site address:
     `for i in $(seq 1 12); do curl -s -o /dev/null -w "%{http_code}\n" -X POST <the live site>/api/read -H 'content-type: application/json' -d '{"text":"x"}'; done`
     It sends 12 requests WITHOUT a code and prints only the status codes, one per line. **Expect:** 401 first, then 429 once the rule bites (about the 11th line; the exact switch point may differ by a request or two: the window is fixed and the counters are per region). **Also expect:** normal use (one CV and three ads in a minute, four requests) never gets 429. If the rule does not bite, report what the rule list offered and what the pricing dialog said.
 Send back "passed" or the step number and what was seen. 6.1b is ticked only when all of these pass.
@@ -239,7 +241,7 @@ Proposal: a step **6.1b "Access code"**, built **after 6.1 is ticked** (the owne
 - Cost of this placement: one half day before 6.2. The alternative (after 6.3) keeps the Day 6 product flow unbroken but leaves the routes open for longer; nothing may be shared in that time.
 - It does not replace 9.2 (a daily cap per person and the "busy" message), which stays where it is.
 
-Build order, if approved: (1) read the Next route-handler docs; (2) tests A1 to A19 (with A8b to A8e and A9 to A9c) and P1 to P8 from section 5, shown red; the existing route tests must pass untouched; (3) `accessMessages.ts`, `accessCode.ts`, both routes; (4) `accessFetch.ts`, the box, wiring the two fetch calls; (5) breaks b1 to b20; (6) docs: DECISIONS lines, HANDOFF, a step added to MANUAL-CHECK; gate; commit; push; (7) the owner sets the variable and runs section 6.
+Build order, if approved: (1) read the Next route-handler docs; (2) tests A1 to A19 (with A8b to A8e and A9 to A9c) and P1 to P8 from section 5, shown red; the existing route tests must pass untouched; (3) `accessMessages.ts`, `accessCode.ts`, both routes; (4) `accessFetch.ts`, the box, wiring the two fetch calls; (5) breaks b1 to b21; (6) docs: DECISIONS lines, HANDOFF, a step added to MANUAL-CHECK; gate; commit; push; (7) the owner sets the variable and runs section 6.
 
 ## 10. Questions for the reviewer, each with the proposed answer
 
@@ -260,7 +262,7 @@ Build order, if approved: (1) read the Next route-handler docs; (2) tests A1 to 
 8. **Where the code is kept:** `sessionStorage` with a memory fallback, never `localStorage` or IndexedDB? Proposed: yes (section 3).
    Reviewer: yes.
 9. **"Delete everything saved on this device" also forgets the code**, with the message unchanged? Proposed: yes.
-   Reviewer: yes.
+   Reviewer: yes, and the code is forgotten as soon as the person presses "Yes, delete everything", before the delete is attempted, even if the delete itself fails; never on Cancel.
 10. **Placement:** step 6.1b after 6.1 is ticked and before 6.2? Proposed: yes (section 9).
    Reviewer: yes.
 11. **No lockout or counter in the app before the repository goes public;** the Firewall rule and the code length are enough, and if the rule does not exist on Hobby we record that and accept it? Proposed: yes.
@@ -269,3 +271,9 @@ Build order, if approved: (1) read the Next route-handler docs; (2) tests A1 to 
    Reviewer: the code is required; the rate rule is required too, since Hobby offers it; 10 a minute.
 13. **This plan is a committed file and will be public with the repository.** It describes the design and what the code does not stop, and contains no value, no address and no quota number. Publish it as it is, or keep it out of the public tree until the code is built and checked? Proposed: it may be committed now (a design is not a secret); no further weak-spot detail goes into any other committed file (the owner's instruction of 2026-11-17 stays).
    Reviewer: commit now; the repository is private; when the public copy is made, rewrite the sentences that say the routes are open today into the past tense, and review this plan.
+
+**Build notes (reviewer, 2026-11-17).**
+- P7 is narrowed to client files: no file under `app/` outside `app/api/` may import `lib/ai/accessCode` (the routes under `app/api/` must import it).
+- b7 (the blank-code check removed on its own) is an equivalent change: the 16-character minimum already rejects a blank code, so no test can tell; b7 together with b8 (no minimum) is caught by A8c.
+- The Access code box sits next to the CV send button and next to the ad read button; the ad box also shows it while a code is kept, with "Forget the code".
+- "Delete everything saved on this device" forgets the code as soon as "Yes, delete everything" is pressed, before the delete, whether or not it works; never on Cancel (b21).
