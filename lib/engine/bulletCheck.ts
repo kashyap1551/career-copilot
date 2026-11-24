@@ -307,15 +307,17 @@ function check(bullet: string, cited: readonly number[], ctx: BulletContext): Bu
   const orders = lineItems.length === 2 ? [[...lineItems[0], ...lineItems[1]], [...lineItems[1], ...lineItems[0]]] : [lineItems[0]];
   if (!orders.some((line) => inOrder(bulletItems, line))) return reject("reordered");
 
-  // R11. Fragment (amendment 0.33). a) and b) work on whole whitespace chunks, stripped of leading and trailing characters that are neither a letter nor a digit and folded,
-  // so "A/B" stays "a/b" (never the article "a") and "sign-up" stays whole. c) uses the checker's tokens: a pronoun, and the bullet does not start at the line's first word.
+  // R11. Fragment (amendments 0.33 and 0.34). a) and b) work on whole whitespace chunks, stripped of leading and trailing characters that are neither a letter nor a digit and folded,
+  // so "A/B" stays "a/b" (never the article "a") and "sign-up" stays whole. c) uses the checker's tokens: a pronoun. A bullet that starts at its (first) cited line's first word is whole at
+  // its start: a) does not fire for it, and c) does not either. An acronym (two letters or more, no lower-case letter: IT, ER) is not a pronoun.
+  const lineFirstWord = facts.tokenLists[0].find((t): t is Extract<Token, { k: "word" }> => t.k === "word");
+  const startsAtLineStart = words.length > 0 && words[0].f === lineFirstWord?.f;
+  const isAcronym = (raw: string) => (raw.match(/\p{L}/gu)?.length ?? 0) >= 2 && !/\p{Ll}/u.test(raw);
   const chunks = text.split(/\s+/).filter((c) => c !== "");
   const chunkWord = (c: string) => foldText(c.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, ""));
-  if (FRAGMENT_FUNCTION_WORDS.has(chunkWord(chunks[0])) || FRAGMENT_FUNCTION_WORDS.has(chunkWord(chunks[chunks.length - 1]))) return reject("fragment");
-  if (words.some((w) => FRAGMENT_PRONOUNS.has(w.f))) {
-    const lineFirst = facts.tokenLists[0].find((t): t is Extract<Token, { k: "word" }> => t.k === "word");
-    if (words[0].f !== lineFirst?.f) return reject("fragment");
-  }
+  if (!startsAtLineStart && FRAGMENT_FUNCTION_WORDS.has(chunkWord(chunks[0]))) return reject("fragment");
+  if (FRAGMENT_FUNCTION_WORDS.has(chunkWord(chunks[chunks.length - 1]))) return reject("fragment");
+  if (!startsAtLineStart && words.some((w) => FRAGMENT_PRONOUNS.has(w.f) && !isAcronym(w.raw))) return reject("fragment");
 
   return OK;
 }
