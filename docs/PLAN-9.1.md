@@ -1,4 +1,4 @@
-STATUS: DRAFT v1, 2026-11-24, for the reviewer and the owner: no code, no test and no measure yet. Written from the code of origin/main (59e1895, the live site after the merge of step-7.1), NOT from step-8.3. Where a choice was open the recommended option is taken and marked **[R]**; each is listed in section 11 for the owner.
+STATUS: DRAFT v1 plus the reviewer's amendments 1 to 8 of 2026-11-24 (= revision 2). Decisions 1 to 7 of section 11 are approved as recommended by the reviewer; the owner may overrule before the merge. Amendments rule over the text above where they differ.
 
 # Plan for step 9.1: demo mode (try the product on invented data, no upload, no AI, no network)
 
@@ -172,3 +172,40 @@ The demo processes nothing about the visitor: no CV, no ad, no request, no stora
 5. **The ten ads.** Options: ten mixed-outcome ads (section 3) **[R]**; the ten SQL-only ads of docs/MANUAL-CHECK-TEN-ADS.md, already hand-checked but all Strong and a one-line roadmap. Matters because the demo is the product's first impression: the mixed set shows the gap list, the ranking and a blocked ad.
 6. **Delete buttons in the demo list.** Options: hidden **[R]**; shown and working on the demo copy. Shown ones let a visitor drop below 10 ads and see the threshold line, at the price of a way to break the demo state that only a reload repairs.
 7. **Language.** English only **[R]**; a German CV and German ads too (the engine reads both; the owner can check German). Matters for the first testers (10.1) if they read German.
+
+## 12. Amendments of the reviewer (2026-11-24)
+
+**A1. Manual check step 4 and the "Known gaps" of section 7.** The entry button is a Next `Link`. Pressing it makes Next itself fetch the demo route's data, so one Fetch/XHR row whose name contains `demo` or `_rsc` can appear right after the click; it is not a request of the demo's code. New order for the manual check: after the demo screen is fully shown, clear the Network log (filter Fetch/XHR), then untick Tableau, tick it again and press Open on two rows. Expect: no row at all. For the click itself expect: no row whose name contains `api` and no request to any address other than this site. S1 stays as written (it counts calls made by our code).
+
+**A2. Session storage is never opened in the manual check.** On the real page it holds the access code (standing rule of the owner). Steps 2, 9 and 11 look at IndexedDB only. Test S2 still spies on sessionStorage and localStorage.
+
+**A3. The label `DEMO_PREPARED` is now exactly:** "The AI readings in this demo were prepared in advance and are part of this page. No AI is used here, and nothing you do in the demo is sent anywhere. The live version reads your own CV and ads with AI." `DEMO_BANNER` stays as in section 2.5. Rule: no label may say that "no request is made" for the page as a whole (loading a page is a request); a claim must be about what the visitor does in the demo. Test V2 compares these exact words.
+
+**A4. New names for the ten ads.** The ten ads keep the skills, the levels and the order of section 3 and the city rule (Berlin; ad 9 in Exampleville), but their titles and companies are replaced by new invented ones. Rule: none of the ten titles-with-company and none of the ten companies occurs, ignoring case, anywhere in docs/, tests/, fixtures/, lib/ or app/ of origin/main and origin/step-8.3. Proof, by a case-insensitive search of both branches: for each of the ten, the number of hits of "title, company" and the number of hits of the company are 0 and 0 (a control search for "Northlake Foods Ltd" finds 33 lines, so the search works). The CV stays "Alex Example" and the city Exampleville stays. The final table replaces the table of section 3; the texts below replace the texts of section 3 and change nothing but the names. Redone by hand with the new names: every number of section 3 is unchanged (Strong 3, Good 4, Stretch 2, Long shot 1; with Tableau unticked 2, 4, 3, 1).
+
+| # | Title | Company | City | Must-haves | Nice-to-haves | Level (all three ticked) |
+|---|---|---|---|---|---|---|
+| 1 | Insight Analyst | Quillon Foods Ltd | Berlin | SQL, Tableau | Excel | Strong |
+| 2 | Records Clerk | Marrowby Freight Ltd | Berlin | Excel | Python, Power BI | Strong |
+| 3 | Revenue Analyst | Tarnbridge Mills Ltd | Berlin | SQL, Excel | | Strong |
+| 4 | BI Engineer | Pellwick Print Ltd | Berlin | SQL, Python | Tableau | Good |
+| 5 | Budget Analyst | Ostrander Glass Ltd | Berlin | Excel, Python | | Good |
+| 6 | Data Platform Engineer | Fenwick Quarry Ltd | Berlin | SQL, Python, Power BI | | Stretch |
+| 7 | Dashboard Specialist | Corvane Tools Ltd | Berlin | Power BI, Tableau | SQL | Good |
+| 8 | Management Reporting Lead | Haldane Paper Ltd | Berlin | Power BI, Excel | | Good |
+| 9 | Site Coordinator | Wexcombe Textiles Ltd | Exampleville | SQL, Tableau | | Long shot |
+| 10 | Campaign Analyst | Yarrowdale Games Ltd | Berlin | Python, Power BI | | Stretch |
+
+The texts (all three skills ticked, city Berlin):
+- *Row order of the list* (by level, then newest first): ads 1, 2, 3, 4, 5, 7, 8, 6, 10, 9, that is Insight Analyst, Records Clerk, Revenue Analyst, BI Engineer, Budget Analyst, Dashboard Specialist, Management Reporting Lead, Data Platform Engineer, Campaign Analyst, Site Coordinator. Each row's line is "Fit: <level> (judged: skills, location)". Ad 9 also carries "Long shot because of location: The job is in Exampleville; the cities on your profile are: Berlin. That can't be closed soon."
+- *Part A of the box, five lines in this order:* "Skills you are missing across your 10 saved ads"; the subtitle "(Counted against the profile in use. Must-haves and nice-to-haves are counted apart.)"; "Power BI: must-have in 4 ads, nice-to-have in 1 ad"; "Python: must-have in 4 ads, nice-to-have in 1 ad"; "1 of your 10 counted saved ads is held back by something other than skills (location), so learning the skills above may not open it." (The two rows are in this order because the engine sorts by must-have count, then nice-to-have count, then lower-case display name: lib/engine/gaps.ts lines 66 to 75.)
+- *Part B of the box, seven lines in this order:* "Already Strong: 3 jobs (Insight Analyst, Quillon Foods Ltd; Records Clerk, Marrowby Freight Ltd; Revenue Analyst, Tarnbridge Mills Ltd)"; "Skills to build, in order:"; "1. Power BI: unlocks 2 jobs (Dashboard Specialist, Corvane Tools Ltd; Management Reporting Lead, Haldane Paper Ltd). Total so far: 2 jobs."; "2. Python: unlocks 4 jobs (BI Engineer, Pellwick Print Ltd; Budget Analyst, Ostrander Glass Ltd; Data Platform Engineer, Fenwick Quarry Ltd; Campaign Analyst, Yarrowdale Games Ltd). Total so far: 6 jobs."; "Blocked jobs (skills alone can't make these Strong): 1"; "- Site Coordinator, Wexcombe Textiles Ltd: blocked by 1 thing; it can't be closed soon"; "(can't be closed soon) The job is in Exampleville; the cities on your profile are: Berlin."
+- *With Tableau unticked:* levels by ad 1 to 10: Good, Strong, Strong, Good, Good, Stretch, Stretch, Good, Long shot, Stretch (Strong 2: Records Clerk and Revenue Analyst; Good 4: ads 1, 4, 5, 8; Stretch 3: ads 6, 7, 10; Long shot 1: ad 9). Part A rows, in this order: "Power BI: must-have in 4 ads, nice-to-have in 1 ad"; "Python: must-have in 4 ads, nice-to-have in 1 ad"; "Tableau: must-have in 3 ads, nice-to-have in 1 ad". Part B first line: "Already Strong: 2 jobs (Records Clerk, Marrowby Freight Ltd; Revenue Analyst, Tarnbridge Mills Ltd)".
+
+**A5. The ten saved times.** `SavedContext` has an optional clock, `now?: () => Date` (lib/saved/saved.ts line 14); `nowOf(ctx)` reads it (line 22) and `saveJob` writes `savedAt: nowOf(ctx).toISOString()` (line 78). So `startDemo` calls the real `saveJob` once per ad with `{ ...ctx, now: () => new Date(Date.UTC(2026, 10, 24, 10, 10 - i, 0)) }` for ad number i (1 to 10): ad 1 is saved at 10:09:00 and ad 10 at 10:00:00 on the same fixed day, so the list (newest first) is ad 1 to ad 10. No change to lib/saved is needed.
+
+**A6. Build stage, after `npm run build`:** print the /demo line of the route table and search the built client files under .next/static for the strings `generateText` and `@ai-sdk`; expected 0 hits in files used by /demo (the AI library must not enter the demo's bundle). If a hit exists, report which chunk.
+
+**A7. Merge time.** The unmerged chain and this step both append lines at the end of docs/DECISIONS.md and edit docs/SPRINT.md and docs/HANDOFF.md, so those files may conflict at merge time. At merge time run the trial merges (`git merge-tree --write-tree`) of step-9.1 with each chain branch before any real merge; resolve by keeping both sides' lines, never by dropping one, and only with the reviewer. The merge-time docs commit records, in DECISIONS, that 9.1 builds ONE sample CV and TEN ads where SPRINT says three CVs (decision 2), and amends the wording of SPRINT 9.1.
+
+**A8. Decisions 1 to 7 are taken as recommended.** Riders: no new dependency for browser tests (source guards plus the manual check stand); the stale header comment of app/page.tsx ("nothing is stored") is NOT touched by 9.1 (later item); decision 3 adds no warning text.
