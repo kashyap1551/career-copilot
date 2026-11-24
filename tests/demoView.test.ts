@@ -31,8 +31,8 @@ describe("the demo screens and what the source may contain (PLAN-9.1 sections 2.
   // V1 (section 6, section 2.5): the banner is rendered by the demo layout, so every demo page has it.
   it("V1: app/demo/layout.tsx renders DEMO_BANNER and the exit link; app/demo/page.tsx renders DEMO_PREPARED", () => {
     const layout = read("app/demo/layout.tsx");
-    expect(layout).toContain("DEMO_BANNER");
-    expect(layout).toContain("DEMO_EXIT");
+    expect(layout).toContain("{DEMO_BANNER}");
+    expect(layout).toContain("{DEMO_EXIT}");
     expect(layout).toContain("{children}");
     expect(read("app/demo/page.tsx")).toContain("DEMO_PREPARED");
   });
