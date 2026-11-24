@@ -60,6 +60,8 @@ This check makes **no AI read** and needs **no access code, no CV and nothing to
     **Expect:** identical before and after.
 12. **Do:** write down every word on the demo screen that could make a visitor think the data is their own, or that the AI read it live.
     **Expect:** none. If you find one, quote it.
+13. **Do:** close EVERY private window (Chrome shares what a page stores between private windows until the last one is closed). Open one new private window. Press **Cmd+Option+I**, open **Network**, tick **Preserve log**, choose the filter **Fetch/XHR**. Only then type the address of the demo page (the first-screen address with `/demo` at the end) and press Enter. Do NOT visit the first screen. Then open **Application** and **IndexedDB**.
+    **Expect:** the demo page opens as in steps 4 to 6. The Network list has no row whose name contains `api`. In IndexedDB **no database named `career-copilot` is listed** (this page never opens it). If it is listed, write down what is inside and send it to the reviewer. Do not open Session storage.
 
 ## What to send back
 
@@ -70,6 +72,7 @@ This check makes **no AI read** and needs **no access code, no CV and nothing to
 - the counts and the order with Tableau unticked (step 7);
 - what the Network list showed after the click (step 3) and after step 8, and what IndexedDB showed in steps 2 and 9;
 - any word that suggests the data is the visitor's own (step 12);
+- what the Network list and IndexedDB showed on the direct visit to the demo page (step 13);
 - any red text in the Console tab.
 
 ## Manual check log
@@ -88,3 +91,4 @@ This check makes **no AI read** and needs **no access code, no CV and nothing to
 | 10 | NOT RUN YET | |
 | 11 | NOT RUN YET | |
 | 12 | NOT RUN YET | |
+| 13 | NOT RUN YET | |
