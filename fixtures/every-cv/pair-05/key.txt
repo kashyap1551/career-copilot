@@ -5,45 +5,45 @@
 # Do not run the product while you write this key.
 
 R1 [must] "At least five years of experience supervising residential or commercial construction sites."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 5, 7, 8
 unsure:
-why:
+why: Line 7 shows Site Supervisor from 2019 to 2025 (six years) on apartment buildings, and he was a foreman before that.
 
 R2 [must] "Able to coordinate subcontractors and keep to the construction schedule."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 9, 22
 unsure:
-why:
+why: Line 9 says he coordinated bricklayers, electricians and plumbers day by day and kept the weekly schedule.
 
 R3 [must] "Experience with quantity take-off (Aufmass) and checking subcontractor invoices."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 10, 22
 unsure:
-why:
+why: Line 10 says he did the Aufmass for completed work and compared it with the subcontractors' invoices.
 
 R4 [must] "Knowledge of site safety rules and experience running safety briefings."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 11, 22
 unsure:
-why:
+why: Line 11 says he held the Monday safety briefing, checked scaffolds and kept the site safety file.
 
 R5 [must] "Able to read structural and architectural drawings."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 12, 22
 unsure:
-why:
+why: Line 12 says he read structural plans, floor plans and detail drawings to set out walls and openings.
 
 R6 [nice] "Experience with building information modelling."
-verdict:
-cv line(s):
-unsure:
-why:
+verdict: partly
+cv line(s): 14
+unsure: yes
+why: Line 14 says he looked at the 3D building model on a tablet to check clashes, but BIM is not named and he only viewed the model.
 
 R7 [nice] "Experience with the German construction contract rules (VOB)."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 13, 22
 unsure:
-why:
+why: Line 13 says he worked from the VOB/B contract terms when agreeing extra work with clients.
 
 T1 [trait, not counted] "You are a reliable team player with a hands-on approach."

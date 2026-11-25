@@ -5,51 +5,51 @@
 # Do not run the product while you write this key.
 
 R1 [must] "PhD in ecology, statistics, environmental science or a closely related field."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 7
 unsure:
-why:
+why: Line 7 says PhD in Ecology, University of Tarnwick, 2015-2019.
 
 R2 [must] "Strong experience with statistical modelling, ideally Bayesian or mixed-effects models."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 13, 17, 55
 unsure:
-why:
+why: Line 13 says she built a Bayesian hierarchical model on 1,200 plots, and line 17 says she used mixed-effects models and generalised additive models.
 
 R3 [must] "Proficiency in R or Python for reproducible data analysis."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 14, 59
 unsure:
-why:
+why: Line 14 says she developed a workflow in R and Python from raw sensor files to documented data sets, and line 59 lists R, Python and reproducible research tools.
 
 R4 [must] "Experience with spatial data and geographic information systems."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 18, 59, 61
 unsure:
-why:
+why: Line 18 says she classified satellite images and linked them to stream condition in a geographic information system, and line 59 lists QGIS and ArcGIS.
 
 R5 [must] "A record of peer-reviewed publications in international journals."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 23, 24, 25
 unsure:
-why:
+why: Lines 23 to 37 list many peer-reviewed papers from 2016 to 2025, with more listed on her institute page.
 
 R6 [must] "Experience writing grant proposals or contributing to funded projects."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 40, 41, 43
 unsure:
-why:
+why: Line 40 says she wrote the statistical and data management sections of a 2.4 million euro proposal, and line 41 says she was principal investigator of a funded project.
 
 R7 [nice] "Experience supervising master's or doctoral students."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 12, 45
 unsure:
-why:
+why: Line 45 says she co-supervised four master's theses and two doctoral students, and line 12 says she manages two doctoral students.
 
 R8 [nice] "Experience with high-performance computing clusters."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 14, 59, 89
 unsure:
-why:
+why: Line 14 says her workflow runs on the institute's computing cluster, and line 59 lists SLURM cluster jobs.
 
 T1 [trait, not counted] "You are independent, collaborative and committed to open science."

@@ -5,45 +5,45 @@
 # Do not run the product while you write this key.
 
 R1 [must] "Registered nurse with at least three years of experience on an adult medical or surgical ward."
-verdict:
-cv line(s):
-unsure:
-why:
+verdict: partly
+cv line(s): 5, 7
+unsure: yes
+why: Line 5 says two years, but the dates on line 7 are 2022-2025.
 
 R2 [must] "Confident in wound care and dressing changes, including complex wounds."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 9, 20
 unsure:
-why:
+why: Line 9 says she changed dressings on surgical wounds and drains and reported warning signs.
 
 R3 [must] "Experience with medication administration and double-checking procedures."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 10, 20
 unsure:
-why:
+why: Line 10 says she gave oral and injected medication under the two-nurse checking rule.
 
 R4 [must] "Able to carry out patient assessments and record vital signs accurately."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 8, 9, 20
 unsure:
-why:
+why: Line 8 says she took observations every four hours and wrote them on the chart.
 
 R5 [must] "Experience mentoring student nurses or new colleagues."
-verdict:
+verdict: none
 cv line(s):
 unsure:
-why:
+why: No line mentions mentoring or training students or new colleagues.
 
 R6 [nice] "Familiarity with an electronic patient record system."
-verdict:
+verdict: none
 cv line(s):
 unsure:
-why:
+why: Lines 8 and 20 say paper records, and no electronic system is named.
 
 R7 [nice] "Basic knowledge of infection prevention standards."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 12
 unsure:
-why:
+why: Line 12 says she took part in the monthly hand-hygiene check on the ward.
 
 T1 [trait, not counted] "You are a calm, reliable team player who stays patient under pressure."

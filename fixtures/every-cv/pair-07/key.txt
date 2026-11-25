@@ -5,45 +5,45 @@
 # Do not run the product while you write this key.
 
 R1 [must] "Able to analyse data with SQL or spreadsheets to answer product questions."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 9, 19, 27
 unsure:
-why:
+why: Line 9 says he analysed weekly sales in a spreadsheet to find slow dishes, and line 19 says he learned basic SQL and pivot tables.
 
 R2 [must] "Experience presenting findings to non-technical colleagues."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 12
 unsure:
-why:
+why: Line 12 says he presented monthly results to two owners who were not numbers people, using one page of charts and plain words.
 
 R3 [must] "Experience working with customer feedback to find problems and ideas."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 10
 unsure:
-why:
+why: Line 10 says he grouped guest feedback cards and online reviews into themes and turned the three most common into changes.
 
 R4 [must] "Comfortable prioritising tasks and working with several teams."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 8, 14
 unsure:
-why:
+why: Line 8 says he ran a team of 14 and built the rota around forecast covers, and line 14 says he handed over tasks between kitchen, bar and front of house.
 
 R5 [must] "Interest in and a basic understanding of A/B testing."
-verdict:
-cv line(s):
-unsure:
-why:
+verdict: partly
+cv line(s): 5, 11
+unsure: yes
+why: Line 11 describes a two-week trial of a new menu compared with the other weekdays, which is close to an A/B test, but A/B testing is not named.
 
 R6 [nice] "Experience with a dashboard tool such as Tableau or Power BI."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 22, 27
 unsure:
-why:
+why: Line 22 says he built a small sales dashboard in Power BI as a personal project.
 
 R7 [nice] "Some experience with Python."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 23, 27
 unsure:
-why:
+why: Line 23 says he wrote a short Python script to clean the weekly sales file.
 
 T1 [trait, not counted] "You are curious, proactive and a good communicator."

@@ -5,45 +5,45 @@
 # Do not run the product while you write this key.
 
 R1 [must] "At least two years of experience supporting solicitors in a commercial law practice."
-verdict:
-cv line(s):
-unsure:
-why:
+verdict: partly
+cv line(s): 7, 8
+unsure: yes
+why: Three years supporting solicitors (lines 7, 8), but the teams are employment and property, and the word commercial is not shown.
 
 R2 [must] "Able to draft routine contracts and letters from templates with careful attention to detail."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 5, 9, 21
 unsure:
-why:
+why: Line 9 says she drafted contracts and letters from templates, adjusted names, dates and clauses, and had every draft checked.
 
 R3 [must] "Experience with legal research in statutes and case-law databases."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 10, 21
 unsure:
-why:
+why: Line 10 says she researched employment law in the firm's statute and case-law subscriptions.
 
 R4 [must] "Experience managing client files, deadlines and court filing dates."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 8, 11, 21
 unsure:
-why:
+why: Line 8 says she kept client files in order and reminded the team of deadlines, and line 11 says she entered every tribunal filing date in the shared calendar.
 
 R5 [must] "Fluent written English and the ability to summarise long documents accurately."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 10, 13, 22
 unsure:
-why:
+why: Line 22 says English is her native language, and line 13 says she summarised long statements and email chains into one-page chronologies.
 
 R6 [nice] "Knowledge of data protection law."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 12
 unsure:
-why:
+why: Line 12 says she helped with subject access requests, which is a data protection task.
 
 R7 [nice] "Experience with document management software."
-verdict:
-cv line(s):
+verdict: partly
+cv line(s): 15
 unsure:
-why:
+why: Line 15 says she opened new matters in the practice system, which is close, but no document management software is named.
 
 T1 [trait, not counted] "You are discreet, organised and a dependable colleague."

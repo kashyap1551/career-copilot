@@ -5,45 +5,45 @@
 # Do not run the product while you write this key.
 
 R1 [must] "Qualified teacher status and experience teaching mathematics to students aged 11 to 16."
-verdict:
-cv line(s):
-unsure:
-why:
+verdict: partly
+cv line(s): 7, 8, 18
+unsure: yes
+why: Line 18 shows a PGCE in secondary mathematics but does not say qualified teacher status, and line 8 gives ages 12 to 16, not 11 to 16.
 
 R2 [must] "Able to plan lessons and schemes of work that match the national curriculum."
-verdict:
-cv line(s):
-unsure:
-why:
+verdict: partly
+cv line(s): 8, 21
+unsure: yes
+why: Line 8 says she planned lessons following the school's scheme of work, but writing schemes of work and the national curriculum are not mentioned.
 
 R3 [must] "Experience adapting lessons for students with special educational needs."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 10, 21
 unsure:
-why:
+why: Line 10 says she adjusted worksheets and seating for three students with dyslexia, with the learning-support team.
 
 R4 [must] "Confident in assessing student progress and reporting it to parents."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 9, 11, 21
 unsure:
-why:
+why: Line 9 says she marked work with written feedback, and line 11 says she held parents' evenings and wrote termly progress comments.
 
 R5 [must] "Experience leading or supporting extra-curricular activities."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 12, 21
 unsure:
-why:
+why: Line 12 says she ran an after-school coding club and organised a maths challenge day.
 
 R6 [nice] "Experience teaching A-level or equivalent further mathematics."
-verdict:
+verdict: none
 cv line(s):
 unsure:
-why:
+why: Her classes are aged 12 to 16, and no A-level or further mathematics is mentioned.
 
 R7 [nice] "Familiarity with online learning platforms."
-verdict:
-cv line(s):
+verdict: partly
+cv line(s): 13
 unsure:
-why:
+why: Line 13 says she taught online with weekly video sessions and shared task sheets, but no learning platform is named.
 
 T1 [trait, not counted] "You are patient, enthusiastic and a positive role model for young people."

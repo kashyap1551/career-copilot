@@ -5,45 +5,45 @@
 # Do not run the product while you write this key.
 
 R1 [must] "Two or more years of experience in customer service or order handling in logistics."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 5, 7
 unsure:
-why:
+why: Line 7 shows four years (2021-2025) as customer service and order handling at a freight forwarder.
 
 R2 [must] "Good knowledge of shipping documents such as bills of lading and customs forms."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 9, 20
 unsure:
-why:
+why: Line 9 says she created freight bills and accompanying papers and checked customs documents for completeness.
 
 R3 [must] "Able to track shipments and keep customers updated proactively."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 10, 20
 unsure:
-why:
+why: Line 10 says she tracked shipments in the carriers' portals and told customers about delays on her own.
 
 R4 [must] "Experience with an ERP or transport management system."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 8, 20
 unsure:
-why:
+why: Line 8 says she entered the orders in the transport management system every day.
 
 R5 [must] "Fluent English and German, written and spoken."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 13, 21
 unsure:
-why:
+why: Line 21 lists German as native and English at C1, and line 13 says she spoke and wrote emails in English with customers.
 
 R6 [nice] "Experience negotiating rates with carriers."
-verdict:
-cv line(s):
+verdict: partly
+cv line(s): 11
 unsure:
-why:
+why: Line 11 says she collected price quotes from carriers and compared them, but negotiating is not mentioned.
 
 R7 [nice] "Knowledge of customs procedures for non-EU shipments."
-verdict:
-cv line(s):
-unsure:
-why:
+verdict: partly
+cv line(s): 9
+unsure: yes
+why: Line 9 says she checked customs documents for Switzerland and Great Britain, but only for completeness, not the full customs procedure.
 
 T1 [trait, not counted] "You are friendly, resilient and enjoy working in a busy office."

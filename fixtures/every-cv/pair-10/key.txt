@@ -5,45 +5,45 @@
 # Do not run the product while you write this key.
 
 R1 [must] "Mindestens zwei Jahre Berufserfahrung in der Datenanalyse."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 5, 7
 unsure:
-why:
+why: Line 7 shows Data Analyst from 2022 to 2025, which is three years, and line 13 adds two years as junior analyst.
 
 R2 [must] "Sehr gute SQL-Kenntnisse für Abfragen auf großen Datenbanken."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 8, 20
 unsure:
-why:
+why: Line 8 says he wrote SQL queries against a PostgreSQL database with several hundred million rows.
 
 R3 [must] "Erfahrung mit Python zur Auswertung und Automatisierung von Daten."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 9, 20
 unsure:
-why:
+why: Line 9 says he automated the weekly sales report with a Python script using pandas.
 
 R4 [must] "Erfahrung mit Dashboards in Tableau oder Power BI."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 10, 20
 unsure:
-why:
+why: Line 10 says he built and maintained 12 dashboards in Tableau.
 
 R5 [must] "Fähigkeit, Ergebnisse verständlich für Fachabteilungen zu präsentieren."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 11
 unsure:
-why:
+why: Line 11 says he presented results every two weeks to the marketing and logistics departments and explained what the numbers meant.
 
 R6 [nice] "Kenntnisse in A/B-Tests und statistischer Auswertung."
-verdict:
-cv line(s):
+verdict: met
+cv line(s): 12, 17, 20
 unsure:
-why:
+why: Line 12 says he set up and evaluated three A/B tests and reported confidence intervals, and line 17 lists an MSc in Statistics.
 
 R7 [nice] "Erfahrung mit der Google Cloud Platform."
-verdict:
+verdict: none
 cv line(s):
 unsure:
-why:
+why: Google Cloud is not mentioned anywhere in the CV.
 
 T1 [trait, not counted] "Du bist eigenverantwortlich, neugierig und ein verlässlicher Teamplayer."
