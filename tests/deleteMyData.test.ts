@@ -1,8 +1,8 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { forgetCodeOnDeleteAll, keepAccessCode, readAccessCode } from "@/app/accessFetch";
-import { forgetConsent, giveConsent, readConsent } from "@/app/consent";
+import { forgetConsent, getConsentSnapshot, giveConsent, readConsent, subscribeConsent } from "@/app/consent";
 import { DELETE_ALL_DONE, TAB_ONLY_CONFIRM, TAB_ONLY_DONE, deleteAllMode, deleteAllShows } from "@/app/deleteAll";
 import { skills } from "@/fixtures/skills";
 import { buildProfile, initialConfirm } from "@/lib/cv/profile";
@@ -10,6 +10,7 @@ import { buildJob } from "@/lib/engine/fromAd";
 import { fromCv } from "@/lib/engine/fromCv";
 import { deleteAll, listJobs, loadProfile, saveJob, saveProfile } from "@/lib/saved/saved";
 import { MemoryStore } from "@/lib/saved/store";
+import { statusVisible } from "@/lib/saved/ui";
 
 // Step 9.3, stage 2.5 (docs/PLAN-9.3.md section 5, amendments A9, A11, A13): "Delete everything saved on this device" also forgets the tick, and is
 // also offered when saving is not available (then it only forgets the tab's access code and tick). Written BEFORE app/deleteAll.ts exists.
@@ -36,7 +37,18 @@ import { MemoryStore } from "@/lib/saved/store";
 //  D5  (source) in onDeleteAll the tab-only case returns BEFORE `await deleteAll(`: the body holds TAB_ONLY_DONE and a `return` before `await deleteAll(`,
 //      and the condition that returns is the tab-only mode (so deleteAll is never called with a missing store context).
 //
-// COUNTS: this file has 5 tests (D1 to D5).
+//  D6  (stage 2.5b) forgetConsent() and giveConsent() with NO argument, as onDeleteAll and the checkbox call them, use the tab's own store and tell
+//      the subscribers (so the checkbox in CvBox unticks without a reload). A fake store is put in place of the tab's storage. Subscribe a spy; then
+//      giveConsent(): the fake holds career-copilot.consent = "1", getConsentSnapshot() is true, the spy was called 1 time; then forgetConsent(): the
+//      fake holds 0 keys, getConsentSnapshot() is false, the spy was called 2 times in all; after unsubscribing, one more giveConsent() leaves it at 2.
+//  D7  (stage 2.5b) the control and the status line are drawn outside every condition. In app/page.tsx `<SavedDeleteAll` and `<SavedStatus` each
+//      occur once, with nothing before the tag on its line and no `&&` or `?` at the end of the line above; the body of SavedDeleteAll has exactly one
+//      `return null` and no `.available` (the pure functions decide); SavedStatus draws when `statusVisible(saved.status, currentKey)`; onDeleteAll's
+//      three setStatus calls ("Deleting…", TAB_ONLY_DONE, the success or failure line)
+//      each have ONE argument (no key; the exact words are pinned in D3); statusVisible({ text, key: null }, null) and (..., "some-profile-key") are true for both messages; useSaved.ts keeps
+//      the default key null.
+//
+// COUNTS: this file has 7 tests (D1 to D7).
 
 const root = process.cwd();
 const read = (rel: string) => readFileSync(join(root, rel), "utf8");
@@ -46,6 +58,8 @@ const bodyOfOnDeleteAll = () => {
   expect(start).toBeGreaterThan(0);
   return src.slice(start, src.indexOf("\n  }\n", start));
 };
+
+afterEach(() => vi.unstubAllGlobals());
 
 class FakeStore {
   m = new Map<string, string>();
@@ -119,9 +133,15 @@ describe("delete everything saved on this device (PLAN-9.3 section 5)", () => {
     expect(TAB_ONLY_DONE).toBe("Forgotten: the access code and the tick kept for this tab. Text still on the screen goes away when you reload the page.");
     const src = read("app/SavedControls.tsx");
     expect(src).toContain('from "./deleteAll"');
+    // Used OUTSIDE the import line (an import alone proves nothing).
+    const used = (name: string) => src.split("\n").filter((l) => !/^import\s/.test(l) && l.includes(name)).length;
+    expect(used("TAB_ONLY_CONFIRM"), "TAB_ONLY_CONFIRM is used in the control").toBeGreaterThanOrEqual(1);
+    expect(used("TAB_ONLY_DONE"), "TAB_ONLY_DONE is used in the control").toBeGreaterThanOrEqual(1);
     expect(src).toContain("{TAB_ONLY_CONFIRM}");
-    expect(src).toContain("DELETE_ALL_DONE");
-    expect(src).toContain("TAB_ONLY_DONE");
+    // The success status is DELETE_ALL_DONE, in onDeleteAll, exactly as it stands.
+    const body = bodyOfOnDeleteAll();
+    expect(body).toContain('setStatus(result.ok ? DELETE_ALL_DONE : deleteStatus(result, "everything"));');
+    expect(body).toContain("setStatus(TAB_ONLY_DONE);");
     expect(src).toContain("Delete the saved profile and everything else saved on this device?");
     expect(src).toContain("Delete everything saved on this device");
     expect(src).toContain("Yes, delete everything");
@@ -164,5 +184,55 @@ describe("delete everything saved on this device (PLAN-9.3 section 5)", () => {
     expect(ret).toBeLessThan(del);
     const before = body.slice(0, del);
     expect(before).toMatch(/tabOnly|mode === "tab-only"/);
+  });
+
+  it("D6: with no argument, giving and forgetting the tick use the tab's own store and tell the subscribers", () => {
+    const fake = new FakeStore();
+    vi.stubGlobal("sessionStorage", fake);
+    const listener = vi.fn();
+    const unsubscribe = subscribeConsent(listener);
+    giveConsent();
+    expect(fake.getItem("career-copilot.consent")).toBe("1");
+    expect(getConsentSnapshot()).toBe(true);
+    expect(listener).toHaveBeenCalledTimes(1);
+    forgetConsent();
+    expect(fake.m.size).toBe(0);
+    expect(getConsentSnapshot()).toBe(false);
+    expect(listener).toHaveBeenCalledTimes(2);
+    unsubscribe();
+    giveConsent();
+    expect(listener).toHaveBeenCalledTimes(2);
+    forgetConsent();
+  });
+
+  it("D7: the control and the status line are drawn outside every condition, and a message without a key is always visible", () => {
+    const page = read("app/page.tsx");
+    const lines = page.split("\n");
+    for (const tag of ["<SavedDeleteAll", "<SavedStatus"]) {
+      expect(page.split(tag).length - 1, `${tag} occurs once`).toBe(1);
+      const at = lines.findIndex((l) => l.includes(tag));
+      expect(lines[at].slice(0, lines[at].indexOf(tag)).trim(), `nothing before ${tag} on its line`).toBe("");
+      const previous = lines.slice(0, at).reverse().find((l) => l.trim() !== "") ?? "";
+      expect(previous, `${tag} is not inside a condition`).not.toMatch(/&&\s*\(?\s*$|\?\s*\(?\s*$/);
+    }
+    const src = read("app/SavedControls.tsx");
+    const start = src.indexOf("export function SavedDeleteAll");
+    const body = src.slice(start, src.indexOf("\n}\n", start));
+    expect(body.split("return null").length - 1).toBe(1);
+    expect(body).toContain('if (!deleteAllShows(state) || state.phase !== "ready") return null;');
+    expect(body).not.toContain(".available");
+    expect(src).toContain("return statusVisible(saved.status, currentKey) ? (");
+    const handler = bodyOfOnDeleteAll();
+    // Every setStatus call in onDeleteAll has ONE argument (no key), so the message is shown whatever is on screen. (The exact words are pinned in D3.)
+    const calls = handler.split("\n").filter((l) => l.includes("setStatus("));
+    expect(calls.length).toBe(3);
+    for (const l of calls) {
+      expect(l.trim(), "a status call with no key").toMatch(/^setStatus\((?:"[^"]*"|TAB_ONLY_DONE|result\.ok \? [A-Za-z_]+ : deleteStatus\(result, "everything"\))\);/);
+    }
+    for (const text of [DELETE_ALL_DONE, TAB_ONLY_DONE]) {
+      expect(statusVisible({ text, key: null }, null)).toBe(true);
+      expect(statusVisible({ text, key: null }, "some-profile-key")).toBe(true);
+    }
+    expect(read("app/useSaved.ts")).toContain("const setStatus = useCallback((text: string | null, key: string | null = null)");
   });
 });
