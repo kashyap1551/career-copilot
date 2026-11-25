@@ -61,7 +61,7 @@ export function applyOutcome(prev: Checked | null, outcome: CheckOutcome): Check
 }
 
 // A reply that belongs to an older generation (the person deleted everything, read a new ad or CV, or used a saved profile since the click) changes nothing.
-export function acceptResult(currentGen: number, clickGen: number, prev: Checked | null, next: Checked): Checked | null {
+export function acceptResult(currentGen: number, clickGen: number, prev: Checked | null, next: Checked | null): Checked | null {
   return currentGen === clickGen ? next : prev;
 }
 

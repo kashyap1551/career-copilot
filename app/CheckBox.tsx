@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import AccessBox from "./AccessBox";
-import { liveMessage, runCheck } from "./runCheck";
+import { liveMessage, runCheck, type CheckOutcome } from "./runCheck";
 import { checkBoxState, type CheckPlan, type Checked } from "@/lib/cv/checkPlan";
 import { CHECK_BUTTON, CHECK_NO_ENTRIES, CHECK_NOT_CHECKED, CHECK_RUNNING } from "@/lib/cv/checkWording";
 import { CHECK_INFO_LINE, CHECK_TICK_NEEDED, LINK_PRIVACY_NOTICE } from "@/lib/privacy/messages";
@@ -24,7 +24,7 @@ export default function CheckBox({
   checked: Checked | null; // what the page holds from an earlier check (may be stale)
   generation: number; // the page's generation at draw time: a reply that comes back after a newer one is dropped by the page
   hasProfile: boolean;
-  onChecked: (clickGeneration: number, next: Checked) => void;
+  onChecked: (clickGeneration: number, outcome: CheckOutcome) => void; // EVERY outcome goes to the page, which decides what changes
 }) {
   const [running, setRunning] = useState(false);
   const [last, setLast] = useState<string | null>(null); // the message of the last click when it did not end in answers
@@ -39,9 +39,9 @@ export default function CheckBox({
     setRunning(true);
     const outcome = await runCheck(plan);
     setRunning(false);
-    if (outcome.kind === "done") onChecked(clickGeneration, outcome.checked);
-    else if (outcome.kind === "tick") setLast(CHECK_TICK_NEEDED);
+    if (outcome.kind === "tick") setLast(CHECK_TICK_NEEDED);
     else if (outcome.kind === "failed") setLast(outcome.message);
+    onChecked(clickGeneration, outcome);
   }
 
   return (

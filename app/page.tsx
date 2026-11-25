@@ -24,7 +24,7 @@ import RoadmapView from "./RoadmapView";
 import { openedReadings, reportFor } from "./savedAdRows";
 import ReportView from "./ReportView";
 import { adStatusKey, openView, profileKey } from "@/lib/saved/ui";
-import { acceptResult } from "./runCheck";
+import { acceptResult, applyOutcome, type CheckOutcome } from "./runCheck";
 import { buildCheckPlan, extrasFor, type Checked } from "@/lib/cv/checkPlan";
 import { AdStatus, SaveAdButton, SaveProfileButton, SavedAdsList, SavedDeleteAll, SavedOffer, SavedStatus } from "./SavedControls";
 import { closeMatchLines, reportNote } from "./reportText";
@@ -84,8 +84,11 @@ export default function Home() {
     setChecked(null);
   }
 
-  function onChecked(clickGeneration: number, next: Checked) {
-    setChecked((prev) => acceptResult(generationRef.current, clickGeneration, prev, next));
+  // Every outcome of a click comes here. applyOutcome keeps the earlier answers unless the click ended in new ones (a failure changes nothing, R4);
+  // acceptResult drops a reply of an older generation. The generation is read HERE, in the handler, and only plain values go into the updater.
+  function onChecked(clickGeneration: number, outcome: CheckOutcome) {
+    const current = generationRef.current;
+    setChecked((prev) => acceptResult(current, clickGeneration, prev, applyOutcome(prev, outcome)));
   }
 
   // "Use this profile": a different profile, so the answers of an earlier check go.

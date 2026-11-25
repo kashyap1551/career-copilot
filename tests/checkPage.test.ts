@@ -294,6 +294,27 @@ describe("EC-4b the wiring, as source (CP1, CP2, CP4, CP5, CP7, CP10)", () => {
     expect(code("app/runCheck.ts")).toContain('source: "check"');
   });
 
+  it("CP13: the click handler passes EVERY outcome to the page, and the page decides with applyOutcome and acceptResult, reading the generation in the handler (not in the updater)", () => {
+    const box = bodyOf(code("app/CheckBox.tsx"), "async function onCheck()");
+    expect(box.indexOf("setLast(null)")).toBeGreaterThan(-1);
+    expect(box.indexOf("setLast(null)"), "a click clears the last message before it runs").toBeLessThan(box.indexOf("runCheck("));
+    expect(box).toContain("setLast(CHECK_TICK_NEEDED)");
+    expect(box).toContain("setLast(outcome.message)");
+    const call = box.indexOf("onChecked(clickGeneration, outcome)");
+    expect(call, "onChecked gets the whole outcome").toBeGreaterThan(-1);
+    const lineStart = box.lastIndexOf("\n", call) + 1;
+    expect(box.slice(lineStart, call).trim(), "no condition in front of the call").toBe("");
+    expect(box.indexOf("setRunning(false)")).toBeGreaterThan(box.indexOf("await runCheck("));
+    expect(call, "the page is told after the button is free again").toBeGreaterThan(box.indexOf("setRunning(false)"));
+    const page = bodyOf(code("app/page.tsx"), "function onChecked(");
+    expect(page).toContain("acceptResult(");
+    expect(page).toContain("applyOutcome(");
+    const set = page.indexOf("setChecked(");
+    expect(page.indexOf("generationRef.current"), "the generation is read before the updater").toBeGreaterThan(-1);
+    expect(page.indexOf("generationRef.current")).toBeLessThan(set);
+    expect(page.indexOf("generationRef.current", set), "and not inside it").toBe(-1);
+  });
+
   it("CP12: the box is drawn through ReportView's extra, only for the CV report", () => {
     expect(code("app/page.tsx")).toMatch(/report\.kind === "cv" && plan/);
   });
