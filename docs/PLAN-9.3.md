@@ -320,3 +320,8 @@ The amendments rule over the plan text where they differ. The owner may veto any
 1. No product setting changes in 9.3. `maxRetries` goes onto the 9.2 list (limits) as a separate decision, because retries on a 429 also use up the AI service's per-minute allowance.
 2. Tests L1 to L3 pin the SDK default: they assert exactly 3 fetch calls per failing request, each request body carrying the marker, and they use fake timers so the 2 s and 4 s waits cost no real time.
 3. New claim **C15** (draft words, the owner approves them at stage 2.2): "If the AI service answers with an error or says it is busy, our server asks again up to two more times, so the same text can reach the AI service up to three times for one click." Evidence: the SDK defaults above; tests L1 to L3.
+
+**A13 (reviewer, 2026-11-25).**
+1. The wording stays DRAFT in lib/privacy/messages.ts. The owner reviews the words as printed in the stage report and later on the page. An owner edit changes the constant and its M3 string in ONE commit. Nothing merges and nothing is shown to others until the owner approves. New export `WORDING_APPROVED_ON: string | null` (null now) and a second gate test **F4**, run only with `PRIVACY_GATE=1`, that fails while it is null.
+2. Facts at stage 2.2: U2 splits into U2a (quoted) and U2b (observed); U4 splits into U4a (observed, confirmed) and U4b (retention, not confirmed). U5 stays not-confirmed, because the region comes from the reviewer's reading of the `x-vercel-id` header, not from the dashboard setting; the header reading stays in the plan as a lead. U1, U3 and U6 stay not-confirmed.
+3. C11 to C13 are not on main: no constants for them now. C14 is rendered from fact U9 and has no constant of its own.
