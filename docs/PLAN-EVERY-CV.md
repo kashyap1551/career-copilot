@@ -504,6 +504,7 @@ All dated 2026-11-25.
 | AM13 | The page re-proves the route's answers with `proveAnswers` before showing them; a damaged reply cannot put an unproven line on screen. | 4.3, 4.5 |
 | AM14 | Answers are used only while the key of what was sent equals the key at click time; the plan of what to send is computed without the answers. | 4.5, 4.6 |
 | AM15 | Known gaps accepted until EC-6: rows of listed skills from a saved profile lack the inferred note (`inferred` is stored only for unlisted skills); the saved-ads list uses `reportFor` without extras and can show a different label than the open report. | 4.5, 4.6 |
+| AM16 | Q3 decided: the tick stays in the CV box only, no second tick next to the button; CHECK_TICK_NEEDED is shown next to the button; the manual check covers a saved profile in a new tab with no tick. | 6, 10 |
 
 Chain note: `lib/ai/errors.ts`: EC-3a added the subject check (`ReadSubject`, the log tag, a 500 message); `step-8.3` edits the same file for its own subject; keep both when merging.
 
@@ -530,6 +531,11 @@ From EC-3b:
 
 From EC-4a:
 - `lib/cv/checkWording.ts`: `CHECK_BUTTON`, `CHECK_RUNNING`, `CHECK_DONE`, `CHECK_NOT_CHECKED`, `CHECK_NO_ENTRIES`, `CHECK_STALE`, `CHECK_CONTACT` (a copy of `CONTACT_REFUSAL`), `CHECK_UNREACHABLE` and `CHECK_SERVER_ERROR` (copies of the CvBox sentences), `CHECK_BAD_ANSWER`.
+
+From EC-4b (no new sentence; notes for the approval):
+- (i) `CHECK_CONTACT` says "Take it out", but a CV line cannot be edited on the confirm screen: decide the wording at approval (for example: untick the skill that has the line, or take the contact detail out of the CV and read it again). D1 pins the copy, so the route's `CONTACT_REFUSAL` and `CHECK_CONTACT` change together.
+- (ii) `CHECK_NOT_CHECKED` is shown before the click too and reads as past tense: decide at approval.
+- (iii) Known limit: a check always takes the first 30 open requirements (musts first); a second click sends the same 30; the rest stay "not judged".
 
 Note: EC-6 (storing answers) must change C4 and C17 (the "not saved" sentence) in the same commit.
 
