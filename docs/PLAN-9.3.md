@@ -307,3 +307,11 @@ The amendments rule over the plan text where they differ. The owner may veto any
 **A6. Manual step 11 of MANUAL-CHECK-9.3.** CC runs the gate command and pastes the output; the reviewer reads it (the reviewer has no repo access).
 
 **A7. Before the link is posted for AI use:** (a) the gate passes, (b) the owner has pasted the exact U1 and U3 sentences, (c) the Impressum is decided, (d) the consent line and /privacy are live. Other people's CVs only after (a) and (d).
+
+**A8. Test I10** (the /privacy link in app/page.tsx) belongs to stage 2.3, where the footer link is built. Stage 2.1 covers I1 to I9, I9b, S1b and L1 to L4.
+
+**A9. Test I3, the approved expectation from stage 2.0.** Files: app/** and lib/** minus lib/ai, lib/engine/eval*, lib/vocab and tests; comment-only lines are skipped; the counting unit is code LINES. The patterns `fetch(`, `globalThis.fetch`, `window.fetch`, `new Request(`, `XMLHttpRequest`, `sendBeacon`, `WebSocket`, `EventSource`, `<form`, `<img`, `<iframe`, `<script`, `next/script`, `next/image`: 0 each. The bare word `fetch` as code: app/accessFetch.ts 2 lines (97 and 101). `doFetch(`: 1 (app/accessFetch.ts:102). `https?://` in code lines: 0. `href=` literals in app/: exactly "/demo" and "/". lib/cv/fileToText.ts contains `useWorkerFetch: false` and `useWasm: false` once each. The sentence in section 1.1 is corrected to: the helper sends through `opts.fetch ?? fetch` (app/accessFetch.ts:101-102). At the step-8.3 merge the allowlist gains app/timedFetch.ts:3-4 and app/bullets.ts:112-113.
+
+**A10.** On step-8.3 the four fixed log strings of lib/ai/errors.ts sit at lines 38, 47, 57 and 86 (section 1.2). At stage 2.3 /privacy exports `ensureStatic = 'navigation'` only if the build stays green and still prints `○ /privacy`; if the build rejects it, drop it and report. A new test M7 checks the line exists. lib/ai/noStore.ts says "the two routes" in a comment although three routes use it on 8.3: not touched.
+
+**A11.** At stage 2.2 the words of SAVE_NOTICE (app/SavedControls.tsx:194 and :292, from lib/saved/messages.ts) are re-read against claim C4 (a saved ad holds the whole ad text; a saved profile holds skills and the CV line each skill was found on). Any mismatch is reported, never silently changed.
