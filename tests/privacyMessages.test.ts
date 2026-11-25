@@ -47,7 +47,7 @@ const PINNED: Record<string, string> = {
   CLAIM_C7: "Our code has no analytics, tracking or advertising code and sets no cookies.",
   CLAIM_C8: "The demo uses invented data. What you do in the demo is not sent anywhere and not saved.",
   CLAIM_C9:
-    "'Delete everything saved on this device' removes your saved profile and all your saved ads from this browser, and forgets the access code kept in this tab. It does not delete anything held by the AI service or the hosting service.",
+    "'Delete everything saved on this device' removes your saved profile and all your saved ads from this browser, and forgets the access code and the tick kept in this tab. It does not delete anything held by the AI service or the hosting service.",
   CLAIM_C10:
     "When the first screen loads it opens the saved-data database in your browser (it is created empty in a new browser). Nothing is written into it until you press a save button.",
   CLAIM_C15:
@@ -71,7 +71,8 @@ const PINNED: Record<string, string> = {
   NOT_CONFIRMED_POINTER: "Some facts about these services are not confirmed yet. They are listed under 'Not confirmed yet' at the end of this page.",
   CV_TICK_NEEDED: "Tick the box before you send your CV.",
   LINK_PRIVACY_NOTICE: "Open the privacy page in a new tab",
-  CLAIM_C16: "When you tick the box before sending your CV, the tick is kept for this tab only. It is forgotten when you close the tab.",
+  CLAIM_C16:
+    "When you tick the box before sending your CV, the tick is kept for this tab only. It is forgotten when you close the tab, and when you press 'Yes, delete everything'.",
 };
 
 const FORBIDDEN = ["GDPR", "DSGVO", "compliant", "compliance", "lawful", "certified", "guarantee", "legally", "secure", "consent"];

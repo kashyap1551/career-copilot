@@ -31,12 +31,16 @@ import { CV_TICK_NEEDED } from "@/lib/privacy/messages";
 //      send makes exactly 1 call; forgetConsent(store) does not throw and readConsent(store) is then false.
 //  G1  in app/CvBox.tsx the body of `async function send()` starts with `const gated = await sendIfAcknowledged(`, and `setSending(true)` and
 //      `postJson(` come AFTER it in that body; `postJson(` occurs once in the file.
+//  G2  (stage 2.5) the checkbox wiring in app/CvBox.tsx: the input has `checked={acknowledged}` and `onChange={onTick}`; `acknowledged` is
+//      `useSyncExternalStore(subscribeConsent, getConsentSnapshot, getConsentServerSnapshot)`; the body of onTick calls giveConsent() when
+//      e.target.checked and forgetConsent() otherwise (the first before the second, the second after an `else`).
 //  M6  app/CvBox.tsx renders {CV_INFO_LINE}, {CV_TICK} (a checkbox inside a <label>) and {CV_TICK_NEEDED}; app/page.tsx renders {AD_INFO_LINE};
 //      each has a <Link href="/privacy" ... {LINK_PRIVACY_NOTICE}> with target="_blank", rel="noopener noreferrer" and prefetch={false}; in CvBox.tsx
 //      the info line comes before the tick, which comes before the button (onClick={send}), and in page.tsx the info line comes before the
 //      button (onClick={readAd}); between an info line and its button there is no `&&` and no `?` (no separate condition).
 //
-// COUNTS: this file has 10 tests (C1 to C7, G1, C5's source half is inside C5, M6). With V7 (demoView.test.ts) that is 10 new tests in all.
+// COUNTS: this file has 10 tests: C1 to C7, G1, G2 and M6. Stage 2.4 added 9 of them (all but G2) and V7 in demoView.test.ts: 10 new tests in all.
+//        Stage 2.5 added G2.
 
 const root = process.cwd();
 const read = (rel: string) => readFileSync(join(root, rel), "utf8");
@@ -208,5 +212,19 @@ describe("the tick before the first CV send (PLAN-9.3 section 4, Option C)", () 
     const adButton = at(ad, "onClick={readAd}");
     expect(adInfo).toBeLessThan(adButton);
     expect(ad.slice(adInfo, adButton), "no condition between the ad notice and its button").not.toMatch(/&&|\?\s*\(|\?\s*</);
+  });
+
+  it("G2: the checkbox shows the stored tick and ticking and unticking call giveConsent and forgetConsent", () => {
+    const src = code("app/CvBox.tsx");
+    expect(src).toContain("checked={acknowledged}");
+    expect(src).toContain("onChange={onTick}");
+    expect(src).toContain("const acknowledged = useSyncExternalStore(subscribeConsent, getConsentSnapshot, getConsentServerSnapshot);");
+    const start = src.indexOf("function onTick(");
+    expect(start).toBeGreaterThan(0);
+    const body = src.slice(start, src.indexOf("\n  }\n", start));
+    const give = body.indexOf("if (e.target.checked) giveConsent();");
+    const forget = body.indexOf("else forgetConsent();");
+    expect(give).toBeGreaterThan(-1);
+    expect(forget).toBeGreaterThan(give);
   });
 });

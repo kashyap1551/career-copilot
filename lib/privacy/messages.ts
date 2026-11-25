@@ -59,10 +59,10 @@ export const CLAIM_C7 = "Our code has no analytics, tracking or advertising code
 // loading the page sends nothing (docs/PLAN-9.1.md A3).
 export const CLAIM_C8 = "The demo uses invented data. What you do in the demo is not sent anywhere and not saved.";
 
-// C9, as the code is TODAY: the acknowledgement of stage 2.4 is added to this sentence by the commit that builds it. Code:
-// app/SavedControls.tsx:207-217, lib/saved/saved.ts:146, app/accessFetch.ts:77. Tests: saved.test.ts, accessFetch.test.ts.
+// C9 (stage 2.5: the tick goes too). Code: app/SavedControls.tsx (onDeleteAll: forgetCodeOnDeleteAll, forgetConsent, deleteAll), lib/saved/saved.ts,
+// app/accessFetch.ts, app/consent.ts. Tests: saved.test.ts, accessFetch.test.ts, deleteMyData.test.ts D1 to D5, accessGuards P6.
 export const CLAIM_C9 =
-  "'Delete everything saved on this device' removes your saved profile and all your saved ads from this browser, and forgets the access code kept in this tab. It does not delete anything held by the AI service or the hosting service.";
+  "'Delete everything saved on this device' removes your saved profile and all your saved ads from this browser, and forgets the access code and the tick kept in this tab. It does not delete anything held by the AI service or the hosting service.";
 
 // C10. Code: app/useSaved.ts:16-22 (the read when the page loads), app/SavedControls.tsx:21-23 (writes only from clicks). Manual check step.
 export const CLAIM_C10 =
@@ -113,6 +113,6 @@ export const CV_TICK_NEEDED = "Tick the box before you send your CV.";
 export const LINK_PRIVACY_NOTICE = "Open the privacy page in a new tab";
 
 // C16, rendered on /privacy under HEADING_STORED (a new browser-storage key is a data flow: PLAN-9.3 section 8). Code: app/consent.ts. Tests: C3, C4, I5.
-// It does NOT say that "delete everything" forgets the tick: stage 2.5 adds that, in the same commit as the code.
+// Stage 2.5 added "and when you press 'Yes, delete everything'", in the same commit as the code that does it (app/SavedControls.tsx onDeleteAll).
 export const CLAIM_C16 =
-  "When you tick the box before sending your CV, the tick is kept for this tab only. It is forgotten when you close the tab.";
+  "When you tick the box before sending your CV, the tick is kept for this tab only. It is forgotten when you close the tab, and when you press 'Yes, delete everything'.";

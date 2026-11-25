@@ -5,6 +5,8 @@ import type { BuiltProfile } from "@/lib/cv/profile";
 import { KINDS, KIND_WORDS } from "@/lib/cv/profile";
 import { skills } from "@/fixtures/skills";
 import { forgetCodeOnDeleteAll } from "./accessFetch";
+import { forgetConsent } from "./consent";
+import { DELETE_ALL_DONE, TAB_ONLY_CONFIRM, TAB_ONLY_DONE, deleteAllMode, deleteAllShows } from "./deleteAll";
 import { deleteStatus, SAVE_NOTICE, saveStatus } from "@/lib/saved/messages";
 import { summarizeProfile } from "@/lib/saved/profile";
 import type { SavedReading } from "@/lib/saved/types";
@@ -196,20 +198,28 @@ export function SaveProfileButton({ saved, built }: { saved: Saved; built: Built
   );
 }
 
-// Whenever saving is available: delete everything (the profile and all saved ads: deleteAll clears both stores).
+// Delete everything saved on this device: the profile and all saved ads (deleteAll clears both stores), and the access code and the tick kept in
+// this tab. Shown whenever the page has finished checking (app/deleteAll.ts, deleteAllShows); when saving is not available it only forgets what the
+// tab keeps and never calls deleteAll (deleteAllMode).
 export function SavedDeleteAll({ saved, onForget }: { saved: Saved; onForget: () => void }) {
   const { state, setStatus, clearOffer } = saved;
   const [confirming, setConfirming] = useState(false);
-  if (state.phase !== "ready" || !state.available || !state.ctx) return null;
+  if (!deleteAllShows(state) || state.phase !== "ready") return null;
   const ctx = state.ctx;
+  const tabOnly = deleteAllMode(state) === "tab-only";
 
   // Click handler (the second step, "Yes, delete everything"): the ONLY place everything is deleted.
   async function onDeleteAll() {
     setConfirming(false);
     forgetCodeOnDeleteAll(); // the access code kept in this tab goes first, whether or not the delete works (PLAN-ACCESS-CODE section 3)
+    forgetConsent(); // so does the tick kept in this tab (PLAN-9.3 section 5)
+    if (tabOnly || !ctx) {
+      setStatus(TAB_ONLY_DONE); // saving is not available: nothing saved to delete, so deleteAll is not called
+      return;
+    }
     setStatus("Deleting…");
     const result = await deleteAll(ctx);
-    setStatus(deleteStatus(result, "everything"));
+    setStatus(result.ok ? DELETE_ALL_DONE : deleteStatus(result, "everything"));
     if (result.ok) {
       clearOffer();
       saved.setAds(NO_ADS); // the list is empty now
@@ -222,7 +232,7 @@ export function SavedDeleteAll({ saved, onForget }: { saved: Saved; onForget: ()
     <div className="flex flex-wrap items-center gap-2 text-sm">
       {confirming ? (
         <>
-          <span>Delete the saved profile and everything else saved on this device?</span>
+          {tabOnly ? <span>{TAB_ONLY_CONFIRM}</span> : <span>Delete the saved profile and everything else saved on this device?</span>}
           <button className={button} onClick={onDeleteAll}>
             Yes, delete everything
           </button>
