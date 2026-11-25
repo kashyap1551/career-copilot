@@ -72,9 +72,11 @@ export async function baselineMain(deps: BaselineDeps): Promise<{ exitCode: numb
     const lines = pageLines(cvText);
     const key = checkEveryCvKey(read("example", "key.txt"), adText, lines.length);
     const { cv, ad } = cannedExampleReadings(lines, adText, deps.skills);
-    const pair = compareBaseline({ pair: "example", crossLanguage: false, key, cvLines: lines, cv, ad, skills: deps.skills });
+    const base = { pair: "example", crossLanguage: false, key, cvLines: lines, cv, ad, skills: deps.skills };
+    const before = compareBaseline({ ...base, withKept: false });
+    const after = compareBaseline({ ...base, withKept: true });
     deps.out("DRY RUN: canned readings of the EXAMPLE pair only, to show the layout. Nothing was read, nothing was saved.\n\n");
-    deps.out(summaryTable([pair]));
+    deps.out(summaryTable([before], [after]));
     return { exitCode: 0, runFolder: null };
   }
 
@@ -151,18 +153,22 @@ export async function baselineMain(deps: BaselineDeps): Promise<{ exitCode: numb
   });
 
   // ---- compare the pairs that were read completely -----------------------------------------------------------------------------------------
-  const pairs: PairBaseline[] = [];
+  const pairs: PairBaseline[] = []; // the headline set: before the kept skills
+  const pairsAfter: PairBaseline[] = []; // after the same-name match
   for (const input of inputs) {
     const cv = run.cv[input.id];
     const ad = run.ad[input.id];
     const key = keys.find((k) => k.id === input.id)?.check;
     if (!cv || !ad || !key) continue;
-    pairs.push(compareBaseline({ pair: input.id, crossLanguage: CROSS_LANGUAGE.has(input.id), key, cvLines: input.cvLines, cv, ad: ad as AdReading, skills: deps.skills }));
+    const base = { pair: input.id, crossLanguage: CROSS_LANGUAGE.has(input.id), key, cvLines: input.cvLines, cv, ad: ad as AdReading, skills: deps.skills };
+    pairs.push(compareBaseline({ ...base, withKept: false }));
+    pairsAfter.push(compareBaseline({ ...base, withKept: true }));
   }
 
   const report: ReportInput = {
     info: { runId, fingerprint, keyCommit, vocabulary: real.vocabulary, dry: false },
     pairs,
+    pairsAfter,
     calls: run.calls,
     stopped: run.stopped,
     failed: run.failed,
@@ -171,7 +177,7 @@ export async function baselineMain(deps: BaselineDeps): Promise<{ exitCode: numb
   io.writeFile(`${folder}/baseline.md`, baselineMarkdown(report));
   io.writeFile(`${folder}/baseline.json`, JSON.stringify(baselineJson(report), null, 2) + "\n");
 
-  deps.out(summaryTable(pairs));
+  deps.out(summaryTable(pairs, pairsAfter));
   const s = summarizeBaseline(pairs);
   deps.out(`Answered today: ${s.all.answered} of ${s.all.total}. Tokens: ${run.calls.reduce((n, c) => n + c.input + c.output, 0)} in ${run.calls.length} calls. Saved in ${folder}\n`);
 

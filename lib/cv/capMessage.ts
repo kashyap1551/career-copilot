@@ -15,5 +15,7 @@ export function capMessage(removed: CvRemoval[]): string | null {
     names.length === 1
       ? `Your CV showed 1 more skill than the ${MAX_SKILLS} we keep. It was left out: ${list}.`
       : `Your CV showed ${names.length} more skills than the ${MAX_SKILLS} we keep. These were left out: ${list}.`;
-  return `${head} Pick the ones that matter by unticking others and sending again, or shorten the CV.`;
+  // The cap cuts at READ time, so unticking skills on the confirm screen and sending again would not bring a cut skill back. What does help is a CV
+  // text with fewer lines of little importance, read again.
+  return `${head} ${names.length === 1 ? "To make room for it" : "To make room for them"}, take out some less important lines from your CV text and read it again.`;
 }

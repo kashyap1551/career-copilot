@@ -93,10 +93,10 @@ describe("EC-2 the 60-skill message (PU7)", () => {
 
   it("PU7b: the message names the skills that were left out, with the number", () => {
     expect(capMessage(cut("Tool 61", "Tool 62", "Tool 63"))).toBe(
-      "Your CV showed 3 more skills than the 60 we keep. These were left out: Tool 61, Tool 62, Tool 63. Pick the ones that matter by unticking others and sending again, or shorten the CV.",
+      "Your CV showed 3 more skills than the 60 we keep. These were left out: Tool 61, Tool 62, Tool 63. To make room for them, take out some less important lines from your CV text and read it again.",
     );
     expect(capMessage(cut("Tool 61"))).toBe(
-      "Your CV showed 1 more skill than the 60 we keep. It was left out: Tool 61. Pick the ones that matter by unticking others and sending again, or shorten the CV.",
+      "Your CV showed 1 more skill than the 60 we keep. It was left out: Tool 61. To make room for it, take out some less important lines from your CV text and read it again.",
     );
   });
 
