@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { FACTS } from "@/lib/privacy/facts";
 import * as messages from "@/lib/privacy/messages";
 
 // Step 9.3, stage 2.2 (docs/PLAN-9.3.md sections 2, 4, 6 and amendments A4, A12, A13): the exact words of lib/privacy/messages.ts. DRAFT until the
@@ -12,9 +13,12 @@ import * as messages from "@/lib/privacy/messages";
 //        pinned strings: CV_INFO_LINE, AD_INFO_LINE, CV_TICK (3);  CLAIM_C1, CLAIM_C2, CLAIM_C3A, CLAIM_C3B, CLAIM_C4, CLAIM_C5, CLAIM_C6, CLAIM_C7,
 //        CLAIM_C8, CLAIM_C9, CLAIM_C10, CLAIM_C15 (12);  HEADING_LEAVES, HEADING_STORED, HEADING_LOGGED, HEADING_PROCESSORS, HEADING_COOKIES,
 //        HEADING_CONTROLS, HEADING_DEMO, HEADING_NOT_CONFIRMED (8).   3 + 12 + 8 = 23 strings.
-//  M5  none of GDPR, DSGVO, compliant, compliance, lawful, certified, guarantee, legally, secure, consent appears (case-insensitive) in any exported
-//      string constant of messages.ts. NOT covered, on purpose (A4): the `words` of a QUOTED fact in lib/privacy/facts.ts. Groq's own sentence (U2a)
-//      contains "compliance"; it is a quotation, shown in quotation marks with its source, and must not trip this test.
+//  M5  none of GDPR, DSGVO, compliant, compliance, lawful, certified, guarantee, legally, secure, consent appears (case-insensitive) in
+//      (a) any exported string constant of messages.ts, and (b) the `words` of every fact in lib/privacy/facts.ts whose kind is NOT "quoted": the
+//      observed facts and the not-confirmed sentences (U1, U2b, U3, U4a, U4b, U5, U6, U9: eight facts). Read by hand, none of the eight contains
+//      any of the ten words, so M5 stays green. NOT covered, on purpose (A4): the `words` of a QUOTED fact (U2a). Groq's own sentence contains
+//      "compliance"; it is a quotation, shown in quotation marks with its source, and must not trip this test. (Stage 2.2b: the first version of
+//      M5 read messages.ts only, so break B18 proved nothing about facts.ts; the facts are now read too.)
 //
 // COUNTS: this file has 2 tests (M3, M5), both pass.
 
@@ -67,10 +71,15 @@ describe("the draft words of the privacy page (PLAN-9.3 sections 2, 4, 6; A4, A1
     expect(Object.keys(messages).filter((k) => typeof (messages as Record<string, unknown>)[k] !== "string")).toEqual(["WORDING_APPROVED_ON"]);
   });
 
-  it("M5: none of the forbidden words is in any constant of messages.ts (the words of a quoted fact are exempt: Groq's own sentence says compliance)", () => {
+  it("M5: none of the forbidden words is in any constant of messages.ts or in the words of a fact that is not a quotation (quoted facts are exempt: Groq's own sentence says compliance)", () => {
+    const hits = (where: string, text: string) => FORBIDDEN.filter((w) => text.toLowerCase().includes(w.toLowerCase())).map((w) => `${where} contains "${w}"`);
+    const found: string[] = [];
     for (const [name, value] of Object.entries(messages)) {
-      if (typeof value !== "string") continue;
-      for (const w of FORBIDDEN) expect(value.toLowerCase().includes(w.toLowerCase()), `${name} must not contain "${w}"`).toBe(false);
+      if (typeof value === "string") found.push(...hits(name, value));
     }
+    const ours = FACTS.filter((f) => f.status === "not-confirmed" || f.kind !== "quoted");
+    expect(ours.map((f) => f.id)).toEqual(["U1", "U2b", "U3", "U4a", "U4b", "U5", "U6", "U9"]);
+    for (const f of ours) found.push(...hits(`fact ${f.id}`, f.words));
+    expect(found).toEqual([]);
   });
 });
