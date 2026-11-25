@@ -95,6 +95,6 @@ Run on 2026-11-25 by the owner, on the Vercel preview of de9d5a7 (the later comm
 | 10 | passed | |
 | 11 | none | Fresh window, nothing saved. |
 | 12 | none | The owner saw no such word. Reviewer's note: the shared components keep the real page's words (for example "Skills found in your CV", "your 10 saved ads"), and the note under "Add a skill by hand" mentions "your CV text above" and "Send for reading", which the demo does not have. |
-| 13 | NOT RUN | A fresh private window opened a Vercel sign-in page for the preview address, so the demo page never loaded. Run it on the live address after the merge. |
+| 13 | passed | Run on the live address (production 95d20d1, https://career-copilot-theta-seven.vercel.app/demo), 2026-11-25, in a fresh private window with every other private window closed, after the preview run could not load (Vercel sign-in). The demo page opened; the Network list was empty; IndexedDB listed no `career-copilot` database; the Console showed no red text. |
 
-Console red text and the browser's issues count: not looked at.
+Console red text: none on the direct visit to the live /demo (step 13). The browser's issues count (a blue 9 seen on the preview) was not looked at.
