@@ -303,11 +303,13 @@ export function SavedAdsList({
   onOpen,
   profile,
   skills,
+  readOnly = false,
 }: {
   saved: Saved;
   onOpen: (id: string) => void;
   profile: BuiltProfile | null;
   skills: Skill[];
+  readOnly?: boolean; // the demo list (step 9.1): no Delete button
 }) {
   const { state, setAdStatus, setAds } = saved;
   const adList = state.phase === "ready" ? state.ads.list : NO_ADS.list;
@@ -354,9 +356,11 @@ export function SavedAdsList({
             <button className={button} onClick={() => onOpen(r.id)}>
               Open
             </button>
-            <button className={button} onClick={() => onDeleteAd(r.id)}>
-              Delete
-            </button>
+            {!readOnly && (
+              <button className={button} onClick={() => onDeleteAd(r.id)}>
+                Delete
+              </button>
+            )}
           </li>
         ))}
       </ul>
