@@ -28,20 +28,20 @@ import * as messages from "@/lib/privacy/messages";
 
 const PINNED: Record<string, string> = {
   CV_INFO_LINE:
-    "When you press 'Send for reading', the numbered lines shown above leave your device. They go to our server and on to an AI service (Groq) that reads them. Email addresses, phone numbers and web links are removed first. Your name and address are not. The privacy page says what is kept.",
+    "When you press 'Send for reading', the numbered lines (shown above once you add your CV text) leave your device. They go to our server and on to an AI service (Groq) that reads them. An automatic check has taken out email addresses, most phone numbers and some web links, but it can miss some formats, and it does not touch your name or address. Read the lines before you send. The privacy page says what is kept.",
   AD_INFO_LINE:
     "When you press 'Read this ad', the whole text in the box leaves your device. It goes to our server and on to an AI service (Groq). It is not cleaned: an email address or phone number in it is sent as it is. Do not paste anything you do not want to send. The privacy page says what is kept.",
   CV_TICK: "I have read this, and I am sending my own text to be read by an AI service.",
   CLAIM_C1: "A CV file you choose is read on your device. Nothing from it is sent until you press 'Send for reading'.",
   CLAIM_C2:
-    "'Send for reading' sends the numbered lines shown on the page. Email addresses, phone numbers and web links are removed first. Your name and address are not removed.",
+    "'Send for reading' sends the numbered lines shown on the page. Before that, an automatic check takes out email addresses, most phone numbers and some web links. It can miss some formats. It does not remove your name or address.",
   CLAIM_C3A: "'Read this ad' sends the whole ad text from the box. It is not cleaned: an email address or phone number in it is sent as it is.",
   CLAIM_C3B:
     "Our server code has no database and writes no file. For an ad, the server keeps the reading of the ad (it holds short quotes from the ad, not the whole text) in its memory for a while, up to 20 ads, so the same ad is not read twice. For a CV it keeps nothing.",
   CLAIM_C4:
-    "A saved ad and a saved profile stay in this browser (IndexedDB). Saving sends nothing. A saved ad holds the whole ad text. A saved profile holds the skills you confirmed, with the CV line each one was found on, and the cities, languages, work modes, years of experience and start date you entered. It does not hold your whole CV.",
+    "A saved ad and a saved profile stay in this browser (IndexedDB). Saving sends nothing. A saved ad holds the whole ad text and the AI's reading of it. A saved profile holds the skills you confirmed, with the CV line each one was found on (word for word), the skills you added by hand, the skills you are learning with the date you expect them, and the cities, languages, work modes, years of experience and start date you entered. It also holds the date you saved it. It does not hold your whole CV.",
   CLAIM_C5:
-    "The access code is kept for this tab only. It is forgotten when you close the tab, when the server refuses it, and when you press 'Yes, delete everything'. It is sent to our server with each send.",
+    "The access code is kept for this tab only. It is forgotten when you close the tab, when the server refuses it, when you press 'Forget the code', and when you press 'Yes, delete everything'. It is sent to our server with each send.",
   CLAIM_C6:
     "Our server code logs only a short fixed message, such as 'read: AI service error, status 429'. It never logs your CV, your ads or your access code.",
   CLAIM_C7: "Our code has no analytics, tracking or advertising code and sets no cookies.",

@@ -30,7 +30,7 @@ const NOT_CONFIRMED: Record<string, string> = {
 const CONFIRMED: Record<string, { kind: string; source: string; date: string; words: string }> = {
   U2a: {
     kind: "quoted",
-    source: "Groq console, Data Controls page, as shown to the owner",
+    source: "Groq console, Data Controls page, as shown in our account",
     date: "2026-11-25",
     words:
       "Starting October 15, 2025, Groq may store inputs and outputs for up to 30 days, strictly for purposes of maintaining system reliability and compliance. Enable to opt out of storing input and output data.",

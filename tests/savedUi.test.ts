@@ -28,7 +28,8 @@ describe("savedMessage: the five reasons, exact strings", () => {
 
   it("U2: the notice next to the Save button is the one-line wording from PLAN-6.1", () => {
     // 6.1 part 3c fix: the reviewer's privacy decision adds the shared-computer sentence ("and anyone who can use this browser can see it").
-    expect(SAVE_NOTICE).toBe("Saved on this device, in this browser only. It is not sent anywhere, and anyone who can use this browser can see it. You can delete it at any time. In a private window it is deleted when you close the window.");
+    // 9.3 (wording sheet item 7): "It is not sent anywhere" became "Saving does not send it anywhere": a saved ad can be read again with the AI, which sends its text again.
+    expect(SAVE_NOTICE).toBe("Saved on this device, in this browser only. Saving does not send it anywhere, and anyone who can use this browser can see it. You can delete it at any time. In a private window it is deleted when you close the window.");
     expect(SAVE_NOTICE).not.toBe("Saved on this device, in this browser only. It is not sent anywhere. You can delete it at any time. In a private window it is deleted when you close the window."); // the old wording must fail
     expect(SAVE_NOTICE.endsWith("In a private window it is deleted when you close the window.")).toBe(true);
     expect(SAVE_NOTICE).not.toContain("\n");

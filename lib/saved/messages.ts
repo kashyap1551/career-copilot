@@ -14,7 +14,7 @@ export const AD_GONE = "That saved ad is no longer there.";
 // (6.1 part 3c fix: the shared-computer sentence is the reviewer's privacy decision: anyone who can use this browser can
 // open the site and see what is saved.)
 export const SAVE_NOTICE =
-  "Saved on this device, in this browser only. It is not sent anywhere, and anyone who can use this browser can see it. You can delete it at any time. In a private window it is deleted when you close the window.";
+  "Saved on this device, in this browser only. Saving does not send it anywhere, and anyone who can use this browser can see it. You can delete it at any time. In a private window it is deleted when you close the window.";
 
 const MESSAGES: Record<FailureReason, string> = {
   unavailable: "Saving is not available in this browser (private mode, blocked storage, or a page that is not secure). Everything else still works.",

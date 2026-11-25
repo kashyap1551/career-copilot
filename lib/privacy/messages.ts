@@ -14,7 +14,7 @@ export const WORDING_APPROVED_ON: string | null = null;
 
 // Next to "Send for reading" (app/CvBox.tsx:153-157, :162-167). Code: CvBox.tsx:149-156 (the lines shown), lib/cv/redact.ts:56-58, lib/ai/readCv.ts:48-54.
 export const CV_INFO_LINE =
-  "When you press 'Send for reading', the numbered lines shown above leave your device. They go to our server and on to an AI service (Groq) that reads them. Email addresses, phone numbers and web links are removed first. Your name and address are not. The privacy page says what is kept.";
+  "When you press 'Send for reading', the numbered lines (shown above once you add your CV text) leave your device. They go to our server and on to an AI service (Groq) that reads them. An automatic check has taken out email addresses, most phone numbers and some web links, but it can miss some formats, and it does not touch your name or address. Read the lines before you send. The privacy page says what is kept.";
 
 // Next to "Read this ad" (app/page.tsx:230-236). Code: page.tsx:78, lib/schemas/job.ts:70-78, lib/ai/readJob.ts:49-55 (test I9).
 export const AD_INFO_LINE =
@@ -30,7 +30,7 @@ export const CLAIM_C1 = "A CV file you choose is read on your device. Nothing fr
 
 // C2. Code: app/CvBox.tsx:149-156; lib/cv/redact.ts:56-58; lib/schemas/cv.ts:34 (refuses a line that still holds contact details). Tests: redact, I9b.
 export const CLAIM_C2 =
-  "'Send for reading' sends the numbered lines shown on the page. Email addresses, phone numbers and web links are removed first. Your name and address are not removed.";
+  "'Send for reading' sends the numbered lines shown on the page. Before that, an automatic check takes out email addresses, most phone numbers and some web links. It can miss some formats. It does not remove your name or address.";
 
 // C3a. Code: app/page.tsx:78; lib/schemas/job.ts:70-78 (trim and length only). Test: I9.
 export const CLAIM_C3A = "'Read this ad' sends the whole ad text from the box. It is not cleaned: an email address or phone number in it is sent as it is.";
@@ -41,11 +41,11 @@ export const CLAIM_C3B =
 
 // C4. Code: lib/saved/types.ts (SavedProfile, SavedJob), lib/saved/profile.ts, lib/cv/profile.ts (ConfirmState), lib/saved/idbStore.ts. Tests: I1b, S1b.
 export const CLAIM_C4 =
-  "A saved ad and a saved profile stay in this browser (IndexedDB). Saving sends nothing. A saved ad holds the whole ad text. A saved profile holds the skills you confirmed, with the CV line each one was found on, and the cities, languages, work modes, years of experience and start date you entered. It does not hold your whole CV.";
+  "A saved ad and a saved profile stay in this browser (IndexedDB). Saving sends nothing. A saved ad holds the whole ad text and the AI's reading of it. A saved profile holds the skills you confirmed, with the CV line each one was found on (word for word), the skills you added by hand, the skills you are learning with the date you expect them, and the cities, languages, work modes, years of experience and start date you entered. It also holds the date you saved it. It does not hold your whole CV.";
 
 // C5. Code: app/accessFetch.ts:13, :23, :28, :63-79, :102-109. Tests: accessFetch.test.ts, accessGuards P7, I5.
 export const CLAIM_C5 =
-  "The access code is kept for this tab only. It is forgotten when you close the tab, when the server refuses it, and when you press 'Yes, delete everything'. It is sent to our server with each send.";
+  "The access code is kept for this tab only. It is forgotten when you close the tab, when the server refuses it, when you press 'Forget the code', and when you press 'Yes, delete everything'. It is sent to our server with each send.";
 
 // C6 (our code's half only; the hosting service's own logs come from facts U4a and U4b). Code: the six console lines (lib/ai/errors.ts, both routes).
 // Tests: I4, L1 to L4, errors.test.ts E8, cvRoute.test.ts K6, readCache.test.ts N1, accessCode.test.ts.
