@@ -287,6 +287,31 @@ describe("EC-0b part 5: an allowed run with fake readers", () => {
   });
 });
 
+describe("EC-0c: the real flow computes both sets, and the headline is the one before the kept skills", () => {
+  it("B21: with a CV reading that holds a named unlisted skill (Welding, line 4): headline R2 'could not judge', second set R2 met by line 4, and the key says none: 10 same-name mistakes", async () => {
+    const w = world();
+    const kept: CvBuildResult = {
+      ...CV_READING,
+      skills: [...CV_READING.skills, { name: "Welding", skillId: "new:welding", listed: false, line: 4, quote: "welding", label: "named" }],
+      unlisted: [{ id: "new:welding", name: "Welding" }],
+    };
+    const base = deps(w, [], { env: REAL() });
+    const real = await base.loadReal();
+    if ("refusal" in real) throw new Error("unexpected");
+    base.loadReal = async () => ({ ...real, readCv: async () => ({ ...kept, usage: { inputTokens: 1, outputTokens: 1 } }) });
+    const r = await baselineMain(base);
+    expect(r.exitCode).toBe(0);
+    const json = JSON.parse(w.files.get(`${r.runFolder}/baseline.json`) as string);
+    expect(json.pairs[0].rows.find((x: { id: string }) => x.id === "R2").today).toEqual({ kind: "unjudged" });
+    expect(json.afterSameName.pairs[0].rows.find((x: { id: string }) => x.id === "R2").today).toEqual({ kind: "met", line: 4 });
+    expect(json.afterSameName.effect.toMet).toBe(10);
+    expect(json.afterSameName.effect.mistakes).toHaveLength(10); // the key says none for R2 in every pair
+    const md = w.files.get(`${r.runFolder}/baseline.md`) as string;
+    expect(md).toContain("Same-name mistakes (the match says met, the key says partly or none): 10");
+    expect(w.out.join("")).toContain("| pair-01 | after the same-name match |");
+  });
+});
+
 // ---- the pacing and the stop on a 429 ------------------------------------------------------------------------------------------------------
 
 describe("EC-0b part 5: pacing for the near-cap CV, and a 429 stops the run", () => {
