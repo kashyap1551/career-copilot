@@ -1,4 +1,6 @@
 import type { NotCounted } from "@/lib/engine/fromAd";
+import { AI_BLOCK_TITLE } from "@/lib/engine/evidenceText";
+import type { AiRow } from "./fitReport";
 import { checkYourselfRows, couldNotJudgeCounts, couldNotJudgeNote, notCountedSentence } from "./reportText";
 import type { RequirementRow } from "./skillsOnly";
 
@@ -18,6 +20,9 @@ export type ReportViewData = {
   satisfied?: string[]; // "Location: fine. ..." one line for each judged kind without a conflict
 
   checkYourself: string[];
+  // EC-4a: present only when the answers of a check were handed to the report (app/fitReport.ts). Absent for the demo and for a report before any check.
+  aiRows?: AiRow[];
+  thrownAwayLine?: string | null;
 };
 
 export default function ReportView({
@@ -96,6 +101,22 @@ export default function ReportView({
           </div>
         );
       })}
+
+      {report.aiRows && report.aiRows.length > 0 && (
+        <div>
+          <h3 className="font-semibold">{AI_BLOCK_TITLE}</h3>
+          <ul className="mt-1 flex flex-col gap-3">
+            {report.aiRows.map((r, i) => (
+              <li key={i} className="border-l-2 border-zinc-300 pl-3 dark:border-zinc-700">
+                <p className="text-sm text-zinc-600 dark:text-zinc-400">&ldquo;{r.quote}&rdquo;</p>
+                <p className="text-sm">{r.text}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {report.thrownAwayLine && <p className="text-sm text-zinc-600 dark:text-zinc-400">{report.thrownAwayLine}</p>}
 
       {extra}
 

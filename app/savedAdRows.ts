@@ -1,3 +1,4 @@
+import type { ViewExtras } from "@/lib/cv/engineView";
 import type { BuiltProfile } from "@/lib/cv/profile";
 import type { FitLevel, Job, Skill } from "@/lib/engine/types";
 import { LEVEL_FAILED_LINE, NO_PROFILE_IN_USE_NOTE, OLD_READING_LINE } from "@/lib/saved/messages";
@@ -19,8 +20,9 @@ export function reportFor(
   profile: BuiltProfile,
   skills: Skill[],
   extraUnlisted: Skill[] = [],
+  extras?: ViewExtras & { thrownAway?: number }, // EC-4a: the verified answers of a check (lib/cv/checkPlan.ts, extrasFor); none: today's report
 ): ProfileReport {
-  return profileReport(reading.job, profile, skills, [...reading.unlisted, ...extraUnlisted]);
+  return profileReport(reading.job, profile, skills, [...reading.unlisted, ...extraUnlisted], extras);
 }
 
 // Step 1, independent of the profile: which reading each saved ad shows (as stored, or re-checked in the browser from the
