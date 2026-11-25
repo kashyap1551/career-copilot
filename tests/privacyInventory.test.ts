@@ -25,7 +25,8 @@ import { MemoryStore } from "@/lib/saved/store";
 //       `opts.fetch ?? fetch`) and no other file. `doFetch(`: 1 line (app/accessFetch.ts:102). `https?://` in code lines: 0. `href=` literals in
 //       app/: exactly "/" and "/demo" (app/demo/layout.tsx:15 and app/DemoEntry.tsx:13), no `href={`. STAGE 2.3 (hand-updated): the /privacy page
 //       and the footer link add three: app/page.tsx "/privacy" (the footer link), and app/privacy/page.tsx "/" (back to the app) and "/demo"
-//       (the demo). The rule is now a list PER FILE, which is stronger than the old flat list: {app/DemoEntry.tsx: ["/demo"], app/demo/layout.tsx:
+//       (the demo). STAGE 2.4 (hand-updated): the two notices at the send buttons link to /privacy in a new tab: app/CvBox.tsx gains ["/privacy"] and
+//       app/page.tsx has "/privacy" twice (the footer link and the ad notice). The rule is a list PER FILE, which is stronger than the old flat list: {app/DemoEntry.tsx: ["/demo"], app/demo/layout.tsx:
 //       ["/"], app/page.tsx: ["/privacy"], app/privacy/page.tsx: ["/", "/demo"]}. Any other href, anywhere, or any external address still fails. lib/cv/fileToText.ts holds `useWorkerFetch: false`
 //       once and `useWasm: false` once.
 //  I4   `console.` code lines in all of app/ and lib/: exactly 6:
@@ -36,7 +37,8 @@ import { MemoryStore } from "@/lib/saved/store";
 //         lib/ai/errors.ts:56         console.error(`${tag}: AI service error, status ${code ?? "unknown"}`);
 //         lib/ai/errors.ts:85         console.error(`${tag}: unexpected error`);
 //       (line numbers are for the reader; the test compares file and text, so a moved line does not fail it, an added or changed one does.)
-//  I5   in all of app/ and lib/ code lines: `sessionStorage` 1 line in app/accessFetch.ts (:28) and nowhere else; `indexedDB` 1 line in
+//  I5   in all of app/ and lib/ code lines: `sessionStorage` 1 line in app/accessFetch.ts (:28) and 1 line in app/consent.ts (stage 2.4: the tick),
+//       nowhere else; the only storage keys are "career-copilot.access-code" (accessFetch.ts) and "career-copilot.consent" (consent.ts); `indexedDB` 1 line in
 //       lib/saved/idbStore.ts (:52) and nowhere else; `localStorage`, `document.cookie`, `cookies(`, `Set-Cookie`, `set-cookie`: 0.
 //  I6   package.json "dependencies" are exactly the 8 names @ai-sdk/groq, ai, mammoth, next, pdfjs-dist, react, react-dom, zod; no dependency or
 //       devDependency name contains analytics, insights, posthog, plausible, gtag, mixpanel, amplitude, sentry, datadog, umami, hotjar, fullstory
@@ -53,8 +55,9 @@ import { MemoryStore } from "@/lib/saved/store";
 //       the default confirm and the real buildProfile and saveProfile into a MemoryStore, the one stored profile record, as JSON, contains the text
 //       of line 2 and neither the text of line 1 nor of line 3.
 //
-//  I10  (A8, stage 2.3) app/page.tsx has exactly one `href="/privacy"`, inside one <footer>, on a <Link> with prefetch={false} whose text is
-//       {LINK_PRIVACY}, imported from next/link; it is not inside a condition (the line before it does not end with && or ?).
+//  I10  (A8, stage 2.3; stage 2.4 hand-updated) app/page.tsx has exactly TWO `href="/privacy"`: the footer link (inside the one <footer>, text
+//       {LINK_PRIVACY}, outside every condition) and the ad notice link (text {LINK_PRIVACY_NOTICE}, target="_blank", rel="noopener noreferrer").
+//       Both are <Link prefetch={false}> imported from next/link.
 //
 //  I11  (stage 2.3b) no save or delete function runs from an effect or while rendering. The five: saveProfile, saveJob, deleteProfile, deleteJob,
 //       deleteAll. Counted by hand from `git grep -F "name("` (code lines of app/ and lib/), 2026-11-25:
@@ -152,7 +155,8 @@ describe("the data-flow inventory of main (PLAN-9.3 section 9, A8 to A11)", () =
     expect(hrefs).toEqual({
       "app/DemoEntry.tsx": ["/demo"],
       "app/demo/layout.tsx": ["/"],
-      "app/page.tsx": ["/privacy"],
+      "app/CvBox.tsx": ["/privacy"],
+      "app/page.tsx": ["/privacy", "/privacy"],
       "app/privacy/page.tsx": ["/", "/demo"],
     });
 
@@ -180,7 +184,9 @@ describe("the data-flow inventory of main (PLAN-9.3 section 9, A8 to A11)", () =
   it("I5: browser storage is touched in exactly two places, and there are no cookies and no localStorage", () => {
     const code = codeLines(allSource());
     const session = matching(code, /sessionStorage/);
-    expect(perFile(session), where(session).join("\n")).toEqual({ "app/accessFetch.ts": 1 });
+    expect(perFile(session), where(session).join("\n")).toEqual({ "app/accessFetch.ts": 1, "app/consent.ts": 1 });
+    const keys = code.flatMap((l) => [...l.text.matchAll(/"(career-copilot\.[a-z-]+)"/g)].map((m) => m[1])).sort();
+    expect(keys).toEqual(["career-copilot.access-code", "career-copilot.consent"]);
     const idb = matching(code, /indexedDB/);
     expect(perFile(idb), where(idb).join("\n")).toEqual({ "lib/saved/idbStore.ts": 1 });
     for (const re of [/localStorage/, /document\.cookie/, /cookies\(/, /Set-Cookie/, /set-cookie/]) {
@@ -252,18 +258,25 @@ describe("the data-flow inventory of main (PLAN-9.3 section 9, A8 to A11)", () =
     expect(json).not.toContain("Greeted customers at the counter");
   });
 
-  it("I10: the first screen has one footer link to /privacy, outside every condition", () => {
+  it("I10: the first screen has the footer link to /privacy outside every condition, and one more in the ad notice", () => {
     const page = read("app/page.tsx");
-    expect(page.split('href="/privacy"').length - 1).toBe(1);
+    expect(page.split('href="/privacy"').length - 1).toBe(2);
     expect(page.split("<footer").length - 1).toBe(1);
     expect(page).toContain('import Link from "next/link"');
-    expect(page).toContain("prefetch={false}");
-    expect(page).toContain("{LINK_PRIVACY}");
+    const links = [...page.matchAll(/<Link\b[^>]*?href="\/privacy"[\s\S]*?<\/Link>/g)].map((m) => m[0]);
+    expect(links.length).toBe(2);
+    const footer = links.find((l) => l.includes("{LINK_PRIVACY}"));
+    const notice = links.find((l) => l.includes("{LINK_PRIVACY_NOTICE}"));
+    expect(footer, "the footer link").toBeDefined();
+    expect(notice, "the notice link").toBeDefined();
+    expect(footer).toContain("prefetch={false}");
+    expect(footer).not.toContain("target=");
+    expect(notice).toContain("prefetch={false}");
+    expect(notice).toContain('target="_blank"');
+    expect(notice).toContain('rel="noopener noreferrer"');
     const lines = page.split("\n");
-    const at = lines.findIndex((l) => l.includes('href="/privacy"'));
+    const at = lines.findIndex((l) => l.includes("{LINK_PRIVACY}"));
     expect(at).toBeGreaterThan(0);
-    const before = lines[at].slice(0, lines[at].indexOf("<Link") >= 0 ? lines[at].indexOf("<Link") : 0);
-    expect(before).not.toMatch(/&&|\?/);
     const footerAt = lines.findIndex((l) => l.includes("<footer"));
     expect(footerAt).toBeGreaterThan(0);
     expect(footerAt).toBeLessThan(at);

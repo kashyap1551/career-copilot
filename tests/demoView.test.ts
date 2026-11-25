@@ -119,4 +119,13 @@ describe("the demo screens and what the source may contain (PLAN-9.1 sections 2.
     expect(read("app/page.tsx")).not.toContain("readOnly");
     expect(read("app/demo/page.tsx")).toMatch(/readOnly/);
   });
+
+  // V7 (PLAN-9.3 section 9, stage 2.4): the demo imports nothing of the consent stage or the privacy page. /demo has no send button, no tick and
+  // no link to /privacy in 9.3 (a Privacy link from the demo is on the 9.1c polish list), so it stays at zero new code and zero new requests.
+  it("V7: no demo file mentions consent, app/consent, lib/privacy or /privacy", () => {
+    for (const { rel, src } of demoSources()) {
+      expect(src.toLowerCase(), `${rel} must not mention consent`).not.toContain("consent");
+      for (const w of ["app/consent", "lib/privacy", "/privacy"]) expect(src, `${rel} must not contain ${w}`).not.toContain(w);
+    }
+  });
 });

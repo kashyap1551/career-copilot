@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import DemoEntry from "./DemoEntry";
-import { LINK_PRIVACY } from "@/lib/privacy/messages";
+import { AD_INFO_LINE, LINK_PRIVACY, LINK_PRIVACY_NOTICE } from "@/lib/privacy/messages";
 import { skills } from "@/fixtures/skills";
 import { buildProfile, initialConfirm, type ConfirmState } from "@/lib/cv/profile";
 import { builtFromSaved } from "@/lib/saved/profile";
@@ -228,14 +228,22 @@ export default function Home() {
         className="w-full rounded border border-zinc-300 bg-transparent p-3 font-mono text-sm dark:border-zinc-700"
       />
 
-      <div>
-        <button
-          onClick={readAd}
-          disabled={loading || text.trim() === ""}
-          className="rounded bg-foreground px-5 py-2 font-medium text-background disabled:opacity-40"
-        >
-          {loading ? "Reading…" : "Read this ad"}
-        </button>
+      <div className="flex flex-col gap-2">
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          {AD_INFO_LINE}{" "}
+          <Link href="/privacy" target="_blank" rel="noopener noreferrer" prefetch={false} className="underline">
+            {LINK_PRIVACY_NOTICE}
+          </Link>
+        </p>
+        <div>
+          <button
+            onClick={readAd}
+            disabled={loading || text.trim() === ""}
+            className="rounded bg-foreground px-5 py-2 font-medium text-background disabled:opacity-40"
+          >
+            {loading ? "Reading…" : "Read this ad"}
+          </button>
+        </div>
       </div>
 
       <AccessBox source="ad" />

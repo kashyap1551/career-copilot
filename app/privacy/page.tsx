@@ -5,6 +5,7 @@ import {
   CLAIM_C1,
   CLAIM_C10,
   CLAIM_C15,
+  CLAIM_C16,
   CLAIM_C2,
   CLAIM_C3A,
   CLAIM_C3B,
@@ -68,6 +69,7 @@ export default function PrivacyPage() {
         <p>{CLAIM_C3B}</p>
         <p>{CLAIM_C4}</p>
         <p>{CLAIM_C5}</p>
+        <p>{CLAIM_C16}</p>
         <p>{CLAIM_C10}</p>
       </section>
 

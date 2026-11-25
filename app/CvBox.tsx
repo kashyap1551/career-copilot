@@ -1,13 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import Link from "next/link";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import AccessBox from "./AccessBox";
 import { postJson } from "./accessFetch";
+import { forgetConsent, getConsentServerSnapshot, getConsentSnapshot, giveConsent, sendIfAcknowledged, subscribeConsent } from "./consent";
 import { fileToText, MAX_CV_CHARS } from "@/lib/cv/fileToText";
 import { MAX_CV_LINES, MAX_LINE_CHARS } from "@/lib/cv/limits";
 import { numberLines } from "@/lib/cv/numberLines";
 import { removeContactDetails } from "@/lib/cv/redact";
 import type { CvBuildResult, CvRemovalReason } from "@/lib/engine/fromCv";
+import { CV_INFO_LINE, CV_TICK, CV_TICK_NEEDED, LINK_PRIVACY_NOTICE } from "@/lib/privacy/messages";
 
 // Steps 4.1 and 4.2: choose a CV file (PDF, Word or .txt) or paste the text.
 // The file is read on this device. Before anything is sent, email addresses,
@@ -34,6 +37,10 @@ export default function CvBox({ onRead }: { onRead: (lines: string[], result: Cv
   const [result, setResult] = useState<CvBuildResult | null>(null);
   const [readLines, setReadLines] = useState<string | null>(null); // the lines of the last successful reading
   const [fileName, setFileName] = useState<string | null>(null);
+  // Stage 2.4 (PLAN-9.3 section 4): the tick before the first CV send in this tab. Read from the tab's storage WITHOUT an effect (the external-store
+  // hook): while the page is built and hydrated the box is unticked, then it shows the stored state, also after a reload of the same tab.
+  const acknowledged = useSyncExternalStore(subscribeConsent, getConsentSnapshot, getConsentServerSnapshot);
+  const [tickNeeded, setTickNeeded] = useState(false);
 
   // What would be sent: contact details removed, then lines numbered.
   const lines = useMemo(() => numberLines(removeContactDetails(cvText)), [cvText]);
@@ -71,27 +78,36 @@ export default function CvBox({ onRead }: { onRead: (lines: string[], result: Cv
   }
 
   async function send() {
-    setSending(true);
-    setError(null);
-    setMessage(null);
-    setResult(null);
-    try {
-      // One helper sends it (app/accessFetch.ts): it adds the access code header; a 401 shows the Access code box instead.
-      const sent = await postJson("/api/cv", { lines }, { source: "cv" });
-      if (sent.kind === "access") return;
-      const res = sent.res;
-      const data = await res.json().catch(() => null);
-      if (!res.ok) setError(data?.error ?? `The server returned an error (${res.status}).`);
-      else {
-        setResult(data as CvBuildResult);
-        setReadLines(lines.join("\n"));
-        onRead(lines, data as CvBuildResult);
+    // The gate is the first thing that happens: unticked, nothing below runs and nothing is sent (tests/consent.test.ts C1 and G1).
+    const gated = await sendIfAcknowledged(async () => {
+      setSending(true);
+      setError(null);
+      setMessage(null);
+      setResult(null);
+      try {
+        // One helper sends it (app/accessFetch.ts): it adds the access code header; a 401 shows the Access code box instead.
+        const sent = await postJson("/api/cv", { lines }, { source: "cv" });
+        if (sent.kind === "access") return;
+        const res = sent.res;
+        const data = await res.json().catch(() => null);
+        if (!res.ok) setError(data?.error ?? `The server returned an error (${res.status}).`);
+        else {
+          setResult(data as CvBuildResult);
+          setReadLines(lines.join("\n"));
+          onRead(lines, data as CvBuildResult);
+        }
+      } catch {
+        setError("Could not reach the server. Check your connection and try again.");
+      } finally {
+        setSending(false);
       }
-    } catch {
-      setError("Could not reach the server. Check your connection and try again.");
-    } finally {
-      setSending(false);
-    }
+    });
+    setTickNeeded(!gated.sent);
+  }
+
+  function onTick(e: React.ChangeEvent<HTMLInputElement>) {
+    if (e.target.checked) giveConsent();
+    else forgetConsent();
   }
 
   return (
@@ -150,23 +166,35 @@ export default function CvBox({ onRead }: { onRead: (lines: string[], result: Cv
           <pre className="max-h-64 overflow-auto whitespace-pre-wrap break-words rounded bg-zinc-100 p-3 text-sm dark:bg-zinc-900">
             {lines.map((l, i) => `${i + 1}: ${l}`).join("\n")}
           </pre>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Email addresses, phone numbers and web links were removed on your device. Your name and
-            address are NOT removed. These numbered lines are sent through our server to an AI service
-            (Groq) to find your skills. We store nothing and do not log the text.
-          </p>
         </div>
       )}
 
-      <div>
-        <button
-          onClick={send}
-          disabled={sending || problem !== null}
-          className="rounded bg-foreground px-5 py-2 font-medium text-background disabled:opacity-40"
-        >
-          {sending ? "Reading…" : "Send for reading"}
-        </button>
-        {problem && lines.length > 0 && <span className="ml-3 text-sm text-red-600 dark:text-red-400">{problem}</span>}
+      <div className="flex flex-col gap-2">
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          {CV_INFO_LINE}{" "}
+          <Link href="/privacy" target="_blank" rel="noopener noreferrer" prefetch={false} className="underline">
+            {LINK_PRIVACY_NOTICE}
+          </Link>
+        </p>
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={acknowledged} onChange={onTick} />
+          {CV_TICK}
+        </label>
+        <div>
+          <button
+            onClick={send}
+            disabled={sending || problem !== null}
+            className="rounded bg-foreground px-5 py-2 font-medium text-background disabled:opacity-40"
+          >
+            {sending ? "Reading…" : "Send for reading"}
+          </button>
+          {problem && lines.length > 0 && <span className="ml-3 text-sm text-red-600 dark:text-red-400">{problem}</span>}
+          {tickNeeded && !acknowledged && (
+            <span role="alert" className="ml-3 text-sm text-red-600 dark:text-red-400">
+              {CV_TICK_NEEDED}
+            </span>
+          )}
+        </div>
       </div>
 
       <AccessBox source="cv" />

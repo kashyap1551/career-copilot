@@ -103,3 +103,16 @@ export const PROCESSORS_INTRO =
 // Last line under HEADING_PROCESSORS and under HEADING_COOKIES: points to the not-confirmed list at the end of the page.
 export const NOT_CONFIRMED_POINTER =
   "Some facts about these services are not confirmed yet. They are listed under 'Not confirmed yet' at the end of this page.";
+
+// ---- the consent stage (stage 2.4) ------------------------------------------------------------------------------------------------------------
+
+// Shown next to "Send for reading" when the button is pressed with the box unticked. DRAFT.
+export const CV_TICK_NEEDED = "Tick the box before you send your CV.";
+
+// The text of the link in the two notices (it opens the privacy page in a NEW tab, so the CV and the reading on the screen stay as they are).
+export const LINK_PRIVACY_NOTICE = "Open the privacy page in a new tab";
+
+// C16, rendered on /privacy under HEADING_STORED (a new browser-storage key is a data flow: PLAN-9.3 section 8). Code: app/consent.ts. Tests: C3, C4, I5.
+// It does NOT say that "delete everything" forgets the tick: stage 2.5 adds that, in the same commit as the code.
+export const CLAIM_C16 =
+  "When you tick the box before sending your CV, the tick is kept for this tab only. It is forgotten when you close the tab.";
