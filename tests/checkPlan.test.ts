@@ -91,6 +91,23 @@ describe("EC-4a plan: what is sent (CPL)", () => {
     expect(plan(job(), personW({}, LINES_W, inferredP), null).entries.map((e) => e.inferred)).toEqual([false, false]);
   });
 
+  it("CPL10: entries come out by CV line, then by name, numbered 1 to 4 (Mid line 1, SQL line 2, Alpha line 3, Zeta line 3)", () => {
+    const kept = (name: string, id: string, line: number, text: string) => ({ name, skillId: id, evidence: { line, text }, inferred: false });
+    const person = { ...personW(), unlistedKept: [kept("Zeta", "new:zeta", 3, "zeta line"), kept("Alpha", "new:alpha", 3, "alpha line"), kept("Mid", "new:mid", 1, "mid line")] };
+    const r = buildCheckPlan(job(), person, skills, null);
+    expect(r.entries.map((e) => [e.n, e.name, e.line])).toEqual([[1, "Mid", 1], [2, "SQL", 2], [3, "Alpha", 3], [4, "Zeta", 3]]);
+    expect(r.requirements).toEqual(SENT_W.requirements); // the open requirements stay M3, M4, N1
+  });
+
+  it("CPL11: 62 entries found (SQL on line 2, 61 kept on lines 3 to 63): 60 are sent, the first is SQL (n 1), the last is 'Kept 61' (line 61, n 60); none on line 62 or 63", () => {
+    const kept = Array.from({ length: 61 }, (_, k) => ({ name: `Kept ${k + 3}`, skillId: `new:kept-${k + 3}`, evidence: { line: k + 3, text: `line ${k + 3}` }, inferred: false }));
+    const r = buildCheckPlan(job(), { ...personW(), unlistedKept: kept }, skills, null);
+    expect(r.entries).toHaveLength(60);
+    expect([r.entries[0].n, r.entries[0].name, r.entries[0].line]).toEqual([1, "SQL", 2]);
+    expect([r.entries[59].n, r.entries[59].name, r.entries[59].line]).toEqual([60, "Kept 61", 61]);
+    expect(r.entries.some((e) => e.line >= 62)).toBe(false);
+  });
+
   it("CPL9: nothing open: no requirements; no confirmed entries: no entries", () => {
     const allListed = job(job().requirements.slice(0, 2)); // SQL and Excel only
     expect(plan(allListed).requirements).toEqual([]);

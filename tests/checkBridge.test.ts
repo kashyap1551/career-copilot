@@ -43,13 +43,14 @@ describe("EC-4a bridge: route answer -> view answers (CB)", () => {
     expect(toViewAnswers(SENT_W, body)).toEqual({ ok: true, answers: [], thrownAway: 1 });
   });
 
-  it("CB5: a body of the wrong shape is refused: answers not a list, thrownAway below 0, an unknown verdict, a missing field, not an object", () => {
+  it("CB5: a body of the wrong shape is refused: answers not a list, thrownAway below 0 or not a whole number, an unknown verdict, a missing field, not an object", () => {
     const bad: unknown[] = [
       { answers: "none", thrownAway: 0 },
       { answers: [], thrownAway: -1 },
       { answers: [{ requirement: 1, verdict: "maybe", entry: null, quote: null }], thrownAway: 0 },
       { answers: [{ requirement: 1, verdict: "none", entry: null }], thrownAway: 0 },
       { answers: [] },
+      { answers: [], thrownAway: 1.5 },
       null,
       "text",
     ];

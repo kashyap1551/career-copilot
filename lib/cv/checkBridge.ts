@@ -15,7 +15,7 @@ const routeAnswerSchema = z.object({
       quote: z.string().nullable(),
     }),
   ),
-  thrownAway: z.number().min(0),
+  thrownAway: z.number().int().min(0), // never sent to the AI, so .int() is fine here (the ban is for the AI's schema)
 });
 
 export type CheckSent = { requirements: SentRequirement[]; entries: SentEntry[] };
