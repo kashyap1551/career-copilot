@@ -503,3 +503,27 @@ All dated 2026-11-25.
 Chain note: `lib/ai/errors.ts`: EC-3a added the subject check (`ReadSubject`, the log tag, a 500 message); `step-8.3` edits the same file for its own subject; keep both when merging.
 
 Note: `toViewAnswers` (route answer positions to `engineView`'s `ViewAnswer`) is built in EC-4, where the page's lists are known.
+
+## DRAFT wording awaiting the owner's approval
+
+Only the file and the name of each piece of wording are listed (no text is copied here, so this list cannot drift from the code). All of it is DRAFT; `WORDING_APPROVED_ON` stays null until the owner approves.
+
+From EC-1:
+- `lib/engine/evidenceText.ts`: `AI_BLOCK_TITLE`, `INFERRED_NOTE`, `aiCountsSentence`, `aiRowText`, `thrownAwayLine`.
+- `app/skillsOnly.ts`: `fitLabelText` (the label forms: "At best", "N must-have(s) judged by AI", "N must-have(s) not judged"), and `NO_REQUIREMENTS_SENTENCE`, `noMustHaveJudgeableSentence` as they were before (not new).
+
+From EC-2:
+- `lib/cv/capMessage.ts`: `capMessage` (the 60-skill message).
+- `lib/saved/messages.ts`: `OLD_PROFILE_NOTE`.
+- `lib/cv/confirmWording.ts`: `UNLISTED_TAG` (the skill row tag), `keptLineText` (the confirm-box text).
+- `lib/privacy/messages.ts`: `CLAIM_C4` (the change that says the saved profile holds unlisted skills with their CV line).
+
+From EC-3b:
+- `app/api/check/route.ts`: `CONTACT_REFUSAL`, `SEND_JSON`, `WRONG_FIELDS` (the sentences a person can read when a check request is refused).
+- `lib/ai/errors.ts`: the sentence for an unexpected error of the check ("Something went wrong while checking your CV lines against the ad. Please try again."), inline in `toReadError`.
+- `lib/privacy/messages.ts`: `CHECK_INFO_LINE`, `CLAIM_C17`, `CLAIM_C3B` (changed), `CLAIM_C16` (changed), `CHECK_TICK_NEEDED`.
+
+Note: EC-6 (storing answers) must change C4 and C17 (the "not saved" sentence) in the same commit.
+
+Note: The check call's latency is unmeasured and no route sets `maxDuration`; EC-5 records the elapsed time per call; set `maxDuration` only if the numbers need it.
+
