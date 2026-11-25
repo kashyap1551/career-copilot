@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import DemoEntry from "./DemoEntry";
+import { LINK_PRIVACY } from "@/lib/privacy/messages";
 import { skills } from "@/fixtures/skills";
 import { buildProfile, initialConfirm, type ConfirmState } from "@/lib/cv/profile";
 import { builtFromSaved } from "@/lib/saved/profile";
@@ -345,6 +347,12 @@ export default function Home() {
           </section>
         </>
       )}
+
+      <footer className="mt-6 text-sm">
+        <Link href="/privacy" prefetch={false} className="underline">
+          {LINK_PRIVACY}
+        </Link>
+      </footer>
     </main>
   );
 }

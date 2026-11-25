@@ -7,12 +7,14 @@ import * as messages from "@/lib/privacy/messages";
 // Written BEFORE lib/privacy/messages.ts exists (red first, then green).
 //
 // HAND-WORKED EXPECTATIONS:
-//  M3  messages.ts exports exactly these 23 string constants (3 info and tick lines, 12 claims, 8 headings, counted below) and one
+//  M3  messages.ts exports exactly these 30 string constants (3 info and tick lines, 12 claims, 8 headings, 7 labels of the /privacy page, counted below) and one
 //      non-string, WORDING_APPROVED_ON (null). Each string equals the pinned string below, copied by hand BEFORE the constants were written; the
 //      test names every constant that differs, and a constant that is added or removed without a pin also fails.
 //        pinned strings: CV_INFO_LINE, AD_INFO_LINE, CV_TICK (3);  CLAIM_C1, CLAIM_C2, CLAIM_C3A, CLAIM_C3B, CLAIM_C4, CLAIM_C5, CLAIM_C6, CLAIM_C7,
 //        CLAIM_C8, CLAIM_C9, CLAIM_C10, CLAIM_C15 (12);  HEADING_LEAVES, HEADING_STORED, HEADING_LOGGED, HEADING_PROCESSORS, HEADING_COOKIES,
-//        HEADING_CONTROLS, HEADING_DEMO, HEADING_NOT_CONFIRMED (8).   3 + 12 + 8 = 23 strings.
+//        HEADING_CONTROLS, HEADING_DEMO, HEADING_NOT_CONFIRMED (8);  PRIVACY_TITLE, PRIVACY_DESCRIPTION, LABEL_SOURCE, LABEL_CHECKED_ON,
+//        LABEL_BACK_TO_APP, LABEL_TO_DEMO, LINK_PRIVACY (7, added at stage 2.3 for the page: no sentence of the page is typed in its component).
+//        3 + 12 + 8 + 7 = 30 strings.
 //  M5  none of GDPR, DSGVO, compliant, compliance, lawful, certified, guarantee, legally, secure, consent appears (case-insensitive) in
 //      (a) any exported string constant of messages.ts, and (b) the `words` of every fact in lib/privacy/facts.ts whose kind is NOT "quoted": the
 //      observed facts and the not-confirmed sentences (U1, U2b, U3, U4a, U4b, U5, U6, U9: eight facts). Read by hand, none of the eight contains
@@ -56,13 +58,20 @@ const PINNED: Record<string, string> = {
   HEADING_CONTROLS: "Your controls",
   HEADING_DEMO: "The demo",
   HEADING_NOT_CONFIRMED: "Not confirmed yet",
+  PRIVACY_TITLE: "Privacy",
+  PRIVACY_DESCRIPTION: "What leaves your browser, what is kept where, and what is not confirmed yet.",
+  LABEL_SOURCE: "Source",
+  LABEL_CHECKED_ON: "Checked on",
+  LABEL_BACK_TO_APP: "Back to the app",
+  LABEL_TO_DEMO: "Try the demo with invented data",
+  LINK_PRIVACY: "Privacy",
 };
 
 const FORBIDDEN = ["GDPR", "DSGVO", "compliant", "compliance", "lawful", "certified", "guarantee", "legally", "secure", "consent"];
 
 describe("the draft words of the privacy page (PLAN-9.3 sections 2, 4, 6; A4, A12, A13)", () => {
   it("M3: every constant of messages.ts is exactly its pinned string, and none is added or removed without a pin", () => {
-    expect(Object.keys(PINNED).length).toBe(23);
+    expect(Object.keys(PINNED).length).toBe(30);
     const strings = Object.entries(messages).filter(([, v]) => typeof v === "string") as [string, string][];
     const names = strings.map(([k]) => k).sort();
     expect(names, "constants exported but not pinned, or pinned but not exported").toEqual(Object.keys(PINNED).sort());

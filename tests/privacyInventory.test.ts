@@ -23,7 +23,10 @@ import { MemoryStore } from "@/lib/saved/store";
 //  I3   Scope S: `fetch(`, `globalThis.fetch`, `window.fetch`, `new Request(`, `XMLHttpRequest`, `sendBeacon`, `WebSocket`, `EventSource`, `<form`, `<img`,
 //       `<iframe`, `<script`, `next/script`, `next/image`: 0 lines each. The bare word `fetch`: app/accessFetch.ts 2 lines (:97 the type, :101
 //       `opts.fetch ?? fetch`) and no other file. `doFetch(`: 1 line (app/accessFetch.ts:102). `https?://` in code lines: 0. `href=` literals in
-//       app/: exactly "/" and "/demo" (app/demo/layout.tsx:15 and app/DemoEntry.tsx:13), no `href={`. lib/cv/fileToText.ts holds `useWorkerFetch: false`
+//       app/: exactly "/" and "/demo" (app/demo/layout.tsx:15 and app/DemoEntry.tsx:13), no `href={`. STAGE 2.3 (hand-updated): the /privacy page
+//       and the footer link add three: app/page.tsx "/privacy" (the footer link), and app/privacy/page.tsx "/" (back to the app) and "/demo"
+//       (the demo). The rule is now a list PER FILE, which is stronger than the old flat list: {app/DemoEntry.tsx: ["/demo"], app/demo/layout.tsx:
+//       ["/"], app/page.tsx: ["/privacy"], app/privacy/page.tsx: ["/", "/demo"]}. Any other href, anywhere, or any external address still fails. lib/cv/fileToText.ts holds `useWorkerFetch: false`
 //       once and `useWasm: false` once.
 //  I4   `console.` code lines in all of app/ and lib/: exactly 6:
 //         app/api/cv/route.ts:48      console.error("cv: unexpected error in route");
@@ -50,7 +53,10 @@ import { MemoryStore } from "@/lib/saved/store";
 //       the default confirm and the real buildProfile and saveProfile into a MemoryStore, the one stored profile record, as JSON, contains the text
 //       of line 2 and neither the text of line 1 nor of line 3.
 //
-// COUNTS: this file has 12 tests (I1, I1b, I2, I3, I4, I5, I6, I7, I8, I9, I9b, S1b).
+//  I10  (A8, stage 2.3) app/page.tsx has exactly one `href="/privacy"`, inside one <footer>, on a <Link> with prefetch={false} whose text is
+//       {LINK_PRIVACY}, imported from next/link; it is not inside a condition (the line before it does not end with && or ?).
+//
+// COUNTS: this file has 13 tests (I1, I1b, I2, I3, I4, I5, I6, I7, I8, I9, I9b, S1b, I10).
 
 const root = process.cwd();
 const read = (rel: string) => readFileSync(join(root, rel), "utf8");
@@ -126,8 +132,15 @@ describe("the data-flow inventory of main (PLAN-9.3 section 9, A8 to A11)", () =
 
     const appCode = codeLines(walk("app").filter(isSource));
     expect(where(matching(appCode, /href=\{/))).toEqual([]);
-    const hrefs = appCode.flatMap((l) => [...l.text.matchAll(/href="([^"]*)"/g)].map((m) => m[1])).sort();
-    expect(hrefs).toEqual(["/", "/demo"]);
+    const hrefs: Record<string, string[]> = {};
+    for (const l of appCode) for (const m of l.text.matchAll(/href="([^"]*)"/g)) (hrefs[l.file] ??= []).push(m[1]);
+    for (const k of Object.keys(hrefs)) hrefs[k].sort();
+    expect(hrefs).toEqual({
+      "app/DemoEntry.tsx": ["/demo"],
+      "app/demo/layout.tsx": ["/"],
+      "app/page.tsx": ["/privacy"],
+      "app/privacy/page.tsx": ["/", "/demo"],
+    });
 
     const pdf = read("lib/cv/fileToText.ts");
     expect(pdf.split("useWorkerFetch: false").length - 1).toBe(1);
@@ -223,5 +236,24 @@ describe("the data-flow inventory of main (PLAN-9.3 section 9, A8 to A11)", () =
     expect(json).toContain("Built weekly sales sheets in Excel");
     expect(json).not.toContain("Managed the stockroom for a bakery");
     expect(json).not.toContain("Greeted customers at the counter");
+  });
+
+  it("I10: the first screen has one footer link to /privacy, outside every condition", () => {
+    const page = read("app/page.tsx");
+    expect(page.split('href="/privacy"').length - 1).toBe(1);
+    expect(page.split("<footer").length - 1).toBe(1);
+    expect(page).toContain('import Link from "next/link"');
+    expect(page).toContain("prefetch={false}");
+    expect(page).toContain("{LINK_PRIVACY}");
+    const lines = page.split("\n");
+    const at = lines.findIndex((l) => l.includes('href="/privacy"'));
+    expect(at).toBeGreaterThan(0);
+    const before = lines[at].slice(0, lines[at].indexOf("<Link") >= 0 ? lines[at].indexOf("<Link") : 0);
+    expect(before).not.toMatch(/&&|\?/);
+    const footerAt = lines.findIndex((l) => l.includes("<footer"));
+    expect(footerAt).toBeGreaterThan(0);
+    expect(footerAt).toBeLessThan(at);
+    const previous = lines.slice(0, footerAt).reverse().find((l) => l.trim() !== "") ?? "";
+    expect(previous).not.toMatch(/&&\s*\(?\s*$|\?\s*\(?\s*$/);
   });
 });

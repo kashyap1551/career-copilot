@@ -82,3 +82,14 @@ export const HEADING_COOKIES = "Cookies and analytics";
 export const HEADING_CONTROLS = "Your controls";
 export const HEADING_DEMO = "The demo";
 export const HEADING_NOT_CONFIRMED = "Not confirmed yet";
+
+// ---- the labels of the /privacy page (stage 2.3): no word of the page is typed in its component --------------------------------------------------
+
+export const PRIVACY_TITLE = "Privacy";
+export const PRIVACY_DESCRIPTION = "What leaves your browser, what is kept where, and what is not confirmed yet.";
+export const LABEL_SOURCE = "Source";
+export const LABEL_CHECKED_ON = "Checked on";
+export const LABEL_BACK_TO_APP = "Back to the app";
+export const LABEL_TO_DEMO = "Try the demo with invented data";
+// The footer link on the first screen (app/page.tsx).
+export const LINK_PRIVACY = "Privacy";
