@@ -56,6 +56,12 @@ describe("EC-0b part 1: the state of a key (computed from its R blocks only)", (
     expect(said(r)).toContain("R4: no verdict");
   });
 
+  it("K2b: exactly ONE of the 6 R blocks has no verdict (5 of 6 answered): still incomplete, never complete", () => {
+    const r = check(FOUR_MUST_TWO_NICE(["met", "none", "partly", "met", "none", ""]));
+    expect([r.state, r.answered, r.total]).toEqual(["incomplete", 5, 6]);
+    expect(said(r)).toContain("R6: no verdict");
+  });
+
   it("K3: all 6 have a verdict and nothing is wrong: complete, no problems", () => {
     const r = check(FOUR_MUST_TWO_NICE(["met", "none", "partly", "met", "none", "met"]));
     expect([r.state, r.answered, r.total]).toEqual(["complete", 6, 6]);
