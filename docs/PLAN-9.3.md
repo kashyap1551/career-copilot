@@ -273,3 +273,37 @@ Main: **95 files, 1,606 tests.** Estimated after 9.3: **101 files, about 1,641 p
 6. **Preview versus live for the manual check:** sign in to Vercel in the private window and test the preview, or run everything on the live address after the merge (as in 9.1)? Because a merge deploys, I recommend the preview first with a Vercel sign-in, then the "fresh" steps again live.
 7. **Indexing /privacy:** indexed (recommended) or noindex?
 8. **Impressum:** who answers U7, and is a "not needed, because ..." DECISIONS line enough if the answer is no?
+
+---
+
+## 12. AMENDMENTS (reviewer, 2026-11-25)
+
+The amendments rule over the plan text where they differ. The owner may veto any decision of A1; question 8 (Impressum) and the final wording of every sentence are the owner's.
+
+**A1. Decisions on the eight open questions of section 11.**
+1. The gate F3 is NOT required before the merge. It IS required before any other person's CV goes through the live page and before the link is shared for AI use.
+2. Consent: Option C as drafted. The words stay DRAFT until the owner approves them at stage 2.2.
+3. The CV notice's "We store nothing and do not log the text" is replaced by the exact constants at stage 2.4; the 8.3 W4 line is handled at its merge.
+4. The delete control also shows when saving is unavailable (section 5, change 2).
+5. /demo stays untouched in 9.3; a Privacy link from /demo goes onto the 9.1c polish list.
+6. Manual check: the preview first (the owner signs in to Vercel in the window), then the "fresh window" steps again on the live address after the merge.
+7. /privacy is indexed.
+8. Impressum: the owner decides. It is not needed before stage 2.3; it must be answered before the link is posted publicly (blog, LinkedIn).
+
+**A2. The shape of a fact gets `kind: "quoted" | "observed"`.** `quoted` = the provider's own sentence, shown in quotation marks with its source named. `observed` = a plain statement of what the owner or the reviewer saw, with where and when. Both need `source` and an ISO `date`. Test F2 checks `kind` as well (a `confirmed` fact without `kind`, with a `kind` other than these two, or without source or date fails).
+
+**A3. Facts known on 2026-11-25.** They go into lib/privacy/facts.ts at stage 2.2, not before.
+- **U2**, ready to be confirmed once the owner agrees: `quoted`, source "Groq console, Data Controls page, as shown to the owner on 2026-11-25": "Starting October 15, 2025, Groq may store inputs and outputs for up to 30 days, strictly for purposes of maintaining system reliability and compliance. Enable to opt out of storing input and output data." `observed` on the same page, the same day, about 04:57 Berlin time: "Inference APIs ZDR" shows Enabled; "Global ZDR" shows Disabled; Batch and Fine-tuning show On. The Model Terms page lists only two Canopy Labs speech models and none for our model (observed).
+- **U1 and U3** stay `not-confirmed` until the owner pastes the exact sentences. Leads only (the reviewer read them through a summarising tool, so they are not facts for the page): Groq Services Agreement section 4.2 (Inputs and Outputs not to be used for training or fine-tuning unless the customer allows it); the Groq "Your Data" page (customer data kept in Google Cloud buckets in the United States); the DPA sections 8.1 to 8.2 (transfer to the US, EU standard contractual clauses).
+- **U4**, `observed`: a Vercel request-log row's detail shows the time, the request ID, the path, the host, the status, the user agent, the receiving location (Frankfurt, fra1), the firewall result, the cache result and the deployment; it shows NO IP address field. The Firewall > Traffic view DOES show visitor IP addresses, the country, the network provider, a TLS fingerprint and the browser type, with a "Past Day" range selector. The Runtime Logs for the two reads each held one line, Vercel's own "[tls-profile] applied ..." message, and nothing from our code. Retention periods: not confirmed.
+- **U5**, `observed`: the response header `x-vercel-id` reads `fra1::iad1::...` on /api/read and /api/cv (2026-11-25). As far as the reviewer knows, that means received in Frankfurt and the function run in iad1 (Washington D.C., US East). NOT confirmed against the dashboard's Function Region setting (owner homework). The reviewer leans to moving the function to Frankfurt after stage 2.7; decide then.
+- **U6** not confirmed: the owner checks the project's Analytics and Speed Insights tabs.
+- **U9**, new, `observed`: the Vercel Firewall custom rule `api-rate-limit`, published 2026-11-25 at about 05:45: Request Path starts with /api/, fixed window 60 seconds, 10 requests, key IP address, action Too Many Requests (429). Live check: 12 requests without a code gave 10 x 401 then 429, 429. New claim **C14**: the page states this as an observed fact; its evidence is a dashboard rule plus this dated manual check, not a code test.
+
+**A4. Test M5 (forbidden words) covers OUR words** (lib/privacy/messages.ts and the page source), **not the `words` of a `quoted` fact**: Groq's sentence contains "compliance". Break B10 is unchanged.
+
+**A5. Test I3.** The hand grep of 2026-11-25 found NO literal `fetch(` in app/ or lib/ outside lib/ai and lib/engine/eval*, so the sentence "`fetch(` only in app/accessFetch.ts" of the earlier draft of section 1.1 is unverified. Stage 2.0 finds how the helper reaches the network; the exact guard is written, hand-counted per file, BEFORE any test.
+
+**A6. Manual step 11 of MANUAL-CHECK-9.3.** CC runs the gate command and pastes the output; the reviewer reads it (the reviewer has no repo access).
+
+**A7. Before the link is posted for AI use:** (a) the gate passes, (b) the owner has pasted the exact U1 and U3 sentences, (c) the Impressum is decided, (d) the consent line and /privacy are live. Other people's CVs only after (a) and (d).
