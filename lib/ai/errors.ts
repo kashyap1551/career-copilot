@@ -19,13 +19,13 @@ export class ReadAdError extends Error {
   }
 }
 
-export type ReadSubject = "ad" | "cv";
+export type ReadSubject = "ad" | "cv" | "check";
 
 // Logs only the kind of error and the status code: never the ad or CV text,
 // never the key, never the error's own message (it could echo the text).
 export function toReadError(raw: unknown, subject: ReadSubject): ReadAdError {
   const detail = raw instanceof Error ? raw.message : undefined;
-  const tag = subject === "cv" ? "cv" : "read";
+  const tag = subject === "cv" ? "cv" : subject === "check" ? "check" : "read";
   const what = subject === "cv" ? "CV" : "ad";
 
   // The AI SDK retries a retryable error twice and then throws a RetryError
@@ -84,7 +84,7 @@ export function toReadError(raw: unknown, subject: ReadSubject): ReadAdError {
 
   console.error(`${tag}: unexpected error`);
   return new ReadAdError(
-    `Something went wrong while reading the ${what}. Please try again.`,
+    subject === "check" ? "Something went wrong while checking your CV lines against the ad. Please try again." : `Something went wrong while reading the ${what}. Please try again.`,
     500,
     detail,
   );
