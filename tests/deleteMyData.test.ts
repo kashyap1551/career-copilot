@@ -137,6 +137,10 @@ describe("delete everything saved on this device (PLAN-9.3 section 5)", () => {
     expect(tick).toBeGreaterThan(code);
     expect(del).toBeGreaterThan(tick);
     expect(body.indexOf("await"), "the first await comes after the tick is forgotten").toBeGreaterThan(tick);
+    // EC-4b: the page's on-screen answers of a check are dropped right after the tick, before the tab-only branch and before any await.
+    const wipe = body.indexOf("onWipe(");
+    expect(wipe, "onWipe( comes after forgetConsent(").toBeGreaterThan(tick);
+    expect(wipe, "onWipe( comes before the first await").toBeLessThan(body.indexOf("await"));
     expect(read("app/SavedControls.tsx").split("forgetConsent(").length - 1, "forgetConsent( is called once, in onDeleteAll").toBe(1);
   });
 

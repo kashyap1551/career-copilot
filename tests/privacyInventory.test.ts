@@ -18,8 +18,8 @@ import { MemoryStore } from "@/lib/saved/store";
 //
 //  I1   files named route.ts under app/api: exactly app/api/check/route.ts, app/api/cv/route.ts and app/api/read/route.ts (3; EC-3b added the check route).
 //  I1b  code lines of lib/saved/** containing fetch, postJson, XMLHttpRequest or sendBeacon: 0.
-//  I2   code lines containing `postJson(` in app/**: app/accessFetch.ts 1 (:94, the definition), app/CvBox.tsx 1 (:80), app/page.tsx 1 (:78), no other file;
-//       app/CvBox.tsx and app/page.tsx contain no `useEffect` (they import only useMemo and useState), so nothing is sent from an effect.
+//  I2   code lines containing `postJson(` in app/**: app/accessFetch.ts 1 (:94, the definition), app/CvBox.tsx 1 (:80), app/page.tsx 1 (:78), app/runCheck.ts 1 (EC-4b), no other file;
+//       app/CvBox.tsx, app/page.tsx, app/CheckBox.tsx and app/runCheck.ts contain no `useEffect`, so nothing is sent from an effect.
 //  I3   Scope S: `fetch(`, `globalThis.fetch`, `window.fetch`, `new Request(`, `XMLHttpRequest`, `sendBeacon`, `WebSocket`, `EventSource`, `<form`, `<img`,
 //       `<iframe`, `<script`, `next/script`, `next/image`: 0 lines each. The bare word `fetch`: app/accessFetch.ts 2 lines (:97 the type, :101
 //       `opts.fetch ?? fetch`) and no other file. `doFetch(`: 1 line (app/accessFetch.ts:102). `https?://` in code lines: 0. `href=` literals in
@@ -127,8 +127,8 @@ describe("the data-flow inventory of main (PLAN-9.3 section 9, A8 to A11)", () =
 
   it("I2: postJson( is defined in accessFetch.ts and called only by CvBox.tsx and page.tsx, and neither of those has an effect", () => {
     const lines = matching(codeLines(walk("app").filter(isSource)), /postJson\(/);
-    expect(perFile(lines), where(lines).join("\n")).toEqual({ "app/CvBox.tsx": 1, "app/accessFetch.ts": 1, "app/page.tsx": 1 });
-    for (const f of ["app/CvBox.tsx", "app/page.tsx"]) {
+    expect(perFile(lines), where(lines).join("\n")).toEqual({ "app/CvBox.tsx": 1, "app/accessFetch.ts": 1, "app/page.tsx": 1, "app/runCheck.ts": 1 });
+    for (const f of ["app/CvBox.tsx", "app/page.tsx", "app/CheckBox.tsx", "app/runCheck.ts"]) {
       expect(where(matching(codeLines([f]), /useEffect/)), `${f} must not contain useEffect`).toEqual([]);
     }
   });
@@ -156,6 +156,7 @@ describe("the data-flow inventory of main (PLAN-9.3 section 9, A8 to A11)", () =
       "app/DemoEntry.tsx": ["/demo"],
       "app/demo/layout.tsx": ["/"],
       "app/CvBox.tsx": ["/privacy"],
+      "app/CheckBox.tsx": ["/privacy"], // EC-4b: the notice link at the check button
       "app/page.tsx": ["/privacy", "/privacy"],
       "app/privacy/page.tsx": ["/", "/demo"],
     });

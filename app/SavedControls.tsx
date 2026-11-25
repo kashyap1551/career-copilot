@@ -201,7 +201,7 @@ export function SaveProfileButton({ saved, built }: { saved: Saved; built: Built
 // Delete everything saved on this device: the profile and all saved ads (deleteAll clears both stores), and the access code and the tick kept in
 // this tab. Shown whenever the page has finished checking (app/deleteAll.ts, deleteAllShows); when saving is not available it only forgets what the
 // tab keeps and never calls deleteAll (deleteAllMode).
-export function SavedDeleteAll({ saved, onForget }: { saved: Saved; onForget: () => void }) {
+export function SavedDeleteAll({ saved, onForget, onWipe }: { saved: Saved; onForget: () => void; onWipe: () => void }) {
   const { state, setStatus, clearOffer } = saved;
   const [confirming, setConfirming] = useState(false);
   if (!deleteAllShows(state) || state.phase !== "ready") return null;
@@ -213,6 +213,7 @@ export function SavedDeleteAll({ saved, onForget }: { saved: Saved; onForget: ()
     setConfirming(false);
     forgetCodeOnDeleteAll(); // the access code kept in this tab goes first, whether or not the delete works (PLAN-ACCESS-CODE section 3)
     forgetConsent(); // so does the tick kept in this tab (PLAN-9.3 section 5)
+    onWipe(); // and the answers of a check held in the page's memory (EC-4b), whether or not the delete works: no await before this line
     if (tabOnly || !ctx) {
       setStatus(TAB_ONLY_DONE); // saving is not available: nothing saved to delete, so deleteAll is not called
       return;

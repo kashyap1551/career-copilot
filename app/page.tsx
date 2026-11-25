@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import DemoEntry from "./DemoEntry";
 import { AD_INFO_LINE, LINK_PRIVACY, LINK_PRIVACY_NOTICE } from "@/lib/privacy/messages";
 import { skills } from "@/fixtures/skills";
@@ -14,6 +14,7 @@ import { AD_GONE, openMessage, savedMessage } from "@/lib/saved/messages";
 import { openJob } from "@/lib/saved/openJob";
 import { loadJob } from "@/lib/saved/saved";
 import type { CvBuildResult } from "@/lib/engine/fromCv";
+import CheckBox from "./CheckBox";
 import ConfirmBox from "./ConfirmBox";
 import AccessBox from "./AccessBox";
 import { postJson } from "./accessFetch";
@@ -23,6 +24,8 @@ import RoadmapView from "./RoadmapView";
 import { openedReadings, reportFor } from "./savedAdRows";
 import ReportView from "./ReportView";
 import { adStatusKey, openView, profileKey } from "@/lib/saved/ui";
+import { acceptResult } from "./runCheck";
+import { buildCheckPlan, extrasFor, type Checked } from "@/lib/cv/checkPlan";
 import { AdStatus, SaveAdButton, SaveProfileButton, SavedAdsList, SavedDeleteAll, SavedOffer, SavedStatus } from "./SavedControls";
 import { closeMatchLines, reportNote } from "./reportText";
 import { readSkillList, skillsOnlyReport } from "./skillsOnly";
@@ -68,8 +71,31 @@ export default function Home() {
   // 6.1: the saved profile the person chose to use ("Use this profile"); read-only.
   const saved = useSaved();
   const [usingSaved, setUsingSaved] = useState<SavedProfile | null>(null);
+  // EC-4b: the answers of the last successful check, in the page's memory ONLY (never stored). `generation` is bumped whenever they must go (a new ad, an
+  // opened ad, a new CV reading, a saved profile in use, Delete everything); the box is remounted by it, and a reply that comes back from an older
+  // generation changes nothing. The ref is read only inside event handlers, never while drawing.
+  const [checked, setChecked] = useState<Checked | null>(null);
+  const [generation, setGeneration] = useState(0);
+  const generationRef = useRef(0);
+
+  function dropCheck() {
+    generationRef.current += 1;
+    setGeneration(generationRef.current);
+    setChecked(null);
+  }
+
+  function onChecked(clickGeneration: number, next: Checked) {
+    setChecked((prev) => acceptResult(generationRef.current, clickGeneration, prev, next));
+  }
+
+  // "Use this profile": a different profile, so the answers of an earlier check go.
+  function onUseProfile(record: SavedProfile) {
+    dropCheck();
+    setUsingSaved(record);
+  }
 
   async function readAd() {
+    dropCheck();
     setLoading(true);
     setError(null);
     setResult(null);
@@ -116,6 +142,7 @@ export default function Home() {
     saved.setAdStatus(view.message, adStatusKey(loaded.job.adText));
     if (!view.showReading || opened.kind === "newer-version") return;
     setError(null);
+    dropCheck();
     setText(loaded.job.adText);
     setResult(opened.reading); // shown like a fresh reading; the fit level is computed against the profile in use
     setFresh(null); // an opened ad is not saved again from the screen
@@ -123,6 +150,7 @@ export default function Home() {
   }
 
   function onCvRead(lines: string[], r: CvBuildResult) {
+    dropCheck();
     setCvRead({ lines, result: r });
     setUsingSaved(null); // a CV read now replaces a saved profile in use
     setConfirm(initialConfirm(r.skills)); // a new reading starts a new confirmation
@@ -138,19 +166,25 @@ export default function Home() {
   // otherwise the one just confirmed from a CV.
   const profile = savedBuilt ?? built;
   const list = useMemo(() => readSkillList(skillText, skills), [skillText]);
+  // EC-4b: what one check would send, worked out WITHOUT any answers (so the key does not change when answers arrive). The CV's proposals say which listed
+  // skills were inferred; they belong to the CV just read, so they are not used with a saved profile.
+  const plan = useMemo(
+    () => (result && profile ? buildCheckPlan(result.job, profile, skills, savedBuilt ? null : (cvRead?.result.skills ?? null)) : null),
+    [result, profile, savedBuilt, cvRead],
+  );
   const report = useMemo(() => {
     if (!result) return null;
     if (profile) {
       return {
         kind: "cv" as const,
-        view: reportFor(result, profile, skills, cvRead?.result.unlisted ?? []),
+        view: reportFor(result, profile, skills, cvRead?.result.unlisted ?? [], plan ? extrasFor(checked, plan) : undefined),
       };
     }
     return {
       kind: "list" as const,
       view: { ...skillsOnlyReport(result.job, list.cvLines, list.lines, skills, result.unlisted), conflicts: [] as string[] },
     };
-  }, [result, profile, cvRead, list]);
+  }, [result, profile, cvRead, list, plan, checked]);
 
   // Step 7.1: the "What to learn" box. It reads only what the page already holds (the saved ads from the single read at load, and
   // the profile in use): no storage read, no AI call. It recomputes when the ads or the profile change.
@@ -176,7 +210,7 @@ export default function Home() {
       <SavedOffer
         saved={saved}
         usingSaved={usingSaved}
-        onUse={setUsingSaved}
+        onUse={onUseProfile}
         onReadCvAgain={() => setUsingSaved(null)}
         onForget={() => setUsingSaved(null)}
       />
@@ -194,7 +228,7 @@ export default function Home() {
 
       {cvRead && confirm && built && !usingSaved && <SaveProfileButton saved={saved} built={built} />}
 
-      <SavedDeleteAll saved={saved} onForget={() => setUsingSaved(null)} />
+      <SavedDeleteAll saved={saved} onForget={() => setUsingSaved(null)} onWipe={dropCheck} />
       <SavedStatus saved={saved} currentKey={profile ? profileKey(profile) : null} />
 
       <details className="text-sm">
@@ -289,7 +323,9 @@ export default function Home() {
             note={reportNote(report.kind)}
             notCounted={result.notCounted ?? []}
             extra={
-              report.kind === "list" && list.lines.some((l) => !l.listed) ? (
+              report.kind === "cv" && plan ? (
+                <CheckBox key={generation} plan={plan} checked={checked} generation={generation} hasProfile={profile !== null} onChecked={onChecked} />
+              ) : report.kind === "list" && list.lines.some((l) => !l.listed) ? (
                 <div className="text-sm">
                   <p className="font-medium">On your list, not in our skill list yet:</p>
                   <ul className="list-disc pl-5">

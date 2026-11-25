@@ -72,3 +72,10 @@ export function extrasFor(checked: Checked | null, plan: CheckPlan): { answers: 
   if (checked === null || checked.key !== plan.key) return undefined;
   return { answers: checked.answers, thrownAway: checked.thrownAway };
 }
+
+// What the box shows (app/CheckBox.tsx): nothing when there is no profile or nothing open to check; a note when there are open requirements but no
+// confirmed skill with a CV line; the button otherwise.
+export function checkBoxState(plan: CheckPlan, hasProfile: boolean): "hidden" | "no-entries" | "ready" {
+  if (!hasProfile || plan.requirements.length === 0) return "hidden";
+  return plan.entries.length === 0 ? "no-entries" : "ready";
+}

@@ -186,7 +186,7 @@ describe("the tick before the first CV send (PLAN-9.3 section 4, Option C)", () 
       expect(links.length, "one notice link").toBe(1);
       return links[0];
     };
-    for (const link of [linkOf(code("app/CvBox.tsx")), linkOf(code("app/page.tsx"))]) {
+    for (const link of [linkOf(code("app/CvBox.tsx")), linkOf(code("app/page.tsx")), linkOf(code("app/CheckBox.tsx"))]) {
       expect(link).toContain('target="_blank"');
       expect(link).toContain('rel="noopener noreferrer"');
       expect(link).toContain("prefetch={false}");
@@ -206,6 +206,15 @@ describe("the tick before the first CV send (PLAN-9.3 section 4, Option C)", () 
     expect(cv).toContain("{CV_TICK_NEEDED}");
     expect(cv.slice(Math.max(0, cv.lastIndexOf("<label", tick)), tick)).toContain('type="checkbox"');
     expect(cv.slice(info, button), "no condition between the CV notice and its button").not.toMatch(/&&|\?\s*\(|\?\s*</);
+
+    // EC-4b: the check button has its info line before it, with no condition between, a message for the missing tick, and NO tick of its own (the tick is in the CV box).
+    const check = code("app/CheckBox.tsx");
+    const checkInfo = at(check, "{CHECK_INFO_LINE}");
+    const checkButton = at(check, "onClick={onCheck}");
+    expect(checkInfo).toBeLessThan(checkButton);
+    expect(check.slice(checkInfo, checkButton), "no condition between the check notice and its button").not.toMatch(/&&|\?\s*\(|\?\s*</);
+    expect(check).toContain("CHECK_TICK_NEEDED");
+    expect(check).not.toContain('type="checkbox"');
 
     const ad = code("app/page.tsx");
     const adInfo = at(ad, "{AD_INFO_LINE}");
