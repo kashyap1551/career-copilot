@@ -93,3 +93,13 @@ export const LABEL_BACK_TO_APP = "Back to the app";
 export const LABEL_TO_DEMO = "Try the demo with invented data";
 // The footer link on the first screen (app/page.tsx).
 export const LINK_PRIVACY = "Privacy";
+
+// ---- the lines of the "who processes your text" section (stage 2.3c) ----------------------------------------------------------------------------
+
+// First line under HEADING_PROCESSORS. DRAFT. Groq: lib/ai/model.ts (createGroq). Vercel: the live site is hosted there (docs/HANDOFF.md).
+export const PROCESSORS_INTRO =
+  "We use two services that handle your text. Groq runs the AI service that reads it. Vercel hosts our server, which receives it first.";
+
+// Last line under HEADING_PROCESSORS and under HEADING_COOKIES: points to the not-confirmed list at the end of the page.
+export const NOT_CONFIRMED_POINTER =
+  "Some facts about these services are not confirmed yet. They are listed under 'Not confirmed yet' at the end of this page.";

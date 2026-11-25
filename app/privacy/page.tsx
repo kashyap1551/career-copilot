@@ -26,8 +26,10 @@ import {
   LABEL_CHECKED_ON,
   LABEL_SOURCE,
   LABEL_TO_DEMO,
+  NOT_CONFIRMED_POINTER,
   PRIVACY_DESCRIPTION,
   PRIVACY_TITLE,
+  PROCESSORS_INTRO,
 } from "@/lib/privacy/messages";
 
 // Step 9.3, stage 2.3 (docs/PLAN-9.3.md section 6, amendments A10 and A13): the privacy page. A static server component: no client code, no request,
@@ -76,6 +78,7 @@ export default function PrivacyPage() {
 
       <section className="flex flex-col gap-2">
         <h2 className="mt-4 text-lg font-semibold">{HEADING_PROCESSORS}</h2>
+        <p>{PROCESSORS_INTRO}</p>
         {CONFIRMED.map((f) => (
           <div key={f.id} className="flex flex-col gap-1">
             <p>{f.kind === "quoted" ? <q>{f.words}</q> : f.words}</p>
@@ -84,11 +87,13 @@ export default function PrivacyPage() {
             </p>
           </div>
         ))}
+        <p>{NOT_CONFIRMED_POINTER}</p>
       </section>
 
       <section className="flex flex-col gap-2">
         <h2 className="mt-4 text-lg font-semibold">{HEADING_COOKIES}</h2>
         <p>{CLAIM_C7}</p>
+        <p>{NOT_CONFIRMED_POINTER}</p>
       </section>
 
       <section className="flex flex-col gap-2">
