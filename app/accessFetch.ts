@@ -74,7 +74,11 @@ export function forgetAccessCode(store: TabStore | null = tabStore()): void {
 
 // "Delete everything saved on this device": the code is forgotten the moment the person confirms ("Yes, delete everything"),
 // BEFORE the delete is attempted and whether or not the delete works. Never on Cancel (the Cancel handler does not call this).
+// What the Access code box says is reset too (no source, no message), so it cannot keep saying "Access code kept in this tab" after the code is
+// gone; forgetAccessCode then tells the boxes. The next send answers 401 and the box comes back with its need-code message. (The "Forget the
+// code" link, forgetTypedCode, is a different path and keeps showing "The access code was forgotten.")
 export function forgetCodeOnDeleteAll(store: TabStore | null = tabStore()): void {
+  ui = { source: null, message: null };
   forgetAccessCode(store);
 }
 

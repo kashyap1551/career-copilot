@@ -1,13 +1,16 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   accessAnswerMessage,
   accessHeaders,
   forgetCodeOnDeleteAll,
   forgetAccessCode,
+  forgetTypedCode,
   getAccessUi,
   keepAccessCode,
   postJson,
   readAccessCode,
+  showAccess,
+  subscribeAccess,
 } from "@/app/accessFetch";
 
 // Step 6.1b, the page side (docs/PLAN-ACCESS-CODE.md, sections 3 and 5): P1 to P6. Plain functions, a fake storage and a
@@ -170,5 +173,35 @@ describe("P6: pressing 'Yes, delete everything' forgets the access code (before 
   it("with no code kept it does nothing and does not throw", () => {
     expect(() => forgetCodeOnDeleteAll(store)).not.toThrow();
     expect(readAccessCode(store)).toBeNull();
+  });
+});
+
+// Step 9.3, stage 2.6b: a forgotten code must not leave a sentence on screen that is no longer true. HAND-WORKED, before the fix:
+//  - a code "abcdefghijklmnop" is kept in a fake tab store (1 key); the box shows { source: "cv", message: "Access code kept in this tab until you close it." };
+//  - a spy is subscribed; forgetCodeOnDeleteAll(store) runs;
+//  - assertion 1: getAccessUi() is { source: null, message: null } (the box state is reset), readAccessCode(store) is null, the store has 0 keys,
+//    and the spy was called at least once (the boxes were told, so a box that showed only because of the old message goes away);
+//  - assertion 2: the "Forget the code" link is a different path and does not change: forgetTypedCode("cv") gives
+//    { source: "cv", message: "The access code was forgotten." }.
+describe("P6b: 'Yes, delete everything' also resets what the Access code box says", () => {
+  afterEach(() => forgetCodeOnDeleteAll(store)); // resets the box state so nothing leaks into another test
+
+  it("the box state is reset and the boxes are told; the 'Forget the code' link keeps its own message", () => {
+    keepAccessCode("abcdefghijklmnop", store);
+    expect(store.m.size).toBe(1);
+    showAccess("cv", "Access code kept in this tab until you close it.");
+    expect(getAccessUi()).toEqual({ source: "cv", message: "Access code kept in this tab until you close it." });
+    const spy = vi.fn();
+    const unsubscribe = subscribeAccess(spy);
+
+    forgetCodeOnDeleteAll(store);
+    expect(getAccessUi()).toEqual({ source: null, message: null });
+    expect(readAccessCode(store)).toBeNull();
+    expect(store.m.size).toBe(0);
+    expect(spy).toHaveBeenCalled();
+    unsubscribe();
+
+    forgetTypedCode("cv");
+    expect(getAccessUi()).toEqual({ source: "cv", message: "The access code was forgotten." });
   });
 });

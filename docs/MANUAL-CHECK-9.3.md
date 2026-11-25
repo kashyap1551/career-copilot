@@ -9,12 +9,13 @@ About 25 to 30 minutes. Sections A, B, C, F and G do not use the AI. Section D u
 ## Before you start
 
 - **Where to run it.** First on the **Vercel preview of the latest `step-9.3` push** (open it from the Vercel Deployments page; check it says Ready; Vercel asks you to sign in when you open a preview in a fresh private window). After the merge, repeat sections B, F and G on the live site: https://career-copilot-theta-seven.vercel.app. On a preview, cookies set by Vercel's own sign-in may show up in section F: write their names down and do not count them against the app. The cookie check that counts is the one on the live site.
+- **The preview may not have the access code or the AI key.** Previews can have their own settings. If a send on the preview answers **503** with "This site is not set up to read yet." instead of 401, write that in the sign-off and run the steps that need the server's answer (B4, B6, C2, D1, D2, D6, E1 to E7) on the live address after the merge. Steps that need no server answer still count on the preview.
 - **Browser.** Google Chrome. Use a **fresh private (Incognito) window** for everything, with every other private window closed (Chrome shares what a page stores between private windows until the last one is closed).
 - **Invented data only.** Use only the text in this file. No real CV, no real name, no real email, no real phone number. A real CV must not go through the live page yet: what the AI service does with it is "not confirmed yet" on the privacy page itself.
 - **Your access code.** Type it only into the "Access code" box on the page. **Do not write it in this file, in notes, or in a message.** Where this file says "your access code (do not write it here)", that is what it means.
 - **Developer tools.** Press **Cmd+Option+I**.
   - The tab **Network** lists every request the page sends. Tick **Preserve log**, choose the filter **Fetch/XHR**, and use the clear button (the circle with a line) to empty the list before a step. To see what a request carried, click its row, then the tab **Payload** (older Chrome: **Request**).
-  - The tab **Application** shows what the page stores. Open **IndexedDB** (inside it `career-copilot`, then `profile` and `jobs`), and **Cookies**. **Never open "Session storage"**, with one exception: step F4 says exactly when and how, with a made-up code only.
+  - The tab **Application** shows what the page stores. Open **IndexedDB** (inside it `career-copilot`, then `profile` and `jobs`), and **Cookies**. **Never open "Session storage"** (it holds your access code).
 - **A request without a valid access code costs nothing.** On the live site the server answers 401 before any AI call. So sections B to D can look at what is sent without using the AI.
 
 ## The invented material
@@ -90,8 +91,8 @@ To apply, write to recruiter@example.org.
   **You should see:** the box now says "Access code kept in this tab until you close it." and a "Forget the code" link appears.
 - [ ] **D3. Do:** scroll to the line **Delete everything saved on this device** and press it, then press **Yes, delete everything**.
   **You should see:** the confirm question "Delete the saved profile and everything else saved on this device?" and then, in the status line: "Deleted: the saved profile and ads on this device, and the access code and the tick kept for this tab. Text still on the screen goes away when you reload the page." The CV checkbox is now **not ticked**, without a reload.
-- [ ] **D4. Do:** look at the old message in the CV "Access code" box, and say what it says.
-  **You should see (and this is a KNOWN PROBLEM to write down):** the box may still say "Access code kept in this tab until you close it." That sentence is **no longer true** after delete everything: the code was forgotten, but the old message stays on screen until something replaces it. Write down exactly what the box says. (Reviewer: this message is `CODE_KEPT_MESSAGE`; `forgetAccessCode` clears the code but does not change the message. Not fixed in 9.3.)
+- [ ] **D4. Do:** look at the CV "Access code" box, and at the whole page, for the old message.
+  **You should see:** the CV "Access code" box is **gone**, and the message "Access code kept in this tab until you close it." is **nowhere on the page**. (A page with a delete button must not say something that is no longer true: delete everything resets what the box says.) Write down anything that is still on screen about the access code.
 - [ ] **D5. Do:** look at the ad box (under the job ad).
   **You should see:** if an "Access code" box was showing there only because a code was kept, it is gone now, and so is any "Forget the code" link.
 - [ ] **D6. Do:** clear the Network list. Press **Send for reading** once with the box **not ticked**, then tick it and press again.
@@ -114,7 +115,7 @@ To apply, write to recruiter@example.org.
 - [ ] **E7. Do:** with nothing saved, look for the line **Delete everything saved on this device**, press it and then **Yes, delete everything**.
   **You should see:** the control is **still shown**, and the same "Deleted: ..." text appears.
 
-## F. Cookies and what is stored in the tab (no AI)
+## F. Cookies and other hosts (no AI)
 
 - [ ] **F1. Do:** in a **normal** Chrome window (not private) open the site, open Application, **Cookies**, and the site's address.
   **You should see:** **no cookie** for the site. If any appears, write its name down (do not count Vercel sign-in cookies on a preview).
@@ -122,8 +123,6 @@ To apply, write to recruiter@example.org.
   **You should see:** no cookie for the site (same note for a preview).
 - [ ] **F3. Do:** in the private window open the Network tab, choose the filter **All**, clear it, and reload the first screen.
   **You should see:** every row comes from the site's own address. No other host, and no row whose name contains `insights`, `analytics` or `gtag`.
-- [ ] **F4. Do (the one place you open Session storage):** open a **new tab** in which you have **never typed your real access code**. If you are not sure, close the tab and open another by typing the address. Tick the CV box. In the "Access code" box type the **made-up** code `fake-code-0123456789` and press **Use this code**. Open Application, **Session storage**, the site's address. Close that tab afterwards.
-  **You should see:** exactly **two** keys: `career-copilot.access-code` (its value is the made-up code you just typed) and `career-copilot.consent` (value `1`). Nothing else. **Stop if you ever see your real code in this panel: close the tab and tell the reviewer.**
 
 ## G. The demo (no AI)
 
@@ -138,6 +137,7 @@ To apply, write to recruiter@example.org.
 
 - **The case where saving is not available** (the saved-data database cannot be used, for example a browser that blocks it). Then "Delete everything saved on this device" should still show and should only forget the tab's code and tick. Real browsers rarely let you make this happen on demand, so it is covered only by the tests D2, D4, D5 and D7 in `tests/deleteMyData.test.ts`.
 - **The setting that keeps `/privacy` static** (`export const ensureStatic = "navigation"`). It was watched on 2026-11-25 by temporarily asking the page for request-time data and running `npm run build`; the change was undone afterwards. What was seen: (1) with the setting, asking for request data directly: the build fails with an error naming "/privacy" and saying "This route is configured to be fully static, but some data requires rendering at request time."; (2) without the setting, the same change: the build also fails, with a different error ("uncached or runtime data during prerendering ... accessed outside of `<Suspense>`"); (3) without the setting, request data placed inside `<Suspense>`: the build **passes** and the route list shows `/privacy` as `◐` (partly rendered per request) instead of `○`; (4) with the setting, the same `<Suspense>` change: the build fails with the "configured to be fully static" error. So the setting does protect the page beyond Next's general rule. You cannot see this in a browser.
+- **What the tab's storage holds.** The only two session-storage keys are `career-copilot.access-code` and `career-copilot.consent`. That is pinned by test I5, which reads the code, not a browser. Session storage is never opened in this check (it holds your access code).
 - **What the AI service and the hosting service do with your text:** the page says it is "not confirmed yet" for five points. The reviewer and the owner settle those at stage 2.7; nothing in this check can show them.
 
 ## I. For the reviewer: the privacy gate (Claude Code runs it and pastes the output; the reviewer reads it)
@@ -155,8 +155,8 @@ Date: ____________  Who: ____________  Address used (preview or live): _________
 | A. The privacy page | |
 | B. The tick in the CV box | |
 | C. What leaves the browser | |
-| D. The access code and delete everything (step D4: exact text of the old message) | |
+| D. The access code and delete everything (step D4: anything about the code still on screen) | |
 | E. Save and delete | |
-| F. Cookies and the tab's storage | |
+| F. Cookies and other hosts | |
 | G. The demo | |
 | Red text in the Console tab (any step) | |
