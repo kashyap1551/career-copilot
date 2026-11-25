@@ -1,3 +1,5 @@
+import { engineView } from "../cv/engineView";
+import type { BuiltProfile } from "../cv/profile";
 import { isUnlistedId, noLevelReason, splitJudgeable } from "./judgeable";
 import type { Job } from "./types";
 
@@ -16,8 +18,20 @@ export type RoadmapBasis = {
   excluded: RoadmapExclusion | null; // why the ad is left out of the gap list and the roadmap, or null when it counts
 };
 
-export function roadmapBasis(job: Job): RoadmapBasis {
-  const { judged, couldNotJudge } = splitJudgeable(job);
+// `built` (EC-2, docs/PLAN-EVERY-CV.md 4.4): the profile in use, when there is one. With it, "judged" and "not judged" are what `engineView` says,
+// so a requirement met by the SAME-NAME match (a kept unlisted skill of the person with the very same id) counts as judged here exactly as it
+// does in the report. Without it, or with a profile that keeps no unlisted skill, the result is what it always was (`splitJudgeable`).
+export function roadmapBasis(job: Job, built: BuiltProfile | null = null): RoadmapBasis {
+  let judged: Job;
+  let couldNotJudge;
+  if (built === null) {
+    ({ judged, couldNotJudge } = splitJudgeable(job));
+  } else {
+    const view = engineView(job, built);
+    // `judged` keeps the ad's own constraints (no blanking): only the requirements come from the view.
+    judged = { ...job, requirements: view.engineJob.requirements };
+    couldNotJudge = view.couldNotJudge;
+  }
   const unjudgedMusts = couldNotJudge.filter((r) => r.importance === "must").length;
   const reason = noLevelReason({
     requirements: job.requirements.length,

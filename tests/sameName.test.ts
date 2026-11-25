@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
+import { profileReport } from "@/app/fitReport";
+import { roadmapBox } from "@/app/roadmap";
 import { skills } from "@/fixtures/skills";
 import { buildProfile, initialConfirm } from "@/lib/cv/profile";
 import { engineView, originalOf } from "@/lib/cv/engineView";
 import { gapList } from "@/lib/engine/gaps";
 import { match } from "@/lib/engine/match";
-import { INTAKE, job, KEPT_INTAKE, KEPT_WOUND, KOMBUCHA, LINES, nameOf, P, person, req, SQL, WOUND, EXCEL } from "./support/evidenceFixtures";
+import { INTAKE, job, KEPT_INTAKE, KEPT_WOUND, KOMBUCHA, LINES, nameOf, P, person, req, SQL, UNLISTED, WOUND, EXCEL } from "./support/evidenceFixtures";
 
 // EC-1, the same-name match (docs/PLAN-EVERY-CV.md 4.2 and AM3, tests SN1 to SN7): an unlisted requirement and a KEPT unlisted skill with the very
 // same id match by plain code, with no click and no AI. It lives inside engineView. Invented data; hand-worked.
@@ -52,14 +54,30 @@ describe("EC-1 same-name match", () => {
     expect(view.couldNotJudge).toEqual([WOUND, INTAKE]);
   });
 
-  it("SN6: the roadmap and the gap list see it too: engineView finds the kept entries on the profile by itself, the same as when they are passed in", () => {
-    const withKept = { ...person(), unlistedKept: [KEPT_WOUND, KEPT_INTAKE] } as ReturnType<typeof person>;
-    const j = job([SQL, EXCEL, WOUND, KOMBUCHA]);
-    expect(engineView(j, withKept)).toEqual(engineView(j, person(), { unlistedKept: [KEPT_WOUND, KEPT_INTAKE] }));
-    // the gap list: Excel is the only gap; the same-name Wound care is met, not a gap
-    const v = engineView(j, withKept);
-    const g = gapList(v.engineProfile, [v.engineJob], nameOf);
-    expect(g.rows.map((r) => r.skillId)).toEqual(["excel"]);
+  it("SN6: two INDEPENDENT consumers agree on a same-name requirement: the report shows it as met; the gap list does not list it as a gap; the 'What to learn' box does not offer it and does not count it as not judged", () => {
+    // The person has SQL (line 2) and a kept 'Wound care' (line 3) on the profile itself (built.unlistedKept, as EC-2 will put it there).
+    const built = { ...person(), unlistedKept: [KEPT_WOUND] } as ReturnType<typeof person>;
+    const j = job([SQL, EXCEL, WOUND, INTAKE]); // musts: SQL, Excel (missing), Wound care (same-name), Patient intake (unlisted, unanswered)
+
+    // Consumer 1, the report (profileReport): Wound care is met, with its CV line and its OWN name.
+    const report = profileReport(j, built, skills, UNLISTED);
+    const row = report.rows.find((x) => x.quote === WOUND.quote)!;
+    expect([row.status, row.detail]).toEqual(["met", `Wound care: CV line 3: "${LINES[2]}"`]);
+    expect(report.counts).toEqual({ mustsMet: 2, mustsTotal: 3, nicesMet: 0, nicesTotal: 0 }); // SQL and Wound care of SQL, Excel, Wound care
+    expect(report.couldNotJudge).toEqual({ musts: 1, nices: 0 }); // only Patient intake is still set aside
+
+    // Consumer 2, the gap list, built from engineView on its own: Excel is the only gap; Wound care (met) is not one.
+    const v = engineView(j, built);
+    expect(gapList(v.engineProfile, [v.engineJob], nameOf).rows.map((r) => r.skillId)).toEqual(["excel"]);
+
+    // Consumer 3, the 'What to learn' box, from the same profile: four saved ads like this one. It offers Excel, never Wound care, and its
+    // 'could not judge' line counts one requirement for each ad (Patient intake), not two.
+    const ads = [1, 2, 3, 4].map((i) => ({ id: `ad-${i}`, job: { ...j, id: `ad-${i}`, title: `Ward ${i}` } }));
+    const box = roadmapBox(built, ads, skills, 4);
+    const text = [...box.partA, ...box.partB].join("\n");
+    expect(text).toContain("Excel");
+    expect(text).not.toContain("Wound care");
+    expect(box.partA).toContain("4 requirements in your saved ads are not in our skill list yet, so we could not judge them. They are not counted.");
   });
 
   it("SN7: it needs no click (no answers argument) and gives the same result every time", () => {

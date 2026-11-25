@@ -75,7 +75,8 @@ export function roadmapBox(
   const nameOf = (id: string) => skills.find((s) => s.id === id)?.name ?? id;
 
   // Which ads count (before and independent of the profile), then the engine's view of each.
-  const basis = ads.map((a) => ({ ad: a, ...roadmapBasis(a.job) }));
+  // The profile goes in so that a same-name requirement counts as judged here as it does in the report (EC-2).
+  const basis = ads.map((a) => ({ ad: a, ...roadmapBasis(a.job, built) }));
   const counted = basis.filter((b) => b.excluded === null);
   const noRequirements = basis.filter((b) => b.excluded === "no-requirements").length;
   const noMustHave = basis.filter((b) => b.excluded === "no-must-have-judgeable").length;
