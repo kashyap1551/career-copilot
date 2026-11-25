@@ -1,6 +1,6 @@
 import type { CvSkill } from "../engine/fromCv";
 import { skillIdFor } from "../engine/skillIds";
-import type { ConflictKind, LanguageLevel, Profile, ProfileSkill, Skill, WorkMode } from "../engine/types";
+import type { ConflictKind, Evidence, LanguageLevel, Profile, ProfileSkill, Skill, WorkMode } from "../engine/types";
 
 // Step 4.3: what the person confirms on the confirm screen becomes the Profile
 // the rules engine uses. Pure code: no AI, no network, nothing stored. The
@@ -39,6 +39,11 @@ export type ConfirmState = {
   availableFrom: string; // "" = not set, else YYYY-MM-DD
 };
 
+// A kept unlisted skill of the person (docs/PLAN-EVERY-CV.md 4.1): a confirmed CV skill that is not in our skill list yet, kept WITH its CV line
+// and word-for-word text, so a requirement can be matched with it (same name, no AI) or checked against it (the AI check). `inferred` is true when the
+// person ticked it from the "inferred" group (the AI read it from the wording of the line, the name is not written in it).
+export type KeptEntry = { name: string; skillId: string; evidence: Evidence; inferred: boolean };
+
 export type BuiltProfile = {
   profile: Profile;
   set: Record<Kind, boolean>; // which kinds the person set
@@ -48,6 +53,9 @@ export type BuiltProfile = {
   // Unlisted names (not in our skill list). The engine never gets them: they
   // cannot be matched with an ad (docs/SPRINT.md, the step 3.4 note).
   unmatchable: { name: string; where: "cv" | "hand" | "progress" }[];
+  // Ticked unlisted CV skills with their line (EC-2). They are ALSO in `unmatchable`, as before. Optional so that older code and literals still
+  // compile; `buildProfile` always sets it (an empty list when nothing is kept).
+  unlistedKept?: KeptEntry[];
 };
 
 // Named skills are pre-ticked; inferred ones are not ("from your wording, keep
@@ -94,6 +102,7 @@ export function buildProfile(
   const notes: string[] = [];
   const handAdded: BuiltProfile["handAdded"] = [];
   const unmatchable: BuiltProfile["unmatchable"] = [];
+  const unlistedKept: KeptEntry[] = [];
   const profileSkills: ProfileSkill[] = [];
   const fromCv = new Set<string>(); // listed ids that have a CV line
 
@@ -102,6 +111,10 @@ export function buildProfile(
     if (!confirm.keptIds.includes(p.skillId)) continue;
     if (!p.listed) {
       unmatchable.push({ name: p.name, where: "cv" });
+      // Kept with its line, if the line exists (the same guard as for a listed skill); the first proposal of an id wins.
+      if (p.line >= 1 && p.line <= lines.length && !unlistedKept.some((k) => k.skillId === p.skillId)) {
+        unlistedKept.push({ name: p.name, skillId: p.skillId, evidence: { line: p.line, text: lines[p.line - 1] }, inferred: p.label === "inferred" });
+      }
       continue;
     }
     if (p.line < 1 || p.line > lines.length || fromCv.has(p.skillId)) continue;
@@ -199,5 +212,6 @@ export function buildProfile(
     notes,
     handAdded,
     unmatchable,
+    unlistedKept,
   };
 }

@@ -7,6 +7,7 @@ import { postJson } from "./accessFetch";
 import { forgetConsent, getConsentServerSnapshot, getConsentSnapshot, giveConsent, sendIfAcknowledged, subscribeConsent } from "./consent";
 import { fileToText, MAX_CV_CHARS } from "@/lib/cv/fileToText";
 import { MAX_CV_LINES, MAX_LINE_CHARS } from "@/lib/cv/limits";
+import { capMessage } from "@/lib/cv/capMessage";
 import { numberLines } from "@/lib/cv/numberLines";
 import { removeContactDetails } from "@/lib/cv/redact";
 import type { CvBuildResult, CvRemovalReason } from "@/lib/engine/fromCv";
@@ -217,13 +218,16 @@ export default function CvBox({ onRead }: { onRead: (lines: string[], result: Cv
               Your CV text has changed since it was read. Press &ldquo;Send for reading&rdquo; again to use the change.
             </p>
           )}
-          {result.removed.length > 0 && (
+          {capMessage(result.removed) !== null && (
+            <p className="rounded border border-amber-500 p-3 text-sm">{capMessage(result.removed)}</p>
+          )}
+          {result.removed.filter((r) => r.why !== "too-many").length > 0 && (
             <div className="text-sm text-zinc-600 dark:text-zinc-400">
               <p>
-                {result.removed.length} {result.removed.length === 1 ? "item" : "items"} removed because a check failed:
+                {result.removed.filter((r) => r.why !== "too-many").length} {result.removed.filter((r) => r.why !== "too-many").length === 1 ? "item" : "items"} removed because a check failed:
               </p>
               <ul className="list-disc pl-5">
-                {result.removed.map((r, i) => (
+                {result.removed.filter((r) => r.why !== "too-many").map((r, i) => (
                   <li key={i}>
                     {r.name} (line {r.line}): {REASONS[r.why]}
                   </li>

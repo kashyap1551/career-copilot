@@ -100,6 +100,8 @@ export function gapRowText(name: string, note: string, mustAds: number, niceAds:
 export const ALTERNATIVES_NOTE = "A requirement that accepts several skills is counted once for each of them.";
 export const meetEveryLine = (counted: number) =>
   `You meet every requirement we could judge in your ${counted} saved ${noun(counted, "ad", "ads")}.`;
+// Shown when an opened saved profile has no `unlistedKept` field at all: it was saved before unlisted skills were kept. DRAFT: the owner approves it.
+export const OLD_PROFILE_NOTE = "This saved profile was saved before unlisted skills were kept. Read your CV again to add them.";
 export const couldNotJudgeLine = (n: number) =>
   n === 1
     ? "1 requirement in your saved ads is not in our skill list yet, so we could not judge it. It is not counted."

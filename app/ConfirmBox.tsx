@@ -5,6 +5,7 @@ import { skills } from "@/fixtures/skills";
 import type { BuiltProfile, ConfirmState } from "@/lib/cv/profile";
 import type { CvSkill } from "@/lib/engine/fromCv";
 import { LANGUAGE_LEVELS, type LanguageLevel, type WorkMode } from "@/lib/engine/types";
+import { keptLineText, UNLISTED_TAG } from "@/lib/cv/confirmWording";
 import { closeMatchLine } from "./reportText";
 
 // Step 4.3: the confirm screen. Keep or remove each skill the AI found, add
@@ -30,7 +31,7 @@ function SkillRow({ s, checked, onToggle }: { s: CvSkill; checked: boolean; onTo
           <span className="font-medium">{s.name}</span>{" "}
           <span className="text-zinc-600 dark:text-zinc-400">
             (CV line {s.line}
-            {s.listed ? "" : "; not in our skill list yet, so it can't be matched with an ad"})
+            {s.listed ? "" : `; ${UNLISTED_TAG}`})
           </span>
           {s.closeMatch && (
             <>
@@ -210,8 +211,16 @@ export default function ConfirmBox({
           <ul className="list-disc pl-5">
             {built.unmatchable.map((u, i) => (
               <li key={i}>
-                {u.name}: not in our skill list yet, so it can&apos;t be matched with your CV (
-                {u.where === "cv" ? "from your CV" : u.where === "hand" ? "added by hand" : "in progress"})
+                {u.where === "cv" && built.unlistedKept?.some((k) => k.name === u.name) ? (
+                  <>
+                    {u.name}: {keptLineText(built.unlistedKept.find((k) => k.name === u.name)?.evidence.line ?? 0)}
+                  </>
+                ) : (
+                  <>
+                    {u.name}: not in our skill list yet, so it can&apos;t be matched with your CV (
+                    {u.where === "cv" ? "from your CV" : u.where === "hand" ? "added by hand" : "in progress"})
+                  </>
+                )}
               </li>
             ))}
           </ul>

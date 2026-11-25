@@ -1,6 +1,9 @@
 import { isUnlistedId, splitJudgeable } from "../engine/judgeable";
 import type { Evidence, Job, Profile, ProfileSkill, Requirement } from "../engine/types";
-import type { BuiltProfile } from "./profile";
+
+import type { BuiltProfile, KeptEntry } from "./profile";
+
+export type { KeptEntry };
 
 // Step 7.1a (docs/PLAN-7.1.md sections 5 and 6) and EC-1 (docs/PLAN-EVERY-CV.md 4.2 and 4.4): what the rules engine is handed for ONE ad and the
 // profile in use. Pure code: no AI, no network. It is the construction that `profileReport` (app/fitReport.ts) does before it calls match(),
@@ -32,8 +35,6 @@ export type EngineView = {
   sameName?: { original: Requirement; entry: KeptEntry }[]; // the requirements met by the same-name match
 };
 
-// A kept unlisted skill of the person: a confirmed CV skill that is not in our list, with its CV line (the shape of the plan, 4.1).
-export type KeptEntry = { name: string; skillId: string; evidence: Evidence; inferred: boolean };
 // An accepted answer, tied to the requirement by its place in the ad's list. met needs an entry.
 export type ViewAnswer = { index: number; verdict: "met" | "partly" | "none"; entry: KeptEntry | null; quote: string | null };
 export type ViewExtras = { answers?: ViewAnswer[]; unlistedKept?: KeptEntry[] };
@@ -55,7 +56,7 @@ export function displayNamer(view: EngineView, nameOf: (id: string) => string): 
 export function engineView(job: Job, built: BuiltProfile, extras?: ViewExtras): EngineView {
   const { profile, set } = built;
   // The kept entries come from the caller, or from the profile itself when it holds them (EC-2 puts them there).
-  const kept = extras?.unlistedKept ?? (built as BuiltProfile & { unlistedKept?: KeptEntry[] }).unlistedKept ?? [];
+  const kept = extras?.unlistedKept ?? built.unlistedKept ?? [];
   const answers = extras?.answers ?? [];
 
   // Rewrite what can be judged now.

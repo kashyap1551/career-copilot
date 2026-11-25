@@ -55,7 +55,11 @@ export function profileKey(built: BuiltProfile): string {
   const skills = [...built.profile.skills].sort(
     (a, b) => a.kind.localeCompare(b.kind) || a.skillId.localeCompare(b.skillId) || line(a) - line(b),
   );
-  return stableStringify({ skills, constraints: built.profile.constraints, set: built.set });
+  // EC-2: the kept unlisted skills are saved content too, in a fixed order; with none, the key is what it was.
+  const kept = [...(built.unlistedKept ?? [])]
+    .sort((a, b) => a.skillId.localeCompare(b.skillId))
+    .map((k) => ({ name: k.name, skillId: k.skillId, line: k.evidence.line, text: k.evidence.text, inferred: k.inferred }));
+  return stableStringify({ skills, constraints: built.profile.constraints, set: built.set, ...(kept.length > 0 ? { unlistedKept: kept } : {}) });
 }
 
 // A message about saving, tied to the key of the profile it spoke about (null for a message that is about no profile in

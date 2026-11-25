@@ -1,6 +1,6 @@
 import { reportFor } from "../../app/savedAdRows";
 import { buildProfile, initialConfirm } from "../cv/profile";
-import { engineView } from "../cv/engineView";
+import { engineView, originalOf } from "../cv/engineView";
 import { recallCeiling, type CeilingResult } from "./evalEveryCvCeiling";
 import { everyCvKeyLevel, type KeyBlock, type KeyCheck } from "./evalEveryCvKey";
 import type { BuildResult } from "./fromAd";
@@ -112,18 +112,25 @@ export function compareBaseline(input: {
   cv: CvBuildResult;
   ad: AdReading;
   skills: Skill[];
+  // EC-2: false (the default) measures the product as it was BEFORE the kept unlisted skills and the same-name match: the profile is used without
+  // `unlistedKept`, so a requirement that is not in our skill list stays "could not judge", exactly as in the first baseline. true measures the
+  // product as it is now, with the same-name match.
+  withKept?: boolean;
 }): PairBaseline {
   const { key, cv, ad, skills } = input;
   if (key.state !== "complete" || key.problems.length > 0) throw new Error("The key must be complete and without problems before it is compared.");
 
   // Today's pipeline, with the page's own functions.
-  const built = buildProfile(input.cvLines, cv.skills, initialConfirm(cv.skills), skills); // named skills ticked, inferred ones not
+  const builtWithKept = buildProfile(input.cvLines, cv.skills, initialConfirm(cv.skills), skills); // named skills ticked, inferred ones not
+  const built = input.withKept === true ? builtWithKept : { ...builtWithKept, unlistedKept: undefined };
   const report = reportFor(ad, built, skills, cv.unlisted); // the report the page shows (label, level word)
   const view = engineView(ad.job, built);
   const result = match(view.engineProfile, view.engineJob);
 
+  // A requirement the same-name match rewrote for the engine is found under its rewritten form.
+  const rewrittenFor = new Map<Requirement, Requirement>([...originalOf(view)].map(([rewritten, original]) => [original, rewritten]));
   const statusOf = (r: Requirement): Today => {
-    const found = [...result.musts, ...result.nices].find((x) => x.requirement === r);
+    const found = [...result.musts, ...result.nices].find((x) => x.requirement === (rewrittenFor.get(r) ?? r));
     if (found) return found.met && found.metBy ? { kind: "met", line: found.metBy.evidence.line } : { kind: "missing" };
     return { kind: "unjudged" }; // splitJudgeable set it aside: every skill of it is unlisted
   };

@@ -102,6 +102,21 @@ describe("delete everything saved on this device (PLAN-9.3 section 5)", () => {
     expect(await loadProfile(ctx)).toEqual({ ok: true, saved: null });
   });
 
+  it("D8 (EC-2): a saved profile that holds unlistedKept is gone after delete everything: no profile record, no entry left behind", async () => {
+    const lines = ["Alex Example", "Dressed and monitored wounds on a surgical ward"];
+    const proposal = { name: "Wound care", skillId: "new:wound-care", listed: false, line: 2, quote: "Dressed and monitored wounds", label: "named" as const };
+    const built = buildProfile(lines, [proposal], initialConfirm([proposal]), skills);
+    expect(built.unlistedKept).toHaveLength(1);
+    const store = new MemoryStore();
+    const ctx = { store, stamps: { vocabularyHash: "test-vocabulary", readingVersion: "test-reading", adRequestHash: "test-request" } };
+    expect(await saveProfile(ctx, built)).toEqual({ ok: true });
+    const before = await loadProfile(ctx);
+    expect(before.ok && before.saved?.unlistedKept).toHaveLength(1);
+    expect(await deleteAll(ctx)).toEqual({ ok: true });
+    expect(await loadProfile(ctx)).toEqual({ ok: true, saved: null });
+    expect(await store.get("profile", "current")).toBeUndefined();
+  });
+
   it("D2: the confirm handler forgets the access code and the tick, before anything else and before it tries to delete", () => {
     // Part A: the pure part.
     const tab = new FakeStore();

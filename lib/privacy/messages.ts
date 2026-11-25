@@ -41,7 +41,7 @@ export const CLAIM_C3B =
 
 // C4. Code: lib/saved/types.ts (SavedProfile, SavedJob), lib/saved/profile.ts, lib/cv/profile.ts (ConfirmState), lib/saved/idbStore.ts. Tests: I1b, S1b.
 export const CLAIM_C4 =
-  "A saved ad and a saved profile stay in this browser (IndexedDB). Saving sends nothing. A saved ad holds the whole ad text and the AI's reading of it. A saved profile holds the skills you confirmed, with the CV line each one was found on (word for word), the skills you added by hand, the skills you are learning with the date you expect them, and the cities, languages, work modes, years of experience and start date you entered. It also holds the date you saved it. It does not hold your whole CV.";
+  "A saved ad and a saved profile stay in this browser (IndexedDB). Saving sends nothing. A saved ad holds the whole ad text and the AI's reading of it. A saved profile holds the skills you confirmed, with the CV line each one was found on (word for word; this includes skills that are not in our skill list yet, and a note of which ones the AI read from your wording rather than from a name written in the line), the skills you added by hand, the skills you are learning with the date you expect them, and the cities, languages, work modes, years of experience and start date you entered. It also holds the date you saved it. It does not hold your whole CV.";
 
 // C5. Code: app/accessFetch.ts:13, :23, :28, :63-79, :102-109. Tests: accessFetch.test.ts, accessGuards P7, I5.
 export const CLAIM_C5 =

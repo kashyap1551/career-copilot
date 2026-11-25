@@ -84,6 +84,10 @@ export const savedProfileSchema = z.looseObject({
   }),
   set: z.object({ location: z.boolean(), language: z.boolean(), workMode: z.boolean(), years: z.boolean(), startDate: z.boolean() }),
   stamps: z.looseObject({ vocabularyHash: str, readingVersion: str }),
+  // EC-2: optional; a cited line is 1..MAX_CV_LINES like the other cited lines.
+  unlistedKept: z
+    .array(z.object({ name: str, skillId: str, evidence: z.object({ line: z.number().int().min(1).max(MAX_CV_LINES), text: str }), inferred: z.boolean().optional() }))
+    .optional(),
 });
 
 // Compile-time checks: what a schema parses must be assignable to the type the rest of the app uses, so the cast in

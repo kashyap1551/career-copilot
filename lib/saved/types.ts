@@ -1,6 +1,6 @@
 import type { Kind } from "../cv/profile";
 import type { BuildResult, NotCounted, RemovedItem } from "../engine/fromAd";
-import type { Job, ProfileConstraints, ProfileSkill, Skill } from "../engine/types";
+import type { Evidence, Job, ProfileConstraints, ProfileSkill, Skill } from "../engine/types";
 import type { ExtractedAd } from "../schemas/job";
 
 // The shapes of what is kept on this device (docs/PLAN-6.1.md, approved 2026-11-16). Pure types and one constant: no
@@ -24,6 +24,10 @@ export type SavedProfile = {
   constraints: ProfileConstraints;
   set: Record<Kind, boolean>;
   stamps: { vocabularyHash: string; readingVersion: string };
+  // EC-2 (docs/PLAN-EVERY-CV.md 4.6): the confirmed skills that are not in our skill list yet, each with its CV line (word for word). OPTIONAL, so no
+  // schema bump: a profile saved before has no such field (absent = "saved before unlisted skills were kept"), a newer app's record keeps it (loose
+  // object). `inferred` absent means false.
+  unlistedKept?: { name: string; skillId: string; evidence: Evidence; inferred?: boolean }[];
 };
 
 // The checked reading, as shown when the job was saved.

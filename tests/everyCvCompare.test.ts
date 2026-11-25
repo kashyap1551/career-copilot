@@ -181,6 +181,26 @@ describe("EC-0b part 4: today's product against the key", () => {
   });
 });
 
+describe("EC-2: the baseline measures the product as it was before the kept skills (withKept)", () => {
+  const key = () => checkEveryCvKey(keyText(KEY_ROWS), AD_TEXT, CV_LINES.length);
+  const go = (withKept?: boolean) => compareBaseline({ pair: "p", crossLanguage: false, key: key(), cvLines: CV_LINES, cv: CV, ad: AD, skills, ...(withKept === undefined ? {} : { withKept }) });
+
+  it("C14: by default the kept unlisted skill is NOT used: the welding requirement is 'could not judge' today, as in C1, although the CV reading has a named Welding on line 5", () => {
+    const r = go();
+    expect(r.rows.find((x) => x.id === "R3")?.today).toEqual({ kind: "unjudged" });
+    expect(r.today.label).toBe("At best Good (skills only; 1 must-have not judged)");
+  });
+
+  it("C15: with withKept true the same-name match counts: the welding requirement is met by line 5 today, the class is 'agree', and the label has no caveat", () => {
+    const r = go(true);
+    expect(r.rows.find((x) => x.id === "R3")?.today).toEqual({ kind: "met", line: 5 });
+    expect(r.rows.find((x) => x.id === "R3")?.class).toBe("agree");
+    // musts judged: SQL met, Excel met, Welding met, Python missing = 1 missing = Good, nothing unjudged
+    expect(r.today).toEqual({ label: "Good (skills only)", level: "good" });
+    expect(r.answered).toBe(5); // R1, R2, R3, R4, R5 have an answer now; R6 (dropped) has none
+  });
+});
+
 describe("EC-0b part 4: totals, and the cross-language pairs on their own", () => {
   it("C12: the totals add up, and the cross-language pairs (06 and 10) have their own totals", () => {
     const a = run(KEY_ROWS, AD, { pair: "pair-05" }); // 2 agree, 1 false met, 1 false missing, 1 could not judge, 1 dropped

@@ -39,7 +39,7 @@ const PINNED: Record<string, string> = {
   CLAIM_C3B:
     "Our server code has no database and writes no file. For an ad, the server keeps the reading of the ad (it holds short quotes from the ad, not the whole text) in its memory for a while, up to 20 ads, so the same ad is not read twice. For a CV it keeps nothing.",
   CLAIM_C4:
-    "A saved ad and a saved profile stay in this browser (IndexedDB). Saving sends nothing. A saved ad holds the whole ad text and the AI's reading of it. A saved profile holds the skills you confirmed, with the CV line each one was found on (word for word), the skills you added by hand, the skills you are learning with the date you expect them, and the cities, languages, work modes, years of experience and start date you entered. It also holds the date you saved it. It does not hold your whole CV.",
+    "A saved ad and a saved profile stay in this browser (IndexedDB). Saving sends nothing. A saved ad holds the whole ad text and the AI's reading of it. A saved profile holds the skills you confirmed, with the CV line each one was found on (word for word; this includes skills that are not in our skill list yet, and a note of which ones the AI read from your wording rather than from a name written in the line), the skills you added by hand, the skills you are learning with the date you expect them, and the cities, languages, work modes, years of experience and start date you entered. It also holds the date you saved it. It does not hold your whole CV.",
   CLAIM_C5:
     "The access code is kept for this tab only. It is forgotten when you close the tab, when the server refuses it, when you press 'Forget the code', and when you press 'Yes, delete everything'. It is sent to our server with each send.",
   CLAIM_C6:
