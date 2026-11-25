@@ -1,0 +1,49 @@
+# KEY SHEET. Written by you, before any run. Guide: docs/EVERY-CV-KEY-GUIDE.md
+# Under each R block fill in the four lines. The guide lists the three allowed words for the first line
+# and shows how to write line numbers (they come from cv.numbered.txt). Write yes on the unsure line only
+# when you are truly torn. The why line is optional. Leave the blocks marked trait alone.
+# Do not run the product while you write this key.
+
+R1 [must] "Registered nurse with at least three years of experience on an adult medical or surgical ward."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R2 [must] "Confident in wound care and dressing changes, including complex wounds."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R3 [must] "Experience with medication administration and double-checking procedures."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R4 [must] "Able to carry out patient assessments and record vital signs accurately."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R5 [must] "Experience mentoring student nurses or new colleagues."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R6 [nice] "Familiarity with an electronic patient record system."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R7 [nice] "Basic knowledge of infection prevention standards."
+verdict:
+cv line(s):
+unsure:
+why:
+
+T1 [trait, not counted] "You are a calm, reliable team player who stays patient under pressure."

@@ -1,0 +1,49 @@
+# KEY SHEET. Written by you, before any run. Guide: docs/EVERY-CV-KEY-GUIDE.md
+# Under each R block fill in the four lines. The guide lists the three allowed words for the first line
+# and shows how to write line numbers (they come from cv.numbered.txt). Write yes on the unsure line only
+# when you are truly torn. The why line is optional. Leave the blocks marked trait alone.
+# Do not run the product while you write this key.
+
+R1 [must] "Mindestens zwei Jahre Berufserfahrung in der Datenanalyse."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R2 [must] "Sehr gute SQL-Kenntnisse für Abfragen auf großen Datenbanken."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R3 [must] "Erfahrung mit Python zur Auswertung und Automatisierung von Daten."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R4 [must] "Erfahrung mit Dashboards in Tableau oder Power BI."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R5 [must] "Fähigkeit, Ergebnisse verständlich für Fachabteilungen zu präsentieren."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R6 [nice] "Kenntnisse in A/B-Tests und statistischer Auswertung."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R7 [nice] "Erfahrung mit der Google Cloud Platform."
+verdict:
+cv line(s):
+unsure:
+why:
+
+T1 [trait, not counted] "Du bist eigenverantwortlich, neugierig und ein verlässlicher Teamplayer."

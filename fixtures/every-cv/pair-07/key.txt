@@ -1,0 +1,49 @@
+# KEY SHEET. Written by you, before any run. Guide: docs/EVERY-CV-KEY-GUIDE.md
+# Under each R block fill in the four lines. The guide lists the three allowed words for the first line
+# and shows how to write line numbers (they come from cv.numbered.txt). Write yes on the unsure line only
+# when you are truly torn. The why line is optional. Leave the blocks marked trait alone.
+# Do not run the product while you write this key.
+
+R1 [must] "Able to analyse data with SQL or spreadsheets to answer product questions."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R2 [must] "Experience presenting findings to non-technical colleagues."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R3 [must] "Experience working with customer feedback to find problems and ideas."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R4 [must] "Comfortable prioritising tasks and working with several teams."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R5 [must] "Interest in and a basic understanding of A/B testing."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R6 [nice] "Experience with a dashboard tool such as Tableau or Power BI."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R7 [nice] "Some experience with Python."
+verdict:
+cv line(s):
+unsure:
+why:
+
+T1 [trait, not counted] "You are curious, proactive and a good communicator."

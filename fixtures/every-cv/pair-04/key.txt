@@ -1,0 +1,49 @@
+# KEY SHEET. Written by you, before any run. Guide: docs/EVERY-CV-KEY-GUIDE.md
+# Under each R block fill in the four lines. The guide lists the three allowed words for the first line
+# and shows how to write line numbers (they come from cv.numbered.txt). Write yes on the unsure line only
+# when you are truly torn. The why line is optional. Leave the blocks marked trait alone.
+# Do not run the product while you write this key.
+
+R1 [must] "Qualified teacher status and experience teaching mathematics to students aged 11 to 16."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R2 [must] "Able to plan lessons and schemes of work that match the national curriculum."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R3 [must] "Experience adapting lessons for students with special educational needs."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R4 [must] "Confident in assessing student progress and reporting it to parents."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R5 [must] "Experience leading or supporting extra-curricular activities."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R6 [nice] "Experience teaching A-level or equivalent further mathematics."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R7 [nice] "Familiarity with online learning platforms."
+verdict:
+cv line(s):
+unsure:
+why:
+
+T1 [trait, not counted] "You are patient, enthusiastic and a positive role model for young people."

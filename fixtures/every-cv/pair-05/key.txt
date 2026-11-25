@@ -1,0 +1,49 @@
+# KEY SHEET. Written by you, before any run. Guide: docs/EVERY-CV-KEY-GUIDE.md
+# Under each R block fill in the four lines. The guide lists the three allowed words for the first line
+# and shows how to write line numbers (they come from cv.numbered.txt). Write yes on the unsure line only
+# when you are truly torn. The why line is optional. Leave the blocks marked trait alone.
+# Do not run the product while you write this key.
+
+R1 [must] "At least five years of experience supervising residential or commercial construction sites."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R2 [must] "Able to coordinate subcontractors and keep to the construction schedule."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R3 [must] "Experience with quantity take-off (Aufmass) and checking subcontractor invoices."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R4 [must] "Knowledge of site safety rules and experience running safety briefings."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R5 [must] "Able to read structural and architectural drawings."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R6 [nice] "Experience with building information modelling."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R7 [nice] "Experience with the German construction contract rules (VOB)."
+verdict:
+cv line(s):
+unsure:
+why:
+
+T1 [trait, not counted] "You are a reliable team player with a hands-on approach."

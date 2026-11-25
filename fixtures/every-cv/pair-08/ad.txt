@@ -1,0 +1,21 @@
+Research Scientist in Environmental Data Science
+Tarnwick Institute for Environmental Research
+
+The Tarnwick Institute for Environmental Research studies how land use and climate change affect water and soil. We are looking for a research scientist to lead the data analysis of a new multi-year monitoring project.
+
+Required:
+- PhD in ecology, statistics, environmental science or a closely related field.
+- Strong experience with statistical modelling, ideally Bayesian or mixed-effects models.
+- Proficiency in R or Python for reproducible data analysis.
+- Experience with spatial data and geographic information systems.
+- A record of peer-reviewed publications in international journals.
+- Experience writing grant proposals or contributing to funded projects.
+
+A plus:
+- Experience supervising master's or doctoral students.
+- Experience with high-performance computing clusters.
+
+About you:
+- You are independent, collaborative and committed to open science.
+
+We offer a permanent research position, funding for conferences and a collaborative, international team.

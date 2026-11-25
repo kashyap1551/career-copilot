@@ -1,0 +1,49 @@
+# KEY SHEET. Written by you, before any run. Guide: docs/EVERY-CV-KEY-GUIDE.md
+# Under each R block fill in the four lines. The guide lists the three allowed words for the first line
+# and shows how to write line numbers (they come from cv.numbered.txt). Write yes on the unsure line only
+# when you are truly torn. The why line is optional. Leave the blocks marked trait alone.
+# Do not run the product while you write this key.
+
+R1 [must] "Degree in mechanical engineering and at least four years of design experience."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R2 [must] "Proficient in 3D CAD for parts and assemblies."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R3 [must] "Experience applying geometric dimensioning and tolerancing on production drawings."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R4 [must] "Experience with finite element analysis for stress and fatigue checks."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R5 [must] "Able to prepare cost and bill-of-materials comparisons in Excel."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R6 [nice] "Experience with injection moulding or sheet-metal design."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R7 [nice] "Working knowledge of ISO 9001 quality procedures."
+verdict:
+cv line(s):
+unsure:
+why:
+
+T1 [trait, not counted] "You are curious, hands-on and enjoy solving problems together."

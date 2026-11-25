@@ -1,0 +1,26 @@
+Elias Marwood
+Musterstrasse 1, 00000 Musterstadt
+jane.sample@example.com | +49 30 0000000
+
+Summary
+Data analyst with three years of experience in e-commerce. I turn messy order and web data into reports that managers can use the same day.
+
+Experience
+Data Analyst, Pinewick Online Store, 2022-2025
+- Wrote SQL queries against the company's PostgreSQL database with several hundred million rows to answer questions on sales, returns and delivery times.
+- Automated the weekly sales report with a Python script using pandas, which cut four hours of manual work to ten minutes.
+- Built and maintained 12 dashboards in Tableau for the marketing, logistics and finance teams.
+- Presented results every two weeks to the marketing and logistics departments and explained what the numbers meant for their next decisions.
+- Set up and evaluated three A/B tests of the checkout page together with the product team and reported the results with confidence intervals.
+
+Junior Analyst, Claybrook Market Research, 2020-2022
+- Cleaned survey data in Excel, built pivot tables and wrote summaries for clients.
+- Learned basic statistics and R for survey weighting.
+
+Education
+MSc Statistics, University of Northvale, 2018-2020
+BSc Mathematics, University of Tarnwick, 2015-2018
+
+Skills
+SQL, PostgreSQL, Python, pandas, Tableau, Excel, R, A/B testing, dashboards, data cleaning
+Languages: English (native), German (B1)

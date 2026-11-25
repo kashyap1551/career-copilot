@@ -1,0 +1,21 @@
+1: Priya Venn
+2: Musterstrasse 1, 00000 Musterstadt
+3: [email removed] | [phone removed]
+4: Summary
+5: Mechanical design engineer with three years in a company that makes pressed and machined parts for pumps. Comfortable between the drawing office and the workshop floor.
+6: Experience
+7: Design Engineer, Kellmoor Pump Components, 2022-2025
+8: - Designed pump housings and brackets as 3D parts and assemblies in the company's CAD system and released the drawings to production.
+9: - Dimensioned and toleranced production drawings with geometric dimensioning and tolerancing, and agreed tolerance changes with the machine shop.
+10: - Ran linear static simulations on brackets to check stress under load before prototypes were made.
+11: - Reworked three sheet-metal brackets to cut bending steps, which lowered the part cost.
+12: - Compared supplier quotes and built bills of materials with cost columns in Excel.
+13: - Took part in two internal audits of the drawing release procedure.
+14: Junior Draughtsperson, Ostwick Machining, 2020-2022
+15: - Updated 2D drawings after engineering changes and kept the revision list.
+16: - Measured finished parts with callipers and a height gauge during first-article checks.
+17: Education
+18: MEng Mechanical Engineering, University of Tarnwick, 2016-2020
+19: Skills
+20: 3D CAD, drawing release, GD&T, linear static FEA, sheet-metal design, bill of materials, Excel, measuring tools
+21: Languages: English (native), Spanish (B1)

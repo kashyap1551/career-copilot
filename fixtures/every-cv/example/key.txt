@@ -1,0 +1,26 @@
+# EXAMPLE ONLY, format demonstration, never sent to an AI
+# KEY SHEET. Written by you, before any run. Guide: docs/EVERY-CV-KEY-GUIDE.md
+# Under each R block fill in the four lines. The guide lists the three allowed words for the first line
+# and shows how to write line numbers (they come from cv.numbered.txt). Write yes on the unsure line only
+# when you are truly torn. The why line is optional. Leave the blocks marked trait alone.
+# Do not run the product while you write this key.
+
+R1 [must] "Experience serving customers in a bakery or shop."
+verdict: met
+cv line(s): 3
+unsure:
+why: The bakery job line says she served customers at the counter.
+
+R2 [must] "At least two years of experience training new team members."
+verdict: partly
+cv line(s): 3
+unsure:
+why: She trained two colleagues, but the ad asks for at least two years of training.
+
+R3 [must] "A valid food-hygiene certificate."
+verdict: none
+cv line(s):
+unsure:
+why: No line mentions a food-hygiene certificate.
+
+T1 [trait, not counted] "You are friendly and reliable."

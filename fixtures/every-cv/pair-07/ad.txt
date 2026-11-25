@@ -1,0 +1,20 @@
+Junior Product Analyst
+Lanternfish Software, Tarnwick (hybrid)
+
+Lanternfish Software makes scheduling software for small shops. Our product team is looking for a junior product analyst who turns data and customer feedback into clear next steps.
+
+Required:
+- Able to analyse data with SQL or spreadsheets to answer product questions.
+- Experience presenting findings to non-technical colleagues.
+- Experience working with customer feedback to find problems and ideas.
+- Comfortable prioritising tasks and working with several teams.
+- Interest in and a basic understanding of A/B testing.
+
+A plus:
+- Experience with a dashboard tool such as Tableau or Power BI.
+- Some experience with Python.
+
+About you:
+- You are curious, proactive and a good communicator.
+
+We welcome career changers. We offer mentoring, a learning budget and a hybrid working model.

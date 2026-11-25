@@ -1,0 +1,21 @@
+1: Elias Marwood
+2: Musterstrasse 1, 00000 Musterstadt
+3: [email removed] | [phone removed]
+4: Summary
+5: Data analyst with three years of experience in e-commerce. I turn messy order and web data into reports that managers can use the same day.
+6: Experience
+7: Data Analyst, Pinewick Online Store, 2022-2025
+8: - Wrote SQL queries against the company's PostgreSQL database with several hundred million rows to answer questions on sales, returns and delivery times.
+9: - Automated the weekly sales report with a Python script using pandas, which cut four hours of manual work to ten minutes.
+10: - Built and maintained 12 dashboards in Tableau for the marketing, logistics and finance teams.
+11: - Presented results every two weeks to the marketing and logistics departments and explained what the numbers meant for their next decisions.
+12: - Set up and evaluated three A/B tests of the checkout page together with the product team and reported the results with confidence intervals.
+13: Junior Analyst, Claybrook Market Research, 2020-2022
+14: - Cleaned survey data in Excel, built pivot tables and wrote summaries for clients.
+15: - Learned basic statistics and R for survey weighting.
+16: Education
+17: MSc Statistics, University of Northvale, 2018-2020
+18: BSc Mathematics, University of Tarnwick, 2015-2018
+19: Skills
+20: SQL, PostgreSQL, Python, pandas, Tableau, Excel, R, A/B testing, dashboards, data cleaning
+21: Languages: English (native), German (B1)

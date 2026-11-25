@@ -1,0 +1,55 @@
+# KEY SHEET. Written by you, before any run. Guide: docs/EVERY-CV-KEY-GUIDE.md
+# Under each R block fill in the four lines. The guide lists the three allowed words for the first line
+# and shows how to write line numbers (they come from cv.numbered.txt). Write yes on the unsure line only
+# when you are truly torn. The why line is optional. Leave the blocks marked trait alone.
+# Do not run the product while you write this key.
+
+R1 [must] "PhD in ecology, statistics, environmental science or a closely related field."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R2 [must] "Strong experience with statistical modelling, ideally Bayesian or mixed-effects models."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R3 [must] "Proficiency in R or Python for reproducible data analysis."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R4 [must] "Experience with spatial data and geographic information systems."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R5 [must] "A record of peer-reviewed publications in international journals."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R6 [must] "Experience writing grant proposals or contributing to funded projects."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R7 [nice] "Experience supervising master's or doctoral students."
+verdict:
+cv line(s):
+unsure:
+why:
+
+R8 [nice] "Experience with high-performance computing clusters."
+verdict:
+cv line(s):
+unsure:
+why:
+
+T1 [trait, not counted] "You are independent, collaborative and committed to open science."

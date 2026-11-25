@@ -1,0 +1,20 @@
+Data Analyst (m/w/d)
+Tarnwick Digital Handel GmbH, Musterstadt
+
+Wir sind ein wachsender Online-Händler und suchen eine Data Analystin oder einen Data Analyst für unser Team Business Intelligence.
+
+Das bringst du mit:
+- Mindestens zwei Jahre Berufserfahrung in der Datenanalyse.
+- Sehr gute SQL-Kenntnisse für Abfragen auf großen Datenbanken.
+- Erfahrung mit Python zur Auswertung und Automatisierung von Daten.
+- Erfahrung mit Dashboards in Tableau oder Power BI.
+- Fähigkeit, Ergebnisse verständlich für Fachabteilungen zu präsentieren.
+
+Von Vorteil:
+- Kenntnisse in A/B-Tests und statistischer Auswertung.
+- Erfahrung mit der Google Cloud Platform.
+
+Das bist du:
+- Du bist eigenverantwortlich, neugierig und ein verlässlicher Teamplayer.
+
+Wir bieten flexible Arbeitszeiten, Homeoffice und eine offene Teamkultur. Bewirb dich bei recruiter@example.org.

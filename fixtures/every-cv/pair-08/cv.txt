@@ -1,0 +1,108 @@
+Dr Ingrid Valmont
+Institute of Landscape Ecology, University of Tarnwick, Musterstrasse 1, 00000 Musterstadt
+jane.sample@example.com | +49 30 0000000
+
+Research profile
+Quantitative ecologist working on how land use and climate change reshape freshwater and grassland communities. My work combines long-term field surveys, remote sensing and hierarchical statistical models, and I try to make every analysis reproducible from raw data to figure.
+
+Education
+PhD in Ecology, University of Tarnwick, 2015-2019. Thesis: Drivers of invertebrate community change in lowland streams. Supervisors: Prof. A. Lindqvist and Dr B. Oyelaran.
+MSc Environmental Science, University of Northvale, 2012-2014. Distinction.
+BSc Biology, University of Northvale, 2009-2012.
+
+Positions
+Senior Postdoctoral Researcher, Institute of Landscape Ecology, University of Tarnwick, 2022-present
+- Lead the statistical work package of a five-country project on grassland biodiversity and manage a team of two doctoral students and one technician.
+- Built a Bayesian hierarchical model of species richness across 1,200 survey plots and published the code and data in an open repository.
+- Developed a workflow in R and Python that turns raw sensor files into cleaned, documented data sets and runs on the institute's computing cluster.
+- Coordinate field campaigns in spring and autumn, including sampling design, permits, equipment and safety briefings.
+Postdoctoral Researcher, Freshwater Research Centre, Northvale, 2019-2022
+- Analysed ten years of monitoring data on stream invertebrates with mixed-effects models and generalised additive models.
+- Classified satellite images of riparian vegetation and linked them to stream condition in a geographic information system.
+- Wrote the data management plan and the ethics approval for a citizen-science programme with 300 volunteers.
+Research Assistant, Institute of Landscape Ecology, University of Tarnwick, 2014-2015
+- Entered, cleaned and checked field data and prepared maps for project reports.
+
+Peer-reviewed publications
+Valmont I., Lindqvist A. (2025). Land-use intensity and the loss of functional diversity in managed grasslands. Journal of Applied Ecology Methods, 62(3), 411-425.
+Valmont I., Oyelaran B., Schreiber T. (2024). A Bayesian hierarchical framework for combining survey and sensor data in biodiversity monitoring. Methods in Ecology and Evolution Letters, 15(7), 1180-1194.
+Okafor N., Valmont I. (2024). Spatial autocorrelation and the design of stream monitoring networks. Freshwater Science Reports, 9(2), 55-70.
+Valmont I., Haug M. (2023). Warming and nutrient load interact to reshape stream invertebrate communities. Global Change Biology Letters, 29(11), 3002-3016.
+Schreiber T., Valmont I., Chen L. (2023). Mapping riparian vegetation from satellite time series with random forests. Remote Sensing of Environment Methods, 18, 210-225.
+Valmont I. (2022). Reproducible workflows for long-term ecological data: lessons from ten years of stream monitoring. Ecological Informatics Review, 7(1), 1-14.
+Valmont I., Lindqvist A., Oyelaran B. (2021). Seasonal turnover of invertebrate communities in lowland streams. Hydrobiologia Notes, 85(4), 901-915.
+Haug M., Valmont I. (2021). Detecting trends in noisy count data: a comparison of generalised additive and state-space models. Journal of Statistical Ecology, 5(2), 77-93.
+Valmont I., Chen L. (2020). Citizen-science data quality in freshwater monitoring. People and Nature Reports, 3(3), 322-336.
+Valmont I., Oyelaran B. (2019). Environmental DNA and kick sampling compared in lowland streams. Aquatic Ecology Methods, 14(1), 40-52.
+Valmont I., Lindqvist A. (2018). Functional traits explain the response of caddisflies to flow regime. Freshwater Biology Letters, 63(5), 700-712.
+Chen L., Valmont I., Okafor N. (2018). Rapid assessment of riparian condition with unmanned aerial vehicles. Journal of Unmanned Ecology, 2(1), 12-26.
+Lindqvist A., Valmont I. (2017). Hyporheic exchange and macroinvertebrate refuges during drought. Freshwater Hydrology Letters, 41(6), 833-847.
+Valmont I., Haug M., Okafor N. (2017). Choosing priors for sparse ecological count data: a practical guide. Bayesian Ecology Notes, 1(1), 3-19.
+Valmont I. (2016). Do volunteers see the same stream? A comparison of professional and citizen kick samples. Citizen Science Quarterly, 4(2), 101-112.
+Five further peer-reviewed papers (2014-2016) and two book chapters are listed on my institute page.
+
+Grants and funding
+Co-investigator and work-package leader, GRASSNET five-country grassland biodiversity project, 2023-2027, total budget 2.4 million euros; I wrote the statistical and data management sections of the proposal.
+Principal investigator, Open Data for Streams, Tarnwick Research Foundation, 2021-2022, 85,000 euros, awarded after an external review.
+Early-career travel grant, Society for Freshwater Ecology, 2019.
+Contributor to three further successful proposals (2020, 2022, 2024) as author of the analysis plan.
+
+Teaching and supervision
+Co-supervised four master's theses and two doctoral students to completion or ongoing; one master's student has since published a first-author paper.
+Taught the graduate course Statistical Modelling for Ecologists (R, mixed models, Bayesian inference) three times, 30 students each year.
+Gave guest lectures on remote sensing for ecology, reproducible research and scientific writing.
+Organised the weekly institute reading group on statistical methods, 2020-2024.
+
+Invited talks and conferences
+Invited speaker, Annual Congress of the Society for Freshwater Ecology, 2025: Hierarchical models for patchy monitoring data.
+Plenary panel member, Workshop on Open Science in Ecology, Northvale, 2024.
+Oral presentations at eight international conferences (2018-2025) and poster presentations at five more.
+Organiser, two-day workshop on Bayesian modelling for ecologists, Tarnwick, 2023, 60 participants.
+
+Methods and statistics
+Bayesian hierarchical modelling, mixed-effects models, generalised additive models, generalised linear models, state-space models, time-series analysis, spatial statistics, kriging, spatial autocorrelation analysis, species distribution modelling, occupancy modelling, ordination, multivariate analysis, cluster analysis, random forests, boosted regression trees, cross-validation, model selection, power analysis, survival analysis, structural equation modelling, uncertainty quantification, meta-analysis, bootstrapping, permutation tests, variance partitioning, trend detection, missing-data imputation
+Field and laboratory methods
+Stream kick sampling, quadrat vegetation surveys, transect surveys, electrofishing assistance, water chemistry sampling, environmental DNA sampling and filtering, sample sorting and taxonomic identification of aquatic invertebrates, light and temperature logger deployment, drone surveys, field safety and risk assessment, permit applications, volunteer training
+Software and data tools
+R (tidyverse, lme4, mgcv, brms, vegan, sf, terra, targets), Python (pandas, numpy, scikit-learn, xarray, rasterio, matplotlib), Stan, JAGS, QGIS, ArcGIS, Google Earth Engine, PostgreSQL with PostGIS, SQL, Git and GitHub, Docker, Snakemake, Linux, bash scripting, SLURM cluster jobs, LaTeX, Markdown, R Markdown and Quarto, Jupyter notebooks, reproducible research practices, data management plans, FAIR data principles, metadata standards
+Remote sensing and spatial data
+Satellite image classification, vegetation indices, time-series compositing, land-cover change detection, digital elevation models, watershed delineation, georeferencing, map production, spatial joins, raster and vector processing
+Professional skills
+Grant writing, project management, budget management, team supervision, scientific writing, peer review for 14 journals, public speaking, workshop teaching, stakeholder communication, ethics applications, citizen-science coordination
+
+Awards and visits
+Early-career researcher prize, Society for Freshwater Ecology, 2022, for the open-data workflow for stream monitoring.
+Best oral presentation, European Conference on Ecological Modelling, 2019.
+Visiting researcher, Department of Statistics, University of Northvale, 3 months in 2021, working on state-space models for count data.
+Visiting researcher, Alpine Field Station, 6 weeks in 2017, setting up a long-term stream temperature network.
+Open software and data
+Maintainer of the R package streamtrend (trend detection for monitoring series, 4,000 downloads) and of the open data set Lowland Stream Invertebrates 2009-2021 (DOI registered, 160,000 records).
+Author of the teaching repository Bayesian Models for Ecologists with worked examples in Stan and R, used by three universities.
+Public engagement and outreach
+Led a citizen-science programme with 300 volunteers who sample streams twice a year, including training days, a handbook and feedback reports for every volunteer.
+Wrote six articles for a regional newspaper on stream health and gave talks at four public science evenings.
+Advised the regional water authority on monitoring design and on how to present uncertainty to non-specialists.
+Mentored five undergraduate interns on field work and data analysis, two of whom went on to master's degrees.
+Reviewing and editorial service
+Reviewer for 14 journals and for two national research funders, 40 reviews in the last three years. Guest editor of a special issue on long-term monitoring data in Ecological Informatics Review, 2023.
+Member of the programme committee for the Workshop on Open Science in Ecology, 2024 and 2025.
+Selected seminars and invited visits
+Seminar, Department of Zoology, Northvale: Why monitoring data are never independent and what to do about it, 2024.
+Seminar, Institute of Hydrology, Tarnwick: From kick samples to community trends with hierarchical models, 2022.
+Lecture, doctoral summer school on ecological statistics, Alpine Field Station: Priors, posteriors and honest uncertainty, 2023.
+Hands-on session, national data steward network: Writing data management plans that people actually follow, 2022.
+Collaborations
+Regular collaboration with the remote sensing group at the Institute of Geodesy (satellite time series), the statistics department at Northvale (state-space models) and the regional water authority (monitoring design and reporting). Co-author with 21 different colleagues in the last five years.
+Technical and management experience
+Managed a project budget of 2.4 million euros across five partner institutes, including quarterly reporting to the funder, partner meetings, contracts for field technicians and a data sharing agreement signed by all partners.
+Set up the institute's shared analysis server with a queue system, a container image for reproducible environments and a nightly backup of all project data.
+Trained twelve colleagues in version control, scripted analysis and writing reproducible reports.
+
+Service
+Reviewer for 14 journals and for two national research funders. Member of the institute's open-science working group, 2022-present. Elected early-career representative on the faculty council, 2021-2023.
+
+Memberships
+Society for Freshwater Ecology (since 2015), Society for Ecological Modelling (since 2018), Open Research Network for Ecologists (since 2021), and the faculty equal-opportunities working group (2022-2024).
+
+Languages
+English (fluent), German (C1), Swedish (B1)
