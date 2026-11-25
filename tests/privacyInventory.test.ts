@@ -56,7 +56,21 @@ import { MemoryStore } from "@/lib/saved/store";
 //  I10  (A8, stage 2.3) app/page.tsx has exactly one `href="/privacy"`, inside one <footer>, on a <Link> with prefetch={false} whose text is
 //       {LINK_PRIVACY}, imported from next/link; it is not inside a condition (the line before it does not end with && or ?).
 //
-// COUNTS: this file has 13 tests (I1, I1b, I2, I3, I4, I5, I6, I7, I8, I9, I9b, S1b, I10).
+//  I11  (stage 2.3b) no save or delete function runs from an effect or while rendering. The five: saveProfile, saveJob, deleteProfile, deleteJob,
+//       deleteAll. Counted by hand from `git grep -F "name("` (code lines of app/ and lib/), 2026-11-25:
+//         definitions, all in lib/saved/saved.ts: saveProfile :39, saveJob :68, deleteJob :125, deleteProfile :136, deleteAll :146     = 5 lines
+//         calls in app/SavedControls.tsx: deleteProfile :107 (in onDeleteProfile), saveProfile :181 (onSave), deleteAll :211 (onDeleteAll),
+//                                         saveJob :276 (onSaveAd), deleteJob :328 (onDeleteAd)                                        = 5 lines
+//         calls in lib/demo/start.ts: saveJob :29 (the demo saves its ten invented ads into a MemoryStore, never IndexedDB: tests S2, S3, V4) = 1 line
+//         app/page.tsx: 0 calls (the first plan guessed it called them; it does not: SavedControls.tsx does).
+//       Total 11 code lines in 3 files: {app/SavedControls.tsx: 5, lib/demo/start.ts: 1, lib/saved/saved.ts: 5}.
+//       (i)  app/useSaved.ts has exactly one useEffect; its body calls loadProfile( and listJobs( (reads) and none of the five.
+//       (ii) no useEffect body in any file of app/ contains any of the five (today only two files have an effect: app/useSaved.ts:40 and
+//            app/demo/page.tsx:36; the demo's effect calls startDemo(), not the five by name; SavedControls.tsx and page.tsx have none).
+//       (iii) the 11 lines above are the only calls and definitions; and in app/SavedControls.tsx each call sits inside its own click handler:
+//            saveProfile in onSave, saveJob in onSaveAd, deleteProfile in onDeleteProfile, deleteJob in onDeleteAd, deleteAll in onDeleteAll.
+//
+// COUNTS: this file has 14 tests (I1, I1b, I2, I3, I4, I5, I6, I7, I8, I9, I9b, S1b, I10, I11).
 
 const root = process.cwd();
 const read = (rel: string) => readFileSync(join(root, rel), "utf8");
@@ -255,5 +269,68 @@ describe("the data-flow inventory of main (PLAN-9.3 section 9, A8 to A11)", () =
     expect(footerAt).toBeLessThan(at);
     const previous = lines.slice(0, footerAt).reverse().find((l) => l.trim() !== "") ?? "";
     expect(previous).not.toMatch(/&&\s*\(?\s*$|\?\s*\(?\s*$/);
+  });
+
+  it("I11: no save or delete function runs from an effect or while rendering; each is called only from its own click handler", () => {
+    const FIVE = ["saveProfile", "saveJob", "deleteProfile", "deleteJob", "deleteAll"];
+    const calls = (src: string, name: string) => src.split(`${name}(`).length - 1;
+
+    // The body of every useEffect( ... ) in a file: from the first "{" after "useEffect(" to its matching "}".
+    const effectBodies = (src: string): string[] => {
+      const out: string[] = [];
+      let from = 0;
+      for (;;) {
+        const at = src.indexOf("useEffect(", from);
+        if (at < 0) break;
+        const open = src.indexOf("{", at);
+        let depth = 0;
+        let end = open;
+        for (let i = open; i < src.length; i++) {
+          if (src[i] === "{") depth++;
+          else if (src[i] === "}" && --depth === 0) {
+            end = i;
+            break;
+          }
+        }
+        out.push(src.slice(open, end + 1));
+        from = end;
+      }
+      return out;
+    };
+    const stripComments = (src: string) => src.replace(/\/\*[\s\S]*?\*\//g, "").split("\n").filter((l) => !l.trim().startsWith("//")).join("\n");
+
+    // (i)
+    const useSaved = stripComments(read("app/useSaved.ts"));
+    const own = effectBodies(useSaved);
+    expect(own.length).toBe(1);
+    expect(calls(own[0], "loadProfile")).toBe(1);
+    expect(calls(own[0], "listJobs")).toBe(1);
+    for (const f of FIVE) expect(calls(own[0], f), `useSaved.ts effect must not call ${f}(`).toBe(0);
+
+    // (ii)
+    for (const file of walk("app").filter(isSource)) {
+      for (const body of effectBodies(stripComments(read(file)))) {
+        for (const f of FIVE) expect(calls(body, f), `${file}: an effect must not call ${f}(`).toBe(0);
+      }
+    }
+
+    // (iii)
+    const found = codeLines(allSource()).filter((l) => FIVE.some((f) => l.text.includes(`${f}(`)));
+    expect(perFile(found), where(found).join("\n")).toEqual({ "app/SavedControls.tsx": 5, "lib/demo/start.ts": 1, "lib/saved/saved.ts": 5 });
+    expect(found.filter((l) => l.file === "lib/demo/start.ts").map((l) => l.text.includes("saveJob("))).toEqual([true]);
+    const HANDLER: Record<string, string> = { saveProfile: "onSave", saveJob: "onSaveAd", deleteProfile: "onDeleteProfile", deleteJob: "onDeleteAd", deleteAll: "onDeleteAll" };
+    const lines = read("app/SavedControls.tsx").split("\n");
+    for (const l of found.filter((x) => x.file === "app/SavedControls.tsx")) {
+      const name = FIVE.find((f) => l.text.includes(`${f}(`)) as string;
+      let enclosing = "";
+      for (let i = l.no - 1; i >= 0; i--) {
+        const m = lines[i].match(/^\s*(?:async )?function (\w+)/);
+        if (m) {
+          enclosing = m[1];
+          break;
+        }
+      }
+      expect(enclosing, `${name}( at app/SavedControls.tsx:${l.no} is inside ${enclosing}`).toBe(HANDLER[name]);
+    }
   });
 });

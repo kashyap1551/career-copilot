@@ -25,11 +25,26 @@ import { POST as POST_AD } from "@/app/api/read/route";
 //        then /api/cv gives 3 more fetch calls (marker once each), console.error once "cv: AI service error, status 429", status 429. Six calls in all.
 //  L4  /api/read with a 500, two requests: with NODE_ENV "production" the JSON has no `detail` key; with NODE_ENV "development" it has one (a string),
 //        so the test proves the switch. (No call count here; unchanged from the first version.)
+//  L5  (stage 2.3b, PLAN-9.3 C6 and the probe of 2026-11-25) HOSTILE BODIES. Both handlers are called directly, 14 calls (2 routes x 7 cases), with
+//        a made-up access code in x-access-code (except case 7), and the marker MARKER-5521 in the body. Worked out from app/api/cv/route.ts:14-33 and
+//        app/api/read/route.ts:11-30: the kill switch, then the access check, then the body read inside try/catch (400), then safeParse (400).
+//        Every call RESOLVES (none rejects), nothing is written to console.log, info, warn, error or debug, process.emitWarning is not called,
+//        and the marker is in no answer. Expected answers, in order:
+//          case 1  malformed JSON `MARKER-5521{not json`   400  /api/cv:   Send JSON like { "lines": ["first line", "second line"] }.
+//                                                               /api/read: Send JSON like { "text": "the job ad" }.
+//          case 2  an empty body                           400  the same two sentences
+//          case 3  a JSON array ["MARKER-5521"]            400  Zod's own "Invalid input: expected object, received array"
+//          case 4  a JSON string "MARKER-5521"             400  Zod's own "Invalid input: expected object, received string"
+//          case 5  {"text":123}                            400  /api/cv: Send the CV as a list of lines.   /api/read: Send the ad as text.
+//          case 6  {"other":"MARKER-5521"}                 400  the same two sentences as case 5
+//          case 7  malformed JSON and NO access header     401  The access code is missing or wrong.
+//        (Zod's two own sentences are matched by their start, so a wording change in Zod does not fail this test; the marker is still checked.)
 //  TIME: the whole file runs in under 5 seconds (real time).
 //
-// COUNTS: this file has 4 tests (L1, L2, L3, L4).
+// COUNTS: this file has 5 tests (L1, L2, L3, L4, L5).
 
 const MARKER = "MARKER-9731";
+const HOSTILE = "MARKER-5521"; // the marker of L5
 const CODE = "test-code-0123456789abcdef"; // made up, 26 characters, not a real code
 const AD_TEXT = `A bakery needs a careful analyst. ${MARKER} is written in this ad text.`;
 const CV_LINES = [`Wrote reports for a bakery ${MARKER}`];
@@ -147,5 +162,60 @@ describe("no CV text, ad text or SDK error object reaches a log (PLAN-9.3 L1 to 
     const body = (await dev.json()) as { detail?: unknown };
     expect("detail" in body).toBe(true);
     expect(typeof body.detail).toBe("string");
+  });
+
+  it("L5: a hostile body gets a fixed error, never a rejection, a log line or an echo of the text", async () => {
+    const CASES: { n: number; label: string; body: string; header: boolean }[] = [
+      { n: 1, label: "malformed JSON", body: `${HOSTILE}{not json`, header: true },
+      { n: 2, label: "empty body", body: "", header: true },
+      { n: 3, label: "JSON array", body: JSON.stringify([HOSTILE]), header: true },
+      { n: 4, label: "JSON string", body: JSON.stringify(HOSTILE), header: true },
+      { n: 5, label: '{"text":123}', body: '{"text":123}', header: true },
+      { n: 6, label: "object without the wanted field", body: JSON.stringify({ other: HOSTILE }), header: true },
+      { n: 7, label: "malformed JSON, no access header", body: `${HOSTILE}{not json`, header: false },
+    ];
+    const SEND_JSON = { "/api/cv": 'Send JSON like { "lines": ["first line", "second line"] }.', "/api/read": 'Send JSON like { "text": "the job ad" }.' };
+    const WRONG_TYPE = { "/api/cv": "Send the CV as a list of lines.", "/api/read": "Send the ad as text." };
+    const ZOD = /^Invalid input: expected object, received (array|string)$/;
+    const expected = (route: "/api/cv" | "/api/read", n: number): { status: number; test: (s: string) => boolean } => {
+      if (n === 1 || n === 2) return { status: 400, test: (s) => s === SEND_JSON[route] };
+      if (n === 3 || n === 4) return { status: 400, test: (s) => ZOD.test(s) };
+      if (n === 5 || n === 6) return { status: 400, test: (s) => s === WRONG_TYPE[route] };
+      return { status: 401, test: (s) => s === "The access code is missing or wrong." };
+    };
+    const problems: string[] = [];
+    let calls = 0;
+    for (const [route, POST] of [["/api/cv", POST_CV], ["/api/read", POST_AD]] as const) {
+      for (const c of CASES) {
+        for (const m of METHODS) spies[m].mockClear();
+        emitWarning.mockClear();
+        const headers: Record<string, string> = { "content-type": "application/json" };
+        if (c.header) headers["x-access-code"] = CODE;
+        const name = `${route} case ${c.n} (${c.label})`;
+        calls++;
+        let res: Response;
+        try {
+          res = await POST(new Request(`http://localhost${route}`, { method: "POST", headers, body: c.body === "" ? undefined : c.body }));
+        } catch (e) {
+          problems.push(`${name}: the handler REJECTED (${e instanceof Error ? e.constructor.name : typeof e})`);
+          continue;
+        }
+        const text = await res.text();
+        const want = expected(route, c.n);
+        let error = "";
+        try {
+          error = (JSON.parse(text) as { error?: string }).error ?? "";
+        } catch {
+          problems.push(`${name}: the answer is not JSON`);
+        }
+        if (res.status !== want.status) problems.push(`${name}: status ${res.status}, expected ${want.status}`);
+        if (!want.test(error)) problems.push(`${name}: answer "${error}" is not the fixed error`);
+        const logged = JSON.stringify([...METHODS.map((m) => spies[m].mock.calls), emitWarning.mock.calls]);
+        if (logged !== JSON.stringify([...METHODS.map(() => []), []])) problems.push(`${name}: something was logged: ${logged}`);
+        if (text.includes(HOSTILE) || logged.includes(HOSTILE)) problems.push(`${name}: the marker ${HOSTILE} was echoed or logged`);
+      }
+    }
+    expect(calls).toBe(14);
+    expect(problems).toEqual([]);
   });
 });
