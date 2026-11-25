@@ -10,6 +10,7 @@ This check makes **no AI read** and needs **no access code, no CV and nothing to
 - Developer tools: press **Cmd+Option+I**. The tab **Network** is the list of every request the page sends. The tab **Application** shows what the page stores. In the Application tab look at **IndexedDB only. Never open "Session storage"**: on the real page it holds the access code (standing rule).
 - **Expected, and not the demo's doing:** the first screen opens the browser's database `career-copilot` when it loads (the saved-on-this-device read of step 6.1), which creates it EMPTY in a fresh window. So in step 2 you may see the database listed with empty stores.
 - The invented person is "Alex Example". Every company and job title in the demo is made up.
+- A preview address asks for a Vercel sign-in in a fresh private window, so step 13 and any tester use the live address.
 
 ## The steps
 
@@ -78,18 +79,22 @@ This check makes **no AI read** and needs **no access code, no CV and nothing to
 
 ## Manual check log
 
+Run on 2026-11-25 by the owner, on the Vercel preview of de9d5a7 (the later commits change only tests and docs). Invented material, no AI read.
+
 | Step | Result | What was seen |
 |---|---|---|
-| 1 | NOT RUN YET | |
-| 2 | NOT RUN YET | |
-| 3 | NOT RUN YET | |
-| 4 | NOT RUN YET | |
-| 5 | NOT RUN YET | |
-| 6 | NOT RUN YET | |
-| 7 | NOT RUN YET | |
-| 8 | NOT RUN YET | |
-| 9 | NOT RUN YET | |
-| 10 | NOT RUN YET | |
-| 11 | NOT RUN YET | |
-| 12 | NOT RUN YET | |
-| 13 | NOT RUN YET | |
+| 1 | passed | The first screen with the demo button and its hint line; no access-code box. |
+| 2 | passed | The IndexedDB stores and the Network list were empty. |
+| 3 | passed | The demo page opened. One Fetch/XHR row, `demo?_rsc=...`, type fetch, status 200, 2.8 kB. No row with `api`. 5 requests in all, 1 of them Fetch/XHR. |
+| 4 | passed | The banner text and both sentences exactly as written; the strip stayed at the top while scrolling (seen in step 8). |
+| 5 | passed | Ten rows in the listed order with dates and Fit lines, Open buttons only, three skills ticked, Berlin in the cities box. The owner pasted the page text; the reviewer compared it word for word. |
+| 6 | passed | The lines of the box are identical to this document. |
+| 7 | passed | With Tableau unticked: 2 Strong, 4 Good, 3 Stretch, 1 Long shot, the rows in this document's order and the box lines of this document, including the three Skills to build lines. After ticking it again the page was identical to steps 5 and 6. Network empty. |
+| 8 | passed | Reports for Insight Analyst and Site Coordinator, their Fit lines equal to their rows. Network empty. |
+| 9 | passed | |
+| 10 | passed | |
+| 11 | none | Fresh window, nothing saved. |
+| 12 | none | The owner saw no such word. Reviewer's note: the shared components keep the real page's words (for example "Skills found in your CV", "your 10 saved ads"), and the note under "Add a skill by hand" mentions "your CV text above" and "Send for reading", which the demo does not have. |
+| 13 | NOT RUN | A fresh private window opened a Vercel sign-in page for the preview address, so the demo page never loaded. Run it on the live address after the merge. |
+
+Console red text and the browser's issues count: not looked at.

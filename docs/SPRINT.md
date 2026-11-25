@@ -150,8 +150,9 @@ Goal: the roadmap as a report, the numbers as charts, and honest help with the C
 
 Goal: safe and free for strangers to try.
 
-- [ ] **9.1** Demo mode: three sample CVs and sample ads, no upload needed.
-  Check: a visitor sees a full report and roadmap within a minute.
+- [x] **9.1** Demo mode: one sample CV and ten sample ads, no upload needed.
+  Check: a visitor sees an ad report and the "What to learn" box within a minute (docs/MANUAL-CHECK-9.1.md).
+  Note: manual check steps 1 to 12 passed on the preview of de9d5a7, 2026-11-25 (invented material; no AI read; the later commits change only tests and docs). Step 13 (a direct visit to /demo leaves no database) could not run on the preview, which asks for a Vercel sign-in in a fresh private window, so it runs on the live address after the merge; the Console was not looked at. One CV and ten ads instead of the three CVs of the first wording: the roadmap shows only from ten counted ads, and more CVs are a later item (DECISIONS 2026-11-24).
 - [ ] **9.2** Limits: a daily cap per person and a friendly message when the free tier is busy.
   Check: hitting a limit shows the message, and nothing breaks.
 - [ ] **9.3** Privacy: a plain page (what is processed, by which services and in which country, and that data stays in the browser), consent before a CV upload, no CV text in logs, a "delete my data" button; check whether an Impressum is needed (§ 5 DDG covers business-like services; purely private sites usually need none).
