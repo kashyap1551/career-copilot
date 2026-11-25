@@ -378,7 +378,8 @@ Small, each tests-first, each its own commit, careful lane (anything the AI read
 - **EC-2. CV side, no AI:** `unlistedKept` (with the `inferred` flag), the saved field, `sparseCvLines`, the confirm-box wording, the 60-skill message. Tests PU, SU first; breaks B8 to B10, B18, B22.
 - **EC-3. The call, no real AI call:** schema, prompt (the owner approves the prompt text first), `lib/ai/checkEvidence.ts`, the route, the request-body capture on a fake fetch, the NEW pin. The route and its privacy and inventory rows in one commit; the route refuses CV lines with contact details (AM4). Tests CR, CS, schema, hygiene, pin first; breaks B11 to B13, B16, B20.
 - **EC-3 is split:** EC-3a (lib: schema, prompt, input builder, evidence call, request-body capture, pin; no route) and EC-3b (route, privacy rows, inventory and log tests, contact-detail refusal).
-- **EC-4. Page wiring:** button, info line, tick gate, the AI block in the report, the message when the call fails, clear-on-delete. Tests `checkPage` first; breaks B14, B15, B21. The first time the page can send, the privacy page, `messages.ts` and the inventory are already in place (EC-3).
+- **EC-4a. The pure parts and the report block (nothing can send):** `lib/cv/checkPlan.ts` (`buildCheckPlan`, `extrasFor`, `Checked`), `lib/cv/checkBridge.ts` (`toViewAnswers`), `lib/cv/checkWording.ts` (DRAFT), the optional fifth parameter of `reportFor`, and the AI block in `app/ReportView.tsx`. Tests CPL, CB, PR, CP6, CP9 and the copy-drift tests D1 to D3.
+- **EC-4b. Page wiring:** the button (`app/CheckBox.tsx`), the click logic (`app/runCheck.ts`, the one new `postJson(`), the info line, the tick gate, the message when the call fails, `onWipe` in `SavedDeleteAll`, the `"check"` word of `AccessSource`, and the privacy-test updates I2, I3 and M6. Tests RC, CP1 to CP5, CP7, CP8, CP10 and CP11 first; breaks B14, B15, B18, B21. The first time the page can send, the privacy page, `messages.ts` and the inventory are already in place (EC-3).
 - **EC-5. Eval script (`npm run eval-check`) and runs:** dry run with the fingerprint (no AI); one calibration run (not counted); the counted run. **Each real run needs the owner's go, in its own prompt, and goes on its own day (section 5)**; a guard that stops a run stops it. The owner reads every AI "met".
 - **EC-6. Optional, owner decides:** store the answers with each saved ad (an optional field with the profile key it was made for), so the saved list, the roadmap and the analytics agree with the open report.
 - **EC-7. Over-the-cap option 3** (two-part reading), only if the near-cap pair says it is needed.
@@ -499,6 +500,10 @@ All dated 2026-11-25.
 | AM9 | The AI input carries no importance tag; priority must not change the verdict, and a nice-to-have could be judged more leniently. | 4.3 |
 | AM10 | AM5 amended: the inferred note is NOT sent in the AI input (owner decision 2026-11-25, option A); rule 1 of the instructions already says the name is a label and only the line counts; the label stays in the report block. | 4.3 |
 | AM11 | The check schema uses plain numbers, like the CV and ad schemas. zod's `.int()` adds minimum and maximum keywords that Groq's strict-mode documentation neither lists nor promises, and the existing readers never send them. A number that is not whole is rejected by the proof (no entry or requirement has that number). Owner re-pin 2026-11-25. | 4.3, 7 |
+| AM12 | Delete everything cleared on-screen state only after a successful delete (`onForget`); the tab-only path and a failed delete skipped it. EC-4b adds `onWipe`, called right after `forgetConsent()`. | 4.6, 10 |
+| AM13 | The page re-proves the route's answers with `proveAnswers` before showing them; a damaged reply cannot put an unproven line on screen. | 4.3, 4.5 |
+| AM14 | Answers are used only while the key of what was sent equals the key at click time; the plan of what to send is computed without the answers. | 4.5, 4.6 |
+| AM15 | Known gaps accepted until EC-6: rows of listed skills from a saved profile lack the inferred note (`inferred` is stored only for unlisted skills); the saved-ads list uses `reportFor` without extras and can show a different label than the open report. | 4.5, 4.6 |
 
 Chain note: `lib/ai/errors.ts`: EC-3a added the subject check (`ReadSubject`, the log tag, a 500 message); `step-8.3` edits the same file for its own subject; keep both when merging.
 
@@ -522,6 +527,9 @@ From EC-3b:
 - `app/api/check/route.ts`: `CONTACT_REFUSAL`, `SEND_JSON`, `WRONG_FIELDS` (the sentences a person can read when a check request is refused).
 - `lib/ai/errors.ts`: the sentence for an unexpected error of the check ("Something went wrong while checking your CV lines against the ad. Please try again."), inline in `toReadError`.
 - `lib/privacy/messages.ts`: `CHECK_INFO_LINE`, `CLAIM_C17`, `CLAIM_C3B` (changed), `CLAIM_C16` (changed), `CHECK_TICK_NEEDED`.
+
+From EC-4a:
+- `lib/cv/checkWording.ts`: `CHECK_BUTTON`, `CHECK_RUNNING`, `CHECK_DONE`, `CHECK_NOT_CHECKED`, `CHECK_NO_ENTRIES`, `CHECK_STALE`, `CHECK_CONTACT` (a copy of `CONTACT_REFUSAL`), `CHECK_UNREACHABLE` and `CHECK_SERVER_ERROR` (copies of the CvBox sentences), `CHECK_BAD_ANSWER`.
 
 Note: EC-6 (storing answers) must change C4 and C17 (the "not saved" sentence) in the same commit.
 
