@@ -7,7 +7,7 @@ import * as messages from "@/lib/privacy/messages";
 // Written BEFORE lib/privacy/messages.ts exists (red first, then green).
 //
 // HAND-WORKED EXPECTATIONS:
-//  M3  messages.ts exports exactly these 35 string constants (3 info and tick lines, 12 claims, 8 headings, 7 labels of the /privacy page, 2 lines of the processors section, 3 lines of the consent stage, counted below) and one
+//  M3  messages.ts exports exactly these 38 string constants (3 info and tick lines, 12 claims, 8 headings, 7 labels of the /privacy page, 2 lines of the processors section, 3 lines of the consent stage, counted below) and one
 //      non-string, WORDING_APPROVED_ON (null). Each string equals the pinned string below, copied by hand BEFORE the constants were written; the
 //      test names every constant that differs, and a constant that is added or removed without a pin also fails.
 //        pinned strings: CV_INFO_LINE, AD_INFO_LINE, CV_TICK (3);  CLAIM_C1, CLAIM_C2, CLAIM_C3A, CLAIM_C3B, CLAIM_C4, CLAIM_C5, CLAIM_C6, CLAIM_C7,
@@ -16,7 +16,7 @@ import * as messages from "@/lib/privacy/messages";
 //        LABEL_BACK_TO_APP, LABEL_TO_DEMO, LINK_PRIVACY (7, added at stage 2.3 for the page: no sentence of the page is typed in its component).
 //        PROCESSORS_INTRO, NOT_CONFIRMED_POINTER (2, added at stage 2.3c: the line that introduces the two services and the pointer to the open facts).
 //        CV_TICK_NEEDED, LINK_PRIVACY_NOTICE, CLAIM_C16 (3, added at stage 2.4: the message next to the CV button, the link text in the two notices, and
-//        the claim about the tick). 3 + 12 + 8 + 7 + 2 + 3 = 35 strings.
+//        the claim about the tick). 3 + 12 + 8 + 7 + 2 + 3 = 35 strings; EC-3b adds 3 more (CHECK_INFO_LINE, CLAIM_C17, CHECK_TICK_NEEDED): 38.
 //  M5  none of GDPR, DSGVO, compliant, compliance, lawful, certified, guarantee, legally, secure, consent appears (case-insensitive) in
 //      (a) any exported string constant of messages.ts, and (b) the `words` of every fact in lib/privacy/facts.ts whose kind is NOT "quoted": the
 //      observed facts and the not-confirmed sentences (U1, U2b, U3, U4a, U4b, U5, U6, U9: eight facts). Read by hand, none of the eight contains
@@ -37,7 +37,7 @@ const PINNED: Record<string, string> = {
     "'Send for reading' sends the numbered lines shown on the page. Before that, an automatic check takes out email addresses, most phone numbers and some web links. It can miss some formats. It does not remove your name or address.",
   CLAIM_C3A: "'Read this ad' sends the whole ad text from the box. It is not cleaned: an email address or phone number in it is sent as it is.",
   CLAIM_C3B:
-    "Our server code has no database and writes no file. For an ad, the server keeps the reading of the ad (it holds short quotes from the ad, not the whole text) in its memory for a while, up to 20 ads, so the same ad is not read twice. For a CV it keeps nothing.",
+    "Our server code has no database and writes no file. For an ad, the server keeps the reading of the ad (it holds short quotes from the ad, not the whole text) in its memory for a while, up to 20 ads, so the same ad is not read twice. For a CV and for the check it keeps nothing.",
   CLAIM_C4:
     "A saved ad and a saved profile stay in this browser (IndexedDB). Saving sends nothing. A saved ad holds the whole ad text and the AI's reading of it. A saved profile holds the skills you confirmed, with the CV line each one was found on (word for word; this includes skills that are not in our skill list yet, and a note of which ones the AI read from your wording rather than from a name written in the line), the skills you added by hand, the skills you are learning with the date you expect them, and the cities, languages, work modes, years of experience and start date you entered. It also holds the date you saved it. It does not hold your whole CV.",
   CLAIM_C5:
@@ -72,14 +72,20 @@ const PINNED: Record<string, string> = {
   CV_TICK_NEEDED: "Tick the box before you send your CV.",
   LINK_PRIVACY_NOTICE: "Open the privacy page in a new tab",
   CLAIM_C16:
-    "When you tick the box before sending your CV, the tick is kept for this tab only. It is forgotten when you close the tab, and when you press 'Yes, delete everything'.",
+    "When you tick the box before sending your CV or running the check, the tick is kept for this tab only. It is forgotten when you close the tab, and when you press 'Yes, delete everything'.",
+  // EC-3b (DRAFT, the owner approves at the end): the check button's notice, its claim, and the message when the tick is missing.
+  CHECK_INFO_LINE:
+    "When you press the check button, the requirement lines of the ad and the CV lines you confirmed, with the skill name next to each, leave your device. They go to our server and on to an AI service (Groq) that says which CV line shows which requirement. The CV lines are the ones already cleaned of email addresses and most phone numbers. The check looks at them again with the same automatic check and sends nothing if it still finds an email address, a phone number or a web link, but it can miss some formats, and it does not touch your name or address. The requirement lines come from the ad, which is not cleaned: an email address or phone number in it is sent as it is. Long lines are cut short. The privacy page says what is kept.",
+  CLAIM_C17:
+    "The check sends the requirement lines of the ad and the CV lines you confirmed, with their skill names, to our server and on to an AI service (Groq). A requirement line is cut after 300 characters and a CV line after 240, and at most 30 requirement lines and 60 CV lines are sent. Our server code keeps nothing from it: no cache, no file, no database. The answers are shown on the screen and are not saved. If the AI service answers with an error or says it is busy, our server asks again up to two more times, as described above, so the same text can reach the AI service up to three times for one click.",
+  CHECK_TICK_NEEDED: "Tick the box before you run the check.",
 };
 
 const FORBIDDEN = ["GDPR", "DSGVO", "compliant", "compliance", "lawful", "certified", "guarantee", "legally", "secure", "consent"];
 
 describe("the draft words of the privacy page (PLAN-9.3 sections 2, 4, 6; A4, A12, A13)", () => {
   it("M3: every constant of messages.ts is exactly its pinned string, and none is added or removed without a pin", () => {
-    expect(Object.keys(PINNED).length).toBe(35);
+    expect(Object.keys(PINNED).length).toBe(38);
     const strings = Object.entries(messages).filter(([, v]) => typeof v === "string") as [string, string][];
     const names = strings.map(([k]) => k).sort();
     expect(names, "constants exported but not pinned, or pinned but not exported").toEqual(Object.keys(PINNED).sort());

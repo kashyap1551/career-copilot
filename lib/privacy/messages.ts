@@ -20,6 +20,11 @@ export const CV_INFO_LINE =
 export const AD_INFO_LINE =
   "When you press 'Read this ad', the whole text in the box leaves your device. It goes to our server and on to an AI service (Groq). It is not cleaned: an email address or phone number in it is sent as it is. Do not paste anything you do not want to send. The privacy page says what is kept.";
 
+// Next to the check button (EC-3b, DRAFT; the button itself comes with EC-4). Code: app/api/check/route.ts (the refusal of CV lines with contact details),
+// lib/ai/checkInput.ts (the cuts), lib/ai/checkEvidence.ts. Tests: checkContactRefusal, checkInput.
+export const CHECK_INFO_LINE =
+  "When you press the check button, the requirement lines of the ad and the CV lines you confirmed, with the skill name next to each, leave your device. They go to our server and on to an AI service (Groq) that says which CV line shows which requirement. The CV lines are the ones already cleaned of email addresses and most phone numbers. The check looks at them again with the same automatic check and sends nothing if it still finds an email address, a phone number or a web link, but it can miss some formats, and it does not touch your name or address. The requirement lines come from the ad, which is not cleaned: an email address or phone number in it is sent as it is. Long lines are cut short. The privacy page says what is kept.";
+
 // The tick before the first CV send in a tab.
 export const CV_TICK = "I have read this, and I am sending my own text to be read by an AI service.";
 
@@ -37,7 +42,7 @@ export const CLAIM_C3A = "'Read this ad' sends the whole ad text from the box. I
 
 // C3b. Code: lib/ai/readCache.ts:19, :39, :79 (up to 20 readings, in memory, quotes only); app/api/cv/route.ts has no cache. Tests: readCache N1, N2; I8.
 export const CLAIM_C3B =
-  "Our server code has no database and writes no file. For an ad, the server keeps the reading of the ad (it holds short quotes from the ad, not the whole text) in its memory for a while, up to 20 ads, so the same ad is not read twice. For a CV it keeps nothing.";
+  "Our server code has no database and writes no file. For an ad, the server keeps the reading of the ad (it holds short quotes from the ad, not the whole text) in its memory for a while, up to 20 ads, so the same ad is not read twice. For a CV and for the check it keeps nothing.";
 
 // C4. Code: lib/saved/types.ts (SavedProfile, SavedJob), lib/saved/profile.ts, lib/cv/profile.ts (ConfirmState), lib/saved/idbStore.ts. Tests: I1b, S1b.
 export const CLAIM_C4 =
@@ -71,6 +76,12 @@ export const CLAIM_C10 =
 // C15 (amendment A12). Evidence: the AI SDK's defaults (node_modules/ai/dist/index.js:2429, :2450) and tests L1 to L3.
 export const CLAIM_C15 =
   "If the AI service answers with an error or says it is busy, our server asks again up to two more times, so the same text can reach the AI service up to three times for one click.";
+
+// C17 (EC-3b, DRAFT). Code: app/api/check/route.ts (no cache, no file, no database; the check route is in tests/privacyInventory I1, I4, I8), lib/ai/checkInput.ts
+// (CHECK_MAX_REQUIREMENTS 30, CHECK_MAX_ENTRIES 60, 300 and 240 characters), lib/ai/checkEvidence.ts (the SDK's tries are untouched). Tests: checkInput CI2 and CI6,
+// checkRoute CR5 and CR7, logHygieneCheck CR9, privacyInventory I8.
+export const CLAIM_C17 =
+  "The check sends the requirement lines of the ad and the CV lines you confirmed, with their skill names, to our server and on to an AI service (Groq). A requirement line is cut after 300 characters and a CV line after 240, and at most 30 requirement lines and 60 CV lines are sent. Our server code keeps nothing from it: no cache, no file, no database. The answers are shown on the screen and are not saved. If the AI service answers with an error or says it is busy, our server asks again up to two more times, as described above, so the same text can reach the AI service up to three times for one click.";
 
 // ---- the headings of the /privacy page, in the order of section 6 --------------------------------------------------------------------------
 
@@ -109,10 +120,13 @@ export const NOT_CONFIRMED_POINTER =
 // Shown next to "Send for reading" when the button is pressed with the box unticked. DRAFT.
 export const CV_TICK_NEEDED = "Tick the box before you send your CV.";
 
+// Shown next to the check button when it is pressed with the box unticked (EC-3b, DRAFT; the button comes with EC-4).
+export const CHECK_TICK_NEEDED = "Tick the box before you run the check.";
+
 // The text of the link in the two notices (it opens the privacy page in a NEW tab, so the CV and the reading on the screen stay as they are).
 export const LINK_PRIVACY_NOTICE = "Open the privacy page in a new tab";
 
 // C16, rendered on /privacy under HEADING_STORED (a new browser-storage key is a data flow: PLAN-9.3 section 8). Code: app/consent.ts. Tests: C3, C4, I5.
 // Stage 2.5 added "and when you press 'Yes, delete everything'", in the same commit as the code that does it (app/SavedControls.tsx onDeleteAll).
 export const CLAIM_C16 =
-  "When you tick the box before sending your CV, the tick is kept for this tab only. It is forgotten when you close the tab, and when you press 'Yes, delete everything'.";
+  "When you tick the box before sending your CV or running the check, the tick is kept for this tab only. It is forgotten when you close the tab, and when you press 'Yes, delete everything'.";

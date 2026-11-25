@@ -37,7 +37,8 @@ import * as messages from "@/lib/privacy/messages";
 //      twice in the whole page and PROCESSORS_INTRO exactly once. Every exported string constant of messages.ts is rendered as {NAME}, except SEVEN:
 //      CV_INFO_LINE, AD_INFO_LINE, CV_TICK and CV_TICK_NEEDED (the notices and the tick at the buttons), LINK_PRIVACY (the footer link on the first
 //      screen), LINK_PRIVACY_NOTICE (the link text in the two notices) and PRIVACY_DESCRIPTION (used in the metadata, checked below). The metadata is `title: PRIVACY_TITLE` and `description: PRIVACY_DESCRIPTION`.
-//      Count: 35 string constants - 7 exempt = 28 rendered as {NAME} = 13 claims (12 + CLAIM_C16) + 8 headings + 5 labels (PRIVACY_TITLE,
+//      EC-3b: the two notices at the check button (CHECK_INFO_LINE, CHECK_TICK_NEEDED) are exempt too, and CLAIM_C17 is rendered after CLAIM_C15: 38 string constants - 9 exempt = 29 rendered = 14 claims + 8 headings + 5 labels + 2.
+//      (Before EC-3b:) Count: 35 string constants - 7 exempt = 28 rendered as {NAME} = 13 claims (12 + CLAIM_C16) + 8 headings + 5 labels (PRIVACY_TITLE,
 //      LABEL_SOURCE, LABEL_CHECKED_ON, LABEL_BACK_TO_APP, LABEL_TO_DEMO) + 2 (PROCESSORS_INTRO, NOT_CONFIRMED_POINTER).
 //  M2  the page is static: no "use client", no `fetch(`, `cookies(`, `headers(`, `useEffect`, `useState`, `new Date`, `Date.now`, `Math.random`,
 //      `process.env`, `sessionStorage`, `localStorage`, `indexedDB`; its `from "..."` imports are exactly "next", "next/link",
@@ -61,10 +62,10 @@ const code = (): string =>
     .filter((l) => !l.trim().startsWith("//"))
     .join("\n");
 
-const EXEMPT = ["CV_INFO_LINE", "AD_INFO_LINE", "CV_TICK", "CV_TICK_NEEDED", "LINK_PRIVACY", "LINK_PRIVACY_NOTICE", "PRIVACY_DESCRIPTION"];
+const EXEMPT = ["CV_INFO_LINE", "AD_INFO_LINE", "CV_TICK", "CV_TICK_NEEDED", "LINK_PRIVACY", "LINK_PRIVACY_NOTICE", "PRIVACY_DESCRIPTION", "CHECK_INFO_LINE", "CHECK_TICK_NEEDED"];
 const HEADINGS = ["HEADING_LEAVES", "HEADING_STORED", "HEADING_LOGGED", "HEADING_PROCESSORS", "HEADING_COOKIES", "HEADING_CONTROLS", "HEADING_DEMO", "HEADING_NOT_CONFIRMED"];
 const TOKENS_UNDER: Record<string, string[]> = {
-  HEADING_LEAVES: ["CLAIM_C1", "CLAIM_C2", "CLAIM_C3A", "CLAIM_C15"],
+  HEADING_LEAVES: ["CLAIM_C1", "CLAIM_C2", "CLAIM_C3A", "CLAIM_C15", "CLAIM_C17"],
   HEADING_STORED: ["CLAIM_C3B", "CLAIM_C4", "CLAIM_C5", "CLAIM_C16", "CLAIM_C10"],
   HEADING_LOGGED: ["CLAIM_C6"],
   HEADING_PROCESSORS: ["PROCESSORS_INTRO", "CONFIRMED.map(", "NOT_CONFIRMED_POINTER"],
@@ -94,11 +95,13 @@ describe("the /privacy page (PLAN-9.3 sections 6 and 9; A8, A10, A13)", () => {
     expect(src).toContain('f.kind === "quoted"');
 
     const strings = Object.entries(messages).filter(([, v]) => typeof v === "string").map(([k]) => k);
-    expect(strings.length).toBe(35);
+    expect(strings.length).toBe(38);
     expect(EXEMPT.every((n) => strings.includes(n))).toBe(true);
     const rendered = strings.filter((n) => !EXEMPT.includes(n));
-    expect(rendered.length).toBe(28);
+    expect(rendered.length).toBe(29);
     for (const n of rendered) expect(src.includes(`{${n}}`), `${n} is rendered as {${n}}`).toBe(true);
+    // found by break d (EC-3b): the exempt constants are the notices at the buttons and the links; none of them is rendered on the /privacy page itself
+    for (const n of EXEMPT) expect(src.includes(`{${n}}`), `${n} must not be rendered on the page`).toBe(false);
 
     expect(src).toContain("title: PRIVACY_TITLE");
     expect(src).toContain("description: PRIVACY_DESCRIPTION");

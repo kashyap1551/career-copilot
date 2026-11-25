@@ -6,6 +6,7 @@ import {
   CLAIM_C10,
   CLAIM_C15,
   CLAIM_C16,
+  CLAIM_C17,
   CLAIM_C2,
   CLAIM_C3A,
   CLAIM_C3B,
@@ -62,6 +63,7 @@ export default function PrivacyPage() {
         <p>{CLAIM_C2}</p>
         <p>{CLAIM_C3A}</p>
         <p>{CLAIM_C15}</p>
+        <p>{CLAIM_C17}</p>
       </section>
 
       <section className="flex flex-col gap-2">

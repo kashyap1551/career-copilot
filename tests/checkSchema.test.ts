@@ -49,7 +49,10 @@ describe("EC-3a the answer schema", () => {
     const keys = new Set<string>();
     const walk = (n: unknown) => {
       if (Array.isArray(n)) n.forEach(walk);
-      else if (n && typeof n === "object") for (const [k, v] of Object.entries(n)) (keys.add(k), walk(v));
+      else if (n && typeof n === "object") for (const [k, v] of Object.entries(n)) {
+        keys.add(k);
+        walk(v);
+      }
     };
     walk(sent);
     for (const bad of ["minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum", "multipleOf", "minLength", "maxLength", "pattern", "format", "minItems", "maxItems"]) {

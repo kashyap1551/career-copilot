@@ -17,3 +17,13 @@ export const checkAnswerSchema = z.object({
 });
 
 export type CheckAnswers = z.infer<typeof checkAnswerSchema>;
+
+// What the page sends to /api/check (docs/PLAN-EVERY-CV.md 4.3): the requirement texts of the ad and the confirmed CV entries, each with a name and the CV
+// line. Not sent to the AI as a schema, so it can have limits; nothing else is read from the body. The route refuses contact details in the entries
+// (the same check /api/cv uses); the requirement texts come from the ad and are not cleaned.
+export const checkRequestSchema = z.object({
+  requirements: z.array(z.string().min(1).max(1000)).min(1).max(30),
+  entries: z.array(z.object({ name: z.string().min(1).max(120), text: z.string().min(1).max(1000) })).min(1).max(60),
+});
+
+export type CheckRequest = z.infer<typeof checkRequestSchema>;

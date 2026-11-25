@@ -16,7 +16,7 @@ import { MemoryStore } from "@/lib/saved/store";
 // HAND-WORKED EXPECTATIONS (worked out from the greps of stage 2.0, BEFORE this file was run). The counting unit is code LINES; comment-only lines
 // (starting with //, *, /* or {/*) are skipped. "Scope S" = app/** and lib/** (.ts and .tsx) minus lib/ai, lib/engine/eval*, lib/vocab.
 //
-//  I1   files named route.ts under app/api: exactly app/api/cv/route.ts and app/api/read/route.ts (2).
+//  I1   files named route.ts under app/api: exactly app/api/check/route.ts, app/api/cv/route.ts and app/api/read/route.ts (3; EC-3b added the check route).
 //  I1b  code lines of lib/saved/** containing fetch, postJson, XMLHttpRequest or sendBeacon: 0.
 //  I2   code lines containing `postJson(` in app/**: app/accessFetch.ts 1 (:94, the definition), app/CvBox.tsx 1 (:80), app/page.tsx 1 (:78), no other file;
 //       app/CvBox.tsx and app/page.tsx contain no `useEffect` (they import only useMemo and useState), so nothing is sent from an effect.
@@ -29,7 +29,7 @@ import { MemoryStore } from "@/lib/saved/store";
 //       app/page.tsx has "/privacy" twice (the footer link and the ad notice). The rule is a list PER FILE, which is stronger than the old flat list: {app/DemoEntry.tsx: ["/demo"], app/demo/layout.tsx:
 //       ["/"], app/page.tsx: ["/privacy"], app/privacy/page.tsx: ["/", "/demo"]}. Any other href, anywhere, or any external address still fails. lib/cv/fileToText.ts holds `useWorkerFetch: false`
 //       once and `useWasm: false` once.
-//  I4   `console.` code lines in all of app/ and lib/: exactly 6:
+//  I4   `console.` code lines in all of app/ and lib/: exactly 7 (EC-3b added app/api/check/route.ts: console.error("check: unexpected error in route")); the first six:
 //         app/api/cv/route.ts:48      console.error("cv: unexpected error in route");
 //         app/api/read/route.ts:54    console.error("read: unexpected error in route");
 //         lib/ai/errors.ts:37         console.error(`${tag}: missing setting`);
@@ -114,9 +114,9 @@ const perFile = (lines: Line[]): Record<string, number> => {
 const where = (lines: Line[]) => lines.map((l) => `${l.file}:${l.no}: ${l.text}`);
 
 describe("the data-flow inventory of main (PLAN-9.3 section 9, A8 to A11)", () => {
-  it("I1: the API routes are exactly /api/cv and /api/read", () => {
+  it("I1: the API routes are exactly /api/check, /api/cv and /api/read", () => {
     const routes = walk("app/api").filter((f) => f.endsWith("/route.ts") || f.endsWith("/route.tsx"));
-    expect(routes.sort()).toEqual(["app/api/cv/route.ts", "app/api/read/route.ts"]);
+    expect(routes.sort()).toEqual(["app/api/check/route.ts", "app/api/cv/route.ts", "app/api/read/route.ts"]);
   });
 
   it("I1b: nothing under lib/saved can send a request", () => {
@@ -165,11 +165,12 @@ describe("the data-flow inventory of main (PLAN-9.3 section 9, A8 to A11)", () =
     expect(pdf.split("useWasm: false").length - 1).toBe(1);
   });
 
-  it("I4: console is used in exactly 6 places, each with a fixed text", () => {
+  it("I4: console is used in exactly 7 places, each with a fixed text", () => {
     const found = matching(codeLines(allSource()), /\bconsole\./)
       .map((l) => ({ file: l.file, text: l.text }))
       .sort((a, b) => (a.file + a.text).localeCompare(b.file + b.text));
     const expected = [
+      { file: "app/api/check/route.ts", text: 'console.error("check: unexpected error in route");' },
       { file: "app/api/cv/route.ts", text: 'console.error("cv: unexpected error in route");' },
       { file: "app/api/read/route.ts", text: 'console.error("read: unexpected error in route");' },
       { file: "lib/ai/errors.ts", text: "console.error(`${tag}: AI service error, status ${code ?? \"unknown\"}`);" },
@@ -178,7 +179,7 @@ describe("the data-flow inventory of main (PLAN-9.3 section 9, A8 to A11)", () =
       { file: "lib/ai/errors.ts", text: "console.error(`${tag}: unexpected error`);" },
     ].sort((a, b) => (a.file + a.text).localeCompare(b.file + b.text));
     expect(found).toEqual(expected);
-    expect(found.length).toBe(6);
+    expect(found.length).toBe(7);
   });
 
   it("I5: browser storage is touched in exactly two places, and there are no cookies and no localStorage", () => {
@@ -215,6 +216,7 @@ describe("the data-flow inventory of main (PLAN-9.3 section 9, A8 to A11)", () =
 
   it("I8: the CV route has no cache, and the server code writes no file and uses no database", () => {
     expect(where(matching(codeLines(["app/api/cv/route.ts"]), /readCache/))).toEqual([]);
+    expect(where(matching(codeLines(["app/api/check/route.ts"]), /readCache/))).toEqual([]); // EC-3b: the check route has no cache either
     const server = codeLines([...walk("app/api"), ...walk("lib/ai")].filter(isSource));
     const storage = /from\s+["'](node:)?(fs|fs\/promises|child_process)["']|from\s+["'](prisma|@prisma\/client|mongoose|better-sqlite3|sqlite3?|redis|ioredis|@supabase\/supabase-js|@vercel\/kv|@vercel\/blob|pg)["']|require\(/;
     expect(where(matching(server, storage))).toEqual([]);
