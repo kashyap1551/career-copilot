@@ -8,7 +8,7 @@ import type { SentEntry, SentRequirement } from "@/lib/engine/evidenceProof";
 // fake fetch), the way tests/requestHashPins.test.ts pins the two readers. The pinned request is made with the four example requirements and entries of the
 // prompt and GROQ_MODEL openai/gpt-oss-120b. Like the CV pin there is NO hash constant in lib: the literal lives only here. If the prompt, the answer schema or
 // a setting changes on purpose, change this literal in the same commit and say so in docs/DECISIONS.md.
-const PINNED = "0dc8f1a996";
+const PINNED = "61d7628d46";
 
 const R = (n: number, quote: string): SentRequirement => ({ n, index: n - 1, quote, importance: "must" });
 const E = (n: number, name: string, text: string): SentEntry => ({ n, name, skillId: `new:e${n}`, line: n + 1, text, inferred: false });

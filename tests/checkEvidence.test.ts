@@ -109,6 +109,11 @@ describe("EC-3a checkEvidence", () => {
     expect(Object.keys(item.properties).sort()).toEqual(["entry", "quote", "requirement", "verdict"]);
     expect([...item.required].sort()).toEqual(["entry", "quote", "requirement", "verdict"]);
     expect("max_tokens" in b || "max_completion_tokens" in b).toBe(false);
+    // the schema as sent has plain numbers and none of the unlisted keywords (AM11)
+    const sentSchema = JSON.stringify(b.response_format.json_schema.schema);
+    expect(sentSchema).not.toMatch(/"(minimum|maximum|exclusiveMinimum|exclusiveMaximum|multipleOf|minLength|maxLength|pattern|format|minItems|maxItems)"/);
+    expect(sentSchema).not.toContain('"integer"');
+    expect(item.properties).toMatchObject({ requirement: { type: "number" } });
   });
 
   it("CE3: an invented quote: R1 is not accepted and 1 is thrown away; R2, R3 and R4 are as in CE1", async () => {
@@ -161,6 +166,16 @@ describe("EC-3a checkEvidence", () => {
     expect(r.accepted.map((a) => [a.requirement, a.verdict])).toEqual([[1, "none"], [2, "met"]]);
     expect(r.accepted[1].entry?.name).toBe("Lantern care");
     expect((bodies[0] as { messages: { content: string }[] }).messages[1].content).toContain('R2 "Speaks Portuguese at work"');
+  });
+
+  it("CE9: numbers that are not whole (AM11): R2 answered as requirement 2.5 and R3 as entry 1.5: the call does not fail; R2 is not accepted, R3 is not accepted (thrown away, entry not sent); R1 and R4 are as in CE1", async () => {
+    stubFetch(withAnswers({ 2: { requirement: 2.5, verdict: "partly", entry: 2, quote: "Drew up the fortnightly crossing plan" }, 3: { requirement: 3, verdict: "met", entry: 1.5, quote: "Polished the brass lantern" } }));
+    const r = await checkEvidence(REQS, ENTRIES);
+    expect(r.accepted.map((a) => [a.requirement, a.verdict])).toEqual([[1, "met"], [4, "none"]]);
+    expect(r.accepted.some((a) => a.requirement === 2)).toBe(false);
+    expect(r.thrownAway).toContainEqual({ requirement: 3, reason: "entry-not-sent" });
+    expect(r.decided.find((d) => d.requirement === 3)).toMatchObject({ verdict: "none", thrown: "entry-not-sent" });
+    expect(bodies).toHaveLength(1);
   });
 
   it("CE8: a 429 from the service, tried again by the SDK as always (3 tries, the same text each time), comes out as a busy ReadAdError 429 with one fixed log line", async () => {

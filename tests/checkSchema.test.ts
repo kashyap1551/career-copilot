@@ -14,12 +14,13 @@ describe("EC-3a the answer schema", () => {
     expect(parses({ answers: [] })).toBe(true);
   });
 
-  it("CK2: rejects a missing quote, the verdict 'maybe', requirement 1.5, entry as a string, quote as a number, no answers field, answers not a list", () => {
+  it("CK2: rejects a missing quote, the verdict 'maybe', entry as a string, quote as a number, no answers field, answers not a list, answers as an object; a requirement 1.5 is ACCEPTED here (plain numbers, AM11: the proof rejects it, because no requirement has that number)", () => {
     const { quote: _q, ...noQuote } = answer();
     void _q;
     expect(parses({ answers: [noQuote] })).toBe(false);
     expect(parses({ answers: [answer({ verdict: "maybe" })] })).toBe(false);
-    expect(parses({ answers: [answer({ requirement: 1.5 })] })).toBe(false);
+    expect(parses({ answers: [answer({ requirement: 1.5 })] })).toBe(true);
+    expect(parses({ answers: [answer({ entry: 1.5 })] })).toBe(true);
     expect(parses({ answers: [answer({ entry: "1" })] })).toBe(false);
     expect(parses({ answers: [answer({ quote: 5 })] })).toBe(false);
     expect(parses({})).toBe(false);
@@ -40,7 +41,20 @@ describe("EC-3a the answer schema", () => {
     expect(items.additionalProperties).toBe(false);
     expect(props.verdict.enum).toEqual(["met", "partly", "none"]);
     for (const k of ["entry", "quote"]) expect(JSON.stringify(props[k])).toContain('"null"');
-    expect(props.requirement.type).toBe("integer");
+    expect(props.requirement.type).toBe("number"); // plain numbers, like the CV and ad schemas (AM11)
+    const entryText = JSON.stringify(props.entry);
+    expect(entryText).toContain('"number"');
+    expect(entryText).not.toContain('"integer"');
+    // none of the keywords Groq's strict-mode documentation does not list may appear anywhere in the schema as sent
+    const keys = new Set<string>();
+    const walk = (n: unknown) => {
+      if (Array.isArray(n)) n.forEach(walk);
+      else if (n && typeof n === "object") for (const [k, v] of Object.entries(n)) (keys.add(k), walk(v));
+    };
+    walk(sent);
+    for (const bad of ["minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum", "multipleOf", "minLength", "maxLength", "pattern", "format", "minItems", "maxItems"]) {
+      expect(keys.has(bad), `the schema sent holds the keyword ${bad}`).toBe(false);
+    }
     // no description texts: the instruction text is the only guidance
     expect(JSON.stringify(sent)).not.toContain("description");
   });
