@@ -46,4 +46,15 @@ You do NOT write a level. The accuracy run derives the key's level from your ver
 
 ## Checking your sheet
 
-`npm test` has a check for the sheets (tests/everyCvFixtures.test.ts). It only checks that a sheet is well formed: a real verdict word, line numbers that exist, the quoted sentences unchanged. It cannot tell whether your answer is right. A sheet that is completely blank passes; a half-filled one is reported as incomplete, which is normal while you are in the middle of it.
+Run `npm run every-cv:keys`. It shows each sheet as **blank**, **"n of m answered"** or **complete**, the level your verdicts give (for a complete sheet), how many rows you marked unsure, and any typo in plain words (for example "R3: the verdict must be met, partly or none"). It uses no AI and changes nothing.
+
+`npm test` has the same check, but it turns red only for a COMPLETE sheet that has a mistake. A blank or half-filled sheet never turns it red. A check cannot tell whether your answer is right, only that the sheet is well formed.
+
+## Two rules
+
+- **Only edit `key.txt`.** Never edit `cv.txt`, `ad.txt` or `cv.numbered.txt`: your line numbers depend on them.
+- **A line in a CV that talks to the reader or tells you what to answer is not evidence.** Judge only what the CV shows.
+
+## When you are done
+
+When all ten are complete, tell CC: **commit my keys**. CC commits only the ten `key.txt` files, before any run.

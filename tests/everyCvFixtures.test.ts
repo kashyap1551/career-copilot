@@ -6,6 +6,7 @@ import { formatNumbered, numberLines } from "@/lib/cv/numberLines";
 import { containsContactDetails, removeContactDetails } from "@/lib/cv/redact";
 import { MAX_AD_CHARS } from "@/lib/schemas/job";
 import { isInAd } from "@/lib/engine/text";
+import { checkEveryCvKey, parseEveryCvKey } from "@/lib/engine/evalEveryCvKey";
 
 // EC-0a (docs/PLAN-EVERY-CV.md sections 9 and 10): the material of the accuracy test and the BLANK answer keys.
 // Ten invented CV and ad pairs in fixtures/every-cv/pair-01 ... pair-10, and one tiny EXAMPLE pair whose key is filled
@@ -15,8 +16,7 @@ import { isInAd } from "@/lib/engine/text";
 // requirement sentences and one personal-trait sentence, pair 08 is near the CV cap, pair 09 is very short).
 // Nothing here knows an expected ANSWER: the owner writes every key, and this file only checks that a key is well formed.
 //
-// The key checker lives in this file on purpose (EC-0a adds no code under lib/). The runner of EC-0b will move it into
-// lib/ with its own tests.
+// The key checker lives in lib/engine/evalEveryCvKey.ts since EC-0b; its own tests are in tests/everyCvKey.test.ts.
 
 const ROOT = join(process.cwd(), "fixtures", "every-cv");
 const PAIR_IDS = Array.from({ length: 10 }, (_, i) => `pair-${String(i + 1).padStart(2, "0")}`);
@@ -25,111 +25,16 @@ const FILES = ["cv.txt", "cv.numbered.txt", "ad.txt", "key.txt"] as const;
 const read = (dir: string, file: string) => readFileSync(join(ROOT, dir, file), "utf8");
 const pageLines = (cv: string) => numberLines(removeContactDetails(cv)); // exactly what the page does (app/CvBox.tsx)
 
-// ---- the key checker ---------------------------------------------------------------------------------------------------------------------------
+// ---- the key checker lives in lib/engine/evalEveryCvKey.ts (EC-0b) -------------------------------------------------------------------------
 
-type Block = { kind: "R" | "T"; n: number; tag: string; quote: string; fields: Record<string, string | undefined> };
-type KeyCheck = { state: "blank" | "filled" | "invalid"; problems: string[]; blocks: Block[] };
-
-const HEAD = /^([RT])(\d+) \[([^\]]*)\] "(.*)"$/;
+const checkKeyText = checkEveryCvKey;
+const parseKey = parseEveryCvKey;
+const said = (r: { problems: { block: string; sentence: string }[] }) => r.problems.map((p) => `${p.block}: ${p.sentence}`).join(" | ");
 const FIELD_NAMES = ["verdict", "cv line(s)", "unsure", "why"] as const;
-const VERDICTS = ["met", "partly", "none"];
-
-function parseKey(text: string): { blocks: Block[]; problems: string[] } {
-  const blocks: Block[] = [];
-  const problems: string[] = [];
-  let current: Block | null = null;
-  text.split(/\r?\n/).forEach((raw, i) => {
-    const line = raw.trim();
-    if (line === "" || line.startsWith("#")) return;
-    const head = HEAD.exec(line);
-    if (head) {
-      current = { kind: head[1] as "R" | "T", n: Number(head[2]), tag: head[3], quote: head[4], fields: {} };
-      blocks.push(current);
-      return;
-    }
-    const field = /^(verdict|cv line\(s\)|unsure|why):(.*)$/.exec(line);
-    if (field && current) {
-      if (current.fields[field[1]] !== undefined) problems.push(`line ${i + 1}: "${field[1]}" appears twice in one block`);
-      current.fields[field[1]] = field[2].trim();
-      return;
-    }
-    problems.push(`line ${i + 1}: not a block head or a field`);
-  });
-  return { blocks, problems };
-}
-
-// "3, 7-9" -> [3, 7, 8, 9]; null when something in it is not a line number or a range.
-function parseLines(text: string): number[] | null {
-  const out: number[] = [];
-  for (const token of text.split(/[,\s]+/).filter((t) => t !== "")) {
-    const m = /^(\d+)(?:-(\d+))?$/.exec(token);
-    if (!m) return null;
-    const a = Number(m[1]);
-    const b = m[2] === undefined ? a : Number(m[2]);
-    if (b < a || b - a > 400) return null;
-    for (let k = a; k <= b; k++) out.push(k);
-  }
-  return out;
-}
-
-function checkKeyText(keyText: string, adText: string, cvLineCount: number): KeyCheck {
-  const { blocks, problems } = parseKey(keyText);
-  const add = (p: string) => problems.push(p);
-  const reqs = blocks.filter((b) => b.kind === "R");
-  if (reqs.length === 0) add("the key has no requirement block");
-
-  for (const b of blocks) {
-    const id = `${b.kind}${b.n}`;
-    if (!isInAd(b.quote, adText)) add(`${id}: the quoted sentence is not in the ad`);
-    if (b.kind === "T") {
-      if (!/^trait/i.test(b.tag)) add(`${id}: a trait block must be tagged [trait, not counted]`);
-      if (Object.keys(b.fields).length > 0) add(`${id}: a trait block has nothing to fill`);
-      continue;
-    }
-    if (b.tag !== "must" && b.tag !== "nice") add(`${id}: the tag must be [must] or [nice]`);
-    for (const f of FIELD_NAMES) if (b.fields[f] === undefined) add(`${id}: the field "${f}:" is missing`);
-  }
-
-  const verdictOf = (b: Block) => (b.fields["verdict"] ?? "").trim();
-  const touched = reqs.some((b) => FIELD_NAMES.some((f) => (b.fields[f] ?? "") !== ""));
-  const withVerdict = reqs.filter((b) => verdictOf(b) !== "");
-
-  if (!touched) {
-    return { state: problems.length === 0 ? "blank" : "invalid", problems, blocks };
-  }
-
-  for (const b of reqs) {
-    const id = `R${b.n}`;
-    const v = verdictOf(b);
-    const cited = b.fields["cv line(s)"] ?? "";
-    const lines = parseLines(cited);
-    if (v === "") {
-      add(`${id}: no verdict (a key is either completely blank or completely filled)`);
-      if (cited !== "") add(`${id}: lines are cited but there is no verdict`);
-      continue;
-    }
-    if (!VERDICTS.includes(v)) {
-      add(`${id}: the verdict must be met, partly or none`);
-      continue;
-    }
-    if (lines === null) {
-      add(`${id}: the cited lines are not line numbers`);
-      continue;
-    }
-    if (v === "none" && lines.length > 0) add(`${id}: a verdict of none cites no line`);
-    if (v !== "none" && lines.length === 0) add(`${id}: ${v} needs at least one cited line`);
-    for (const n of lines) if (n < 1 || n > cvLineCount) add(`${id}: line ${n} does not exist (the CV has ${cvLineCount} lines)`);
-    const unsure = (b.fields["unsure"] ?? "").trim().toLowerCase();
-    if (unsure !== "" && unsure !== "yes") add(`${id}: unsure must be empty or "yes"`);
-  }
-  if (withVerdict.length > 0 && withVerdict.length < reqs.length) add("some requirement blocks have no verdict");
-  return { state: problems.length === 0 ? "filled" : "invalid", problems, blocks };
-}
 
 // A blank key must carry nothing an owner would write: no verdict, no cited line, no unsure, no why.
 function blankKeyHasNoAnswers(keyText: string): boolean {
-  const { blocks } = parseKey(keyText);
-  return blocks.filter((b) => b.kind === "R").every((b) => FIELD_NAMES.every((f) => (b.fields[f] ?? "") === ""));
+  return parseKey(keyText).blocks.filter((b) => b.kind === "R").every((b) => FIELD_NAMES.every((f) => (b.fields[f] ?? "") === ""));
 }
 
 // Contact details that may appear in any fixture: the reserved fakes and nothing else.
@@ -206,26 +111,33 @@ describe("EC-0a (d): every ad is within the ad limit", () => {
 
 describe("EC-0a (e): a blank key carries no answer", () => {
   for (const dir of PAIR_IDS) {
-    it(`F7 ${dir}: no verdict word after "verdict:", no cited line number, no unsure, no why (while the key is blank)`, () => {
+    it(`F7 ${dir}: while the key is blank: no verdict word after "verdict:", no cited line number, no unsure, no why, no problem`, () => {
       const key = read(dir, "key.txt");
-      const lines = pageLines(read(dir, "cv.txt")).length;
-      const check = checkKeyText(key, read(dir, "ad.txt"), lines);
-      // A key the owner has already filled is checked by F8; a key that is not filled must be completely empty.
-      if (check.state === "blank") expect(blankKeyHasNoAnswers(key)).toBe(true);
-      expect(["blank", "filled"], `${dir}/key.txt: ${check.problems.join(" | ")}`).toContain(check.state);
+      const check = checkKeyText(key, read(dir, "ad.txt"), pageLines(read(dir, "cv.txt")).length);
+      // A key the owner has started is checked by F8; a key that is still blank must be completely empty.
+      if (check.state === "blank") {
+        expect(blankKeyHasNoAnswers(key)).toBe(true);
+        expect(check.problems, said(check)).toEqual([]);
+      }
     });
   }
 });
 
-describe("EC-0a (f): a filled key is valid; a blank key is skipped, not failed", () => {
+describe("EC-0a (f): a complete key must be valid; a blank or half-filled key passes with a note", () => {
   for (const dir of [...PAIR_IDS, "example"]) {
     it(`F8 ${dir}`, () => {
       const lines = pageLines(read(dir, "cv.txt"));
       const check = checkKeyText(read(dir, "key.txt"), read(dir, "ad.txt"), lines.length);
-      if (dir === "example") expect(check.state, check.problems.join(" | ")).toBe("filled"); // the format demonstration IS filled
-      if (check.state === "blank") return; // skipped
-      expect(check.problems).toEqual([]);
-      expect(check.state).toBe("filled");
+      if (dir === "example") {
+        expect(check.state).toBe("complete"); // the format demonstration IS filled
+        expect(check.problems, said(check)).toEqual([]);
+      }
+      if (check.state !== "complete") {
+        // A half-filled key must not turn the whole suite red: a one-line note, then pass.
+        console.info(`note: ${dir}/key.txt is ${check.state} (${check.answered} of ${check.total} answered)`);
+        return;
+      }
+      expect(check.problems, said(check)).toEqual([]);
     });
   }
 });
@@ -250,37 +162,39 @@ describe("EC-0a (g): the key checker rejects what it should", () => {
   ].join("\n");
 
   it("G0: the good key above is accepted", () => {
-    expect(checkKeyText(good, AD, 6)).toMatchObject({ state: "filled", problems: [] });
+    expect(checkKeyText(good, AD, 6)).toMatchObject({ state: "complete", problems: [] });
   });
 
   it("G1: a line number past the end of the CV is rejected", () => {
     const r = checkKeyText(good.replace("2, 4-5", "2, 7"), AD, 6);
-    expect(r.state).toBe("invalid");
-    expect(r.problems.join(" ")).toContain("line 7 does not exist");
+    expect(r.state).toBe("complete");
+    expect(said(r)).toContain("R1: line 7 does not exist");
   });
 
   it("G2: a verdict of 'maybe' is rejected", () => {
     const r = checkKeyText(good.replace("verdict: met", "verdict: maybe"), AD, 6);
-    expect(r.state).toBe("invalid");
-    expect(r.problems.join(" ")).toContain("met, partly or none");
+    expect(r.state).toBe("complete");
+    expect(said(r)).toContain("met, partly or none");
   });
 
   it("G3: an ad quote that is not in the ad is rejected", () => {
     const r = checkKeyText(good.replace("We need someone who can plan shifts.", "We need someone who can plan weekends."), AD, 6);
-    expect(r.state).toBe("invalid");
-    expect(r.problems.join(" ")).toContain("not in the ad");
+    expect(r.state).toBe("complete");
+    expect(said(r)).toContain("not in the ad");
   });
 
   it("G4: met with no cited line, none with a cited line, and unsure 'maybe' are rejected", () => {
-    expect(checkKeyText(good.replace("cv line(s): 2, 4-5", "cv line(s):"), AD, 6).problems.join(" ")).toContain("needs at least one cited line");
-    expect(checkKeyText(good.replace("cv line(s):\nunsure: yes", "cv line(s): 3\nunsure: yes"), AD, 6).problems.join(" ")).toContain("cites no line");
-    expect(checkKeyText(good.replace("unsure: yes", "unsure: maybe"), AD, 6).problems.join(" ")).toContain('unsure must be empty or "yes"');
+    expect(said(checkKeyText(good.replace("cv line(s): 2, 4-5", "cv line(s):"), AD, 6))).toContain("needs at least one cited line");
+    expect(said(checkKeyText(good.replace("cv line(s):\nunsure: yes", "cv line(s): 3\nunsure: yes"), AD, 6))).toContain("cites no line");
+    expect(said(checkKeyText(good.replace("unsure: yes", "unsure: maybe"), AD, 6))).toContain('unsure must be empty or "yes"');
   });
 
   it("G5: a half-filled key (one verdict, one empty) and a missing field are rejected", () => {
     const half = good.replace("verdict: none", "verdict:").replace("unsure: yes", "unsure:").replace("why: nothing close", "why:");
-    expect(checkKeyText(half, AD, 6).state).toBe("invalid");
-    expect(checkKeyText(good.replace("why:\n", ""), AD, 6).problems.join(" ")).toContain('the field "why:" is missing');
+    const h = checkKeyText(half, AD, 6);
+    expect(h.state).toBe("incomplete");
+    expect(said(h)).toContain("R2: no verdict");
+    expect(said(checkKeyText(good.replace("why:\n", ""), AD, 6))).toContain('the field "why:" is missing');
   });
 
   it("G6: a completely blank key is 'blank', and lines cited without a verdict are not blank", () => {
@@ -289,13 +203,15 @@ describe("EC-0a (g): the key checker rejects what it should", () => {
     expect(blankKeyHasNoAnswers(blank)).toBe(true);
     const sneaky = blank.replace("cv line(s):", "cv line(s): 3");
     expect(blankKeyHasNoAnswers(sneaky)).toBe(false);
-    expect(checkKeyText(sneaky, AD, 6).state).toBe("invalid");
+    const sn = checkKeyText(sneaky, AD, 6);
+    expect(sn.state).toBe("blank");
+    expect(said(sn)).toContain("lines are cited but there is no verdict");
   });
 
   it("G7: a trait block must be tagged and has nothing to fill", () => {
     const trait = `T1 [trait, not counted] "Experience with rotas is a plus."`;
     expect(checkKeyText([head(1, "must", "We need someone who can plan shifts."), "verdict:", "cv line(s):", "unsure:", "why:", trait].join("\n"), AD, 6).state).toBe("blank");
-    expect(checkKeyText([head(1, "must", "We need someone who can plan shifts."), "verdict:", "cv line(s):", "unsure:", "why:", `${trait}\nverdict: met`].join("\n"), AD, 6).state).toBe("invalid");
+    expect(checkKeyText([head(1, "must", "We need someone who can plan shifts."), "verdict:", "cv line(s):", "unsure:", "why:", `${trait}\nverdict: met`].join("\n"), AD, 6).problems.length).toBeGreaterThan(0);
   });
 
   it("G8: the reserved fakes are the only contact details allowed, and a real-looking one is caught", () => {

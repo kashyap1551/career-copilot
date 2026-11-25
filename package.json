@@ -17,7 +17,9 @@
     "map-measure": "tsx scripts/mapMeasure.ts",
     "neighbours": "tsx scripts/neighbours.ts",
     "capture-fresh": "tsx scripts/captureFresh.ts",
-    "skill-ids": "tsx scripts/skillIds.ts"
+    "skill-ids": "tsx scripts/skillIds.ts",
+    "every-cv:keys": "tsx scripts/everyCvKeys.ts",
+    "every-cv:baseline": "tsx scripts/everyCvBaseline.ts"
   },
   "dependencies": {
     "@ai-sdk/groq": "^4.0.83",
