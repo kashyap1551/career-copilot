@@ -153,21 +153,28 @@ export function noMustHaveJudgeableSentence(n: number): string {
     : `No level can be shown: none of the ad's ${n} must-haves is in our skill list yet, so none could be judged.`;
 }
 
-// "Strong (skills only; 1 must-have not judged)", "Long shot (judged: skills, location; 2 must-haves not judged)", or the
-// "No level (...)" label. The caveat goes in the brackets whenever 1 or more must-haves could not be judged; a "No level"
-// label does not carry it. `inner` is "skills only" or "judged: skills, ...".
+// "Strong (skills only)", "At best Strong (skills only; 1 must-have not judged)", "Stretch (skills only; 2 must-haves judged by AI)", or the
+// "No level (...)" label. `inner` is "skills only" or "judged: skills, ...". Inside the brackets, in this order: the kinds judged, then (rule R5,
+// docs/PLAN-EVERY-CV.md 4.4) how many must-haves were judged by the AI, then how many were not judged at all. Rule R7: when 1 or more must-haves
+// are not judged, the level can only be lower than it reads, so it reads "At best <level>"; Long shot keeps its plain name because nothing is
+// lower, and a "No level" label is not a level, so it carries neither the caveat nor "At best". With no AI-judged and no unjudged must-have the
+// text is what it was before.
 export function fitLabelText(
   levelName: string,
   noLevel: NoLevelReason | null,
   inner: string,
   unjudgedMusts: number,
   where: "profile" | "list",
+  aiMusts = 0,
 ): string {
   if (noLevel === "no-requirements") return "No level (no requirements found in this ad)";
   if (noLevel === "no-must-have-judgeable") return "No level (no must-have we could judge)";
   if (noLevel === "no-skills") return `No level (no skills on your ${where})`;
-  const caveat = unjudgedMusts > 0 ? `; ${unjudgedMusts} ${unjudgedMusts === 1 ? "must-have" : "must-haves"} not judged` : "";
-  return `${levelName} (${inner}${caveat})`;
+  const noun = (n: number) => (n === 1 ? "must-have" : "must-haves");
+  const ai = aiMusts > 0 ? `; ${aiMusts} ${noun(aiMusts)} judged by AI` : "";
+  const caveat = unjudgedMusts > 0 ? `; ${unjudgedMusts} ${noun(unjudgedMusts)} not judged` : "";
+  const atBest = unjudgedMusts > 0 && levelName !== "Long shot" ? "At best " : "";
+  return `${atBest}${levelName} (${inner}${ai}${caveat})`;
 }
 
 export { NOT_JUDGED_SENTENCE };

@@ -2,7 +2,8 @@ import { conflictLine, levelName } from "@/lib/engine/explain";
 import { noLevelReason } from "@/lib/engine/judgeable";
 import { languageName, match, MODE_NAMES } from "@/lib/engine/match";
 import type { FitLevel, Job, Requirement, RequirementResult, Skill } from "@/lib/engine/types";
-import { engineView } from "@/lib/cv/engineView";
+import { engineView, originalOf, type ViewExtras } from "@/lib/cv/engineView";
+import { aiCountsSentence, aiRowText, thrownAwayLine } from "@/lib/engine/evidenceText";
 import { CONFLICT_KIND, KINDS, KIND_WORDS, type BuiltProfile, type Kind } from "@/lib/cv/profile";
 import {
   countsSentence,
@@ -35,6 +36,19 @@ export type ProfileReport = {
   conflictKinds: Kind[]; // the kind of each conflict above, in the same order
   satisfied: string[]; // one short line for each judged kind that has no conflict ("Location: fine. ...")
   checkYourself: string[];
+  // EC-1: present only when the check's answers were handed in (docs/PLAN-EVERY-CV.md 4.5). The rows judged by the AI, apart from `rows`.
+  aiRows?: AiRow[];
+  aiJudged?: { musts: number; nices: number };
+  thrownAwayLine?: string | null;
+};
+
+export type AiRow = {
+  quote: string; // the ad's own words
+  importance: "must" | "nice";
+  label: string; // the requirement's own skill name(s)
+  verdict: "met" | "partly" | "none";
+  text: string; // the line a person reads: the verdict, the CV line, the quote
+  inferred: boolean;
 };
 
 const CAP: Record<Kind, string> = {
@@ -81,13 +95,27 @@ function adSays(kind: Kind, job: Job): string | null {
   }
 }
 
-export function profileReport(job: Job, built: BuiltProfile, skills: Skill[], unlisted: Skill[]): ProfileReport {
+// `extras` (EC-1) carries the verified answers of a click and the kept unlisted skills (lib/cv/engineView.ts), and how many answers the proof threw
+// away. Without it the report is exactly what it was.
+export function profileReport(
+  job: Job,
+  built: BuiltProfile,
+  skills: Skill[],
+  unlisted: Skill[],
+  extras?: ViewExtras & { thrownAway?: number },
+): ProfileReport {
   const { profile, set } = built;
 
   // The engine only sees the kinds the person set and the requirements in our skill list: lib/cv/engineView.ts (the
   // same construction the roadmap uses; docs/PLAN-7.1.md section 5).
-  const { engineJob, engineProfile, couldNotJudge } = engineView(job, built);
+  const view = engineView(job, built, extras);
+  const { engineJob, engineProfile, couldNotJudge } = view;
   const result = match(engineProfile, engineJob);
+  // The ad's own requirement for each one the engine saw (rewritten ones go back to their original), and the other way round.
+  const origin = originalOf(view);
+  const originalReq = (r: Requirement) => origin.get(r) ?? r;
+  const rewrittenFor = new Map<Requirement, Requirement>([...origin].map(([rewritten, original]) => [original, rewritten]));
+  const aiByOriginal = new Map((view.aiJudged ?? []).map((x) => [x.original, x]));
 
   const judged = KINDS.filter((k) => set[k] && statedByAd(k, job));
   const notJudgedKinds = KINDS.filter((k) => !judged.includes(k));
@@ -100,18 +128,20 @@ export function profileReport(job: Job, built: BuiltProfile, skills: Skill[], un
   const byRequirement = new Map<Requirement, RequirementResult>();
   for (const r of [...result.musts, ...result.nices]) byRequirement.set(r.requirement, r);
   const inOrder = [...job.requirements.filter((r) => r.importance === "must"), ...job.requirements.filter((r) => r.importance === "nice")];
-  const rows: RequirementRow[] = inOrder.map((requirement) => {
+  const rows: RequirementRow[] = inOrder.filter((requirement) => !aiByOriginal.has(requirement)).map((requirement) => {
     const label = labelOf(requirement.skillIds);
     const base = { quote: requirement.quote, importance: requirement.importance, label };
-    const r = byRequirement.get(requirement);
+    const r = byRequirement.get(rewrittenFor.get(requirement) ?? requirement);
     if (!r) {
       return { ...base, status: "unlisted" as const, detail: `${label}: not in our skill list yet, so we could not judge it.` };
     }
     if (r.met && r.metBy) {
+      // A requirement met by the same-name match was rewritten for the engine: say its own name, never the engine's id.
+      const shown = rewrittenFor.has(requirement) ? label : nameOf(r.metBy.skillId);
       return {
         ...base,
         status: "met" as const,
-        detail: `${nameOf(r.metBy.skillId)}: CV line ${r.metBy.evidence.line}: "${r.metBy.evidence.text}"`,
+        detail: `${shown}: CV line ${r.metBy.evidence.line}: "${r.metBy.evidence.text}"`,
       };
     }
     if (r.reason === "in-progress") {
@@ -169,8 +199,14 @@ export function profileReport(job: Job, built: BuiltProfile, skills: Skill[], un
     skillCount: profile.skills.length,
   });
 
-  const missing = result.musts.filter((m) => !m.met).map((m) => labelOf(m.requirement.skillIds));
-  const counts = countsSentence(result.counts.mustsTotal, missing, "on your profile", unjudgedMusts);
+  const missing = result.musts.filter((m) => !m.met).map((m) => labelOf(originalReq(m.requirement).skillIds));
+  const aiItems = view.aiJudged ?? [];
+  const aiMusts = aiItems.filter((x) => x.original.importance === "must").length;
+  const aiNices = aiItems.length - aiMusts;
+  const counts =
+    aiMusts > 0
+      ? aiCountsSentence(result.counts.mustsTotal, result.counts.mustsMet, missing, aiMusts, unjudgedMusts)
+      : countsSentence(result.counts.mustsTotal, missing, "on your profile", unjudgedMusts);
   let usual: string;
   if (judged.length === 0) {
     usual = `${counts} ${NOT_JUDGED_SENTENCE}`;
@@ -230,7 +266,7 @@ export function profileReport(job: Job, built: BuiltProfile, skills: Skill[], un
 
   const inner = judged.length === 0 ? "skills only" : `judged: skills, ${judged.map((k) => KIND_WORDS[k]).join(", ")}`;
   return {
-    fitLabel: fitLabelText(levelName(result.level), noLevel, inner, unjudgedMusts, "profile"),
+    fitLabel: fitLabelText(levelName(result.level), noLevel, inner, unjudgedMusts, "profile", aiMusts),
     level: noLevel === null ? result.level : null,
     namedReason,
     explanation,
@@ -244,5 +280,31 @@ export function profileReport(job: Job, built: BuiltProfile, skills: Skill[], un
     conflictKinds,
     satisfied,
     checkYourself: result.checkYourself,
+    ...(aiItems.length > 0 || (extras?.thrownAway ?? 0) > 0
+      ? {
+          aiRows: [...aiItems]
+            .sort((a, b) => (a.original.importance === b.original.importance ? a.index - b.index : a.original.importance === "must" ? -1 : 1))
+            .map((x) => {
+              const label = labelOf(x.original.skillIds);
+              return {
+                quote: x.original.quote,
+                importance: x.original.importance,
+                label,
+                verdict: x.verdict,
+                inferred: x.entry?.inferred ?? false,
+                text: aiRowText({
+                  label,
+                  verdict: x.verdict,
+                  line: x.entry?.evidence.line ?? null,
+                  quote: x.quote,
+                  entryName: x.entry?.name ?? null,
+                  inferred: x.entry?.inferred ?? false,
+                }),
+              };
+            }),
+          aiJudged: { musts: aiMusts, nices: aiNices },
+          thrownAwayLine: thrownAwayLine(extras?.thrownAway ?? 0),
+        }
+      : {}),
   };
 }

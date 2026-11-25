@@ -8,7 +8,8 @@ import type { CvSkill } from "@/lib/engine/fromCv";
 import type { Job } from "@/lib/engine/types";
 
 // docs/PLAN-FIT-LEVEL.md section 3 (with the reviewer's amendments): the regression set (the 11 rows of
-// docs/FIT-LEVEL-FACTS.md) and the 26 new cases. EVERY expected string below was written from the plan's wording before
+// docs/FIT-LEVEL-FACTS.md) and the 26 new cases. R7 (docs/PLAN-EVERY-CV.md 4.4, owner's answer 12 on 2026-11-25) changed FOUR label expectations
+// on purpose, from "Strong/Good (skills only; N must-have(s) not judged)" to "At best ...": a must-have that is not judged can only lower the level. EVERY expected string below was written from the plan's wording before
 // any code existed; none was taken from the code's output.
 //
 // Material (invented): CV lines 1 "Alex Example, Reporting Analyst, Exampleville", 2 "Wrote SQL queries to reconcile order
@@ -121,7 +122,7 @@ describe("the regression set (docs/FIT-LEVEL-FACTS.md, nine cases, 9b and 5b)", 
 
   it("7: one unlisted must-have: the level moves from Good to Strong, with the caveat in the label, the sentence, the row and the counts", () => {
     const r = rep(job({ reqs: [SQL, TAB, KOM, XLS] }));
-    expect(r.fitLabel).toBe("Strong (skills only; 1 must-have not judged)");
+    expect(r.fitLabel).toBe("At best Strong (skills only; 1 must-have not judged)");
     expect(r.explanation).toBe(`You meet all 2 must-haves on your profile, plus 1 must-have we could not judge. ${TAIL}`);
     expect(r.counts).toEqual({ mustsMet: 2, mustsTotal: 2, nicesMet: 1, nicesTotal: 1 });
     expect(r.unlistedRequirements).toBe(1);
@@ -153,7 +154,7 @@ describe("the regression set (docs/FIT-LEVEL-FACTS.md, nine cases, 9b and 5b)", 
 describe("(a) unlisted requirements", () => {
   it("A1: two unlisted must-haves: Strong with the caveat in all four places", () => {
     const r = rep(job({ reqs: [SQL, TAB, KOM, WELD, XLS] }));
-    expect(r.fitLabel).toBe("Strong (skills only; 2 must-haves not judged)");
+    expect(r.fitLabel).toBe("At best Strong (skills only; 2 must-haves not judged)");
     expect(r.explanation).toBe(`You meet all 2 must-haves on your profile, plus 2 must-haves we could not judge. ${TAIL}`);
     expect(r.counts).toEqual({ mustsMet: 2, mustsTotal: 2, nicesMet: 1, nicesTotal: 1 });
     expect(r.couldNotJudge).toEqual({ musts: 2, nices: 0 });
@@ -163,7 +164,7 @@ describe("(a) unlisted requirements", () => {
 
   it("A2: one must-have missing and one unlisted: Good with the caveat", () => {
     const r = rep(job({ reqs: [SQL, TAB, KOM] }), ["sql", "excel"]);
-    expect(r.fitLabel).toBe("Good (skills only; 1 must-have not judged)");
+    expect(r.fitLabel).toBe("At best Good (skills only; 1 must-have not judged)");
     expect(r.explanation).toBe(`One must-have is missing: Tableau, plus 1 must-have we could not judge. ${TAIL}`);
   });
 
@@ -206,7 +207,7 @@ describe("(a) unlisted requirements", () => {
 
   it("A6: the typed-list path: the same rule, 'on your list'", () => {
     const r = listRep("SQL", job({ reqs: [SQL, KOM] }));
-    expect(r.fitLabel).toBe("Strong (skills only; 1 must-have not judged)");
+    expect(r.fitLabel).toBe("At best Strong (skills only; 1 must-have not judged)");
     expect(r.explanation).toBe(`You meet the only must-have on your list, plus 1 must-have we could not judge. ${TAIL}`);
     expect(r.counts).toEqual({ mustsMet: 1, mustsTotal: 1, nicesMet: 0, nicesTotal: 0 });
     expect(r.couldNotJudge).toEqual({ musts: 1, nices: 0 });

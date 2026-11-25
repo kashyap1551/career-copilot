@@ -104,7 +104,7 @@ Requirements the ad reader flagged as "not a skill a CV can show" (traits, `notC
 1. the requirement number is one we sent, and it was answered exactly once (twice or never = unanswered, row stays "could not judge");
 2. for `met` and `partly`: the entry number is one we sent (an entry with a CV line);
 3. the quote has at least one real word (`hasRealWord`, `lib/engine/quoteMatch.ts:18`);
-4. the quote is really inside THAT entry's line (`isInAd`, `lib/engine/text.ts:27`: case and accents ignored). A quote that is only on another entry's line is not rescued, exactly as in `fromCv`.
+4. the quote is really inside THAT entry's line, with case, accents and ß ignored (`foldText`, `lib/engine/text.ts:19`; the proof is in `lib/engine/evidenceProof.ts`). `isInAd` (`lib/engine/text.ts:27`) alone ignores case and spacing but NOT accents, and `fromCv` uses `isInAd` for a CV skill (`lib/engine/fromCv.ts:96`), so this proof is looser on accents than `fromCv`'s: an AI that writes "Kuhlkette" for a line that says "Kühlkette" is accepted here. The quote is still shown with its CV line. A quote that is only on another entry's line is not rescued, as in `fromCv`.
 
 If 2, 3 or 4 fails, the AI's answer is thrown away and the row reads **"no evidence found"** (as the owner asked), and the screen counts how many answers were thrown away. A `none` answer needs no entry and no quote. A requirement the AI skipped is never turned into "none": silence is "could not judge".
 

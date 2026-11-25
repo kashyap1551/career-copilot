@@ -117,9 +117,9 @@ describe("EC-0b part 4: today's product against the key", () => {
 
   it("C6: the level today against the key's level (Strong, Good, Stretch, Long shot): stronger, equal, weaker", () => {
     // Today: musts judged are SQL met, Excel met, Python missing; the unlisted welding must is not judged: 1 missing = Good
-    // ('Good (skills only; 1 must-have not judged)').
+    // ('At best Good (skills only; 1 must-have not judged)': rule R7, a must-have that is not judged can only lower the level).
     const base = run();
-    expect(base.today).toEqual({ label: "Good (skills only; 1 must-have not judged)", level: "good" });
+    expect(base.today).toEqual({ label: "At best Good (skills only; 1 must-have not judged)", level: "good" });
     // KEY_ROWS: musts R1 met, R2 partly, R3 met, R4 met, R6 none: 2 missing = Stretch. Today Good is stronger than Stretch.
     expect([base.keyLevel, base.levelVsKey]).toEqual(["stretch", "stronger"]);
     // A key with one missing must (R2 partly only) is Good: equal.
