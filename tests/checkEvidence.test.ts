@@ -70,6 +70,10 @@ describe("EC-3a checkEvidence", () => {
     expect(r.accepted.map((a) => [a.requirement, a.verdict])).toEqual([[1, "met"], [2, "partly"], [3, "met"], [4, "none"]]);
     expect(r.thrownAwayCount).toBe(0);
     expect(r.accepted[0].entry?.name).toBe("Sail repair");
+    // found by break g: with the numbering of the text wrong (R0 for the first), this test stayed green; the text the AI sees is pinned here by hand
+    const text = (bodies[0] as { messages: { content: string }[] }).messages[1].content;
+    expect(text.split("\n").slice(0, 2)).toEqual(["Requirements:", 'R1 "Mends sails and rigging"']);
+    expect(text).toContain('E1 | Sail repair | "Stitched torn sails and spliced new rope on two sloops"');
     expect(r.usage).toEqual({ inputTokens: 11, outputTokens: 7 });
     expect(r.limits).toEqual({ "x-ratelimit-remaining-tokens": "7000" });
   });
@@ -89,6 +93,15 @@ describe("EC-3a checkEvidence", () => {
     expect(b.messages.map((m) => m.role)).toEqual(["system", "user"]);
     expect(b.messages[0].content).toBe(INSTRUCTIONS_CHECK);
     expect(b.messages[1].content).toBe(buildCheckInput(REQS, ENTRIES));
+    // and the same text written out by hand, so a change of the builder cannot hide behind itself
+    expect(b.messages[1].content).toBe(
+      [
+        "Requirements:", 'R1 "Mends sails and rigging"', 'R2 "Has run a ferry rota for five seasons"', 'R3 "Can polish brass or copper fittings"', 'R4 "Speaks Portuguese at work"',
+        "CV entries:",
+        'E1 | Sail repair | "Stitched torn sails and spliced new rope on two sloops"', 'E2 | Crossing plans | "Drew up the fortnightly crossing plan for the island boat"',
+        'E3 | Lantern care | "Polished the brass lantern of the quay beacon each dawn"', 'E4 | Basque | "Chatted in Basque with visitors at the quay café"',
+      ].join("\n"),
+    );
     expect(b.response_format.type).toBe("json_schema");
     expect(b.response_format.json_schema.strict).toBe(true);
     expect(b.response_format.json_schema.schema.required).toEqual(["answers"]);
