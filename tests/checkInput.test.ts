@@ -76,13 +76,13 @@ describe("EC-3a the input builder", () => {
     expect(text).toBe(['Requirements:', 'R1 "Needs SQL"', 'R2 "Likes Excel"', 'CV entries:', 'E1 | SQL | "Wrote SQL queries"'].join("\n"));
   });
 
-  it("CI6: 30 requirements and 60 entries pass; 31 requirements and 61 entries throw, always with the same fixed message that holds no input text", () => {
+  it("CI6: 30 requirements and 120 entries pass; 31 requirements and 121 entries throw, always with the same fixed message that holds no input text", () => {
     const many = (n: number) => Array.from({ length: n }, (_, i) => R(i + 1, `MARKER-6612 requirement ${i}`));
     const ents = (n: number) => Array.from({ length: n }, (_, i) => E(i + 1, "MARKER-6612", `MARKER-6612 line ${i}`));
-    expect([CHECK_MAX_REQUIREMENTS, CHECK_MAX_ENTRIES]).toEqual([30, 60]);
-    expect(() => build(many(30), ents(60))).not.toThrow();
+    expect([CHECK_MAX_REQUIREMENTS, CHECK_MAX_ENTRIES]).toEqual([30, 120]);
+    expect(() => build(many(30), ents(120))).not.toThrow();
     const messages = new Set<string>();
-    for (const f of [() => build(many(31), ents(1)), () => build(many(1), ents(61)), () => build(many(31), ents(61))]) {
+    for (const f of [() => build(many(31), ents(1)), () => build(many(1), ents(121)), () => build(many(31), ents(61))]) {
       try {
         f();
       } catch (e) {

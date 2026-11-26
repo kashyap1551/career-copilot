@@ -11,7 +11,7 @@ export const CHECK_BUTTON = (n: number) => `Check ${n} ${noun(n)} against my CV 
 export const CHECK_RUNNING = "Checking…";
 export const CHECK_DONE = (judged: number, sent: number) => `Check finished: ${judged} of ${sent} ${noun(sent)} judged by the AI.`;
 export const CHECK_NOT_CHECKED = (n: number) => `${n} ${noun(n)} ${n === 1 ? "was" : "were"} not checked: one check takes at most ${PLAN_MAX_REQUIREMENTS}.`;
-export const CHECK_NO_ENTRIES = "To check the rest against your CV, confirm at least one skill that has a CV line.";
+export const CHECK_NO_ENTRIES = "There is no CV line to check the rest against.";
 export const CHECK_STALE = "Your skills or the ad changed after the check, so its answers are not shown. Press the button again.";
 export const CHECK_CONTACT = "Some CV lines still contain an email address, a phone number or a web link, so nothing was sent. Take it out and try again.";
 export const CHECK_UNREACHABLE = "Could not reach the server. Check your connection and try again.";

@@ -23,7 +23,7 @@ export const AD_INFO_LINE =
 // Next to the check button (EC-3b, DRAFT; the button itself comes with EC-4). Code: app/api/check/route.ts (the refusal of CV lines with contact details),
 // lib/ai/checkInput.ts (the cuts), lib/ai/checkEvidence.ts. Tests: checkContactRefusal, checkInput.
 export const CHECK_INFO_LINE =
-  "When you press the check button, the requirement lines of the ad and the CV lines you confirmed, with the skill name next to each, leave your device. They go to our server and on to an AI service (Groq) that says which CV line shows which requirement. The CV lines are the ones already cleaned of email addresses and most phone numbers. The check looks at them again with the same automatic check and sends nothing if it still finds an email address, a phone number or a web link, but it can miss some formats, and it does not touch your name or address. The requirement lines come from the ad, which is not cleaned: an email address or phone number in it is sent as it is. Long lines are cut short. The privacy page says what is kept.";
+  "When you press the check button, the requirement lines of the ad and the lines of your CV, each with its line number, leave your device. They go to our server and on to an AI service (Groq) that says which CV line shows which requirement. The CV lines are the same text that was already sent when your CV was read, cleaned of email addresses and most phone numbers. The check looks at them again with the same automatic check and sends nothing if it still finds an email address, a phone number or a web link, but it can miss some formats, and it does not touch your name or address. The requirement lines come from the ad, which is not cleaned: an email address or phone number in it is sent as it is. Long lines are cut short. The privacy page says what is kept.";
 
 // The tick before the first CV send in a tab.
 export const CV_TICK = "I have read this, and I am sending my own text to be read by an AI service.";
@@ -78,10 +78,10 @@ export const CLAIM_C15 =
   "If the AI service answers with an error or says it is busy, our server asks again up to two more times, so the same text can reach the AI service up to three times for one click.";
 
 // C17 (EC-3b, DRAFT). Code: app/api/check/route.ts (no cache, no file, no database; the check route is in tests/privacyInventory I1, I4, I8), lib/ai/checkInput.ts
-// (CHECK_MAX_REQUIREMENTS 30, CHECK_MAX_ENTRIES 60, 300 and 240 characters), lib/ai/checkEvidence.ts (the SDK's tries are untouched). Tests: checkInput CI2 and CI6,
+// (CHECK_MAX_REQUIREMENTS 30, CHECK_MAX_ENTRIES 120, 300 and 240 characters; EC-8a: the entries are the CV's own lines), lib/ai/checkEvidence.ts (the SDK's tries are untouched). Tests: checkInput CI2 and CI6,
 // checkRoute CR5 and CR7, logHygieneCheck CR9, privacyInventory I8.
 export const CLAIM_C17 =
-  "The check sends the requirement lines of the ad and the CV lines you confirmed, with their skill names, to our server and on to an AI service (Groq). A requirement line is cut after 300 characters and a CV line after 240, and at most 30 requirement lines and 60 CV lines are sent. Our server code keeps nothing from it: no cache, no file, no database. The answers are shown on the screen and are not saved. If the AI service answers with an error or says it is busy, our server asks again up to two more times, as described above, so the same text can reach the AI service up to three times for one click.";
+  "The check sends the requirement lines of the ad and the lines of your CV, each with its line number, to our server and on to an AI service (Groq). The CV lines are the same text that was sent when your CV was read. A requirement line is cut after 300 characters and a CV line after 240, and at most 30 requirement lines and 120 CV lines are sent. Our server code keeps nothing from it: no cache, no file, no database. The answers are shown on the screen and are not saved. If the AI service answers with an error or says it is busy, our server asks again up to two more times, as described above, so the same text can reach the AI service up to three times for one click.";
 
 // ---- the headings of the /privacy page, in the order of section 6 --------------------------------------------------------------------------
 

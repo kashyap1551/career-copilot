@@ -8,13 +8,13 @@ import type { SentEntry, SentRequirement } from "@/lib/engine/evidenceProof";
 import { checkRequestSchema } from "@/lib/schemas/check";
 
 // POST { requirements, entries } -> { answers, thrownAway }, or { error }. The requirements are the ad's own words for what could not be judged by
-// the skill list; the entries are the CV skills the person confirmed, each with its name and its CV line. The AI says which line shows which requirement;
+// the skill list; the entries are the lines of the person's CV (EC-8a), each named "CV line <n>" with the line's text. The AI says which line shows which requirement;
 // lib/engine/evidenceProof.ts checks every answer. The answer holds only the accepted answers (positions as the AI saw them, 1-based) and how many were
 // thrown away: no entry name, no CV line, no usage, no rate-limit header. The same order as /api/cv. It stores nothing and logs nothing about the CV
 // or the ad (docs/PLAN-EVERY-CV.md 4.3).
 
 const SEND_JSON = 'Send JSON like { "requirements": ["first requirement"], "entries": [{ "name": "skill name", "text": "the CV line" }] }.';
-const WRONG_FIELDS = "Send 1 to 30 requirements as texts, and 1 to 60 CV entries, each with a name and the CV line text.";
+const WRONG_FIELDS = "Send 1 to 30 requirements as texts, and 1 to 120 CV entries, each with a name and the CV line text.";
 // DRAFT: the owner approves this sentence at EC-4.
 const CONTACT_REFUSAL = "Some CV lines still contain an email address, a phone number or a web link, so nothing was sent. Take it out and try again.";
 

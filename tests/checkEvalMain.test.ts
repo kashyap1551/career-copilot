@@ -47,7 +47,8 @@ const AD_READING = (withWelding = true): AdReading => ({
   },
   removed: [], moved: [], unlisted: [{ id: "new:welding-work", name: "Welding work" }], notCounted: [],
 });
-const REPLY = { answers: [{ requirement: 1, verdict: "met", entry: 2, quote: "Welded steel frames" }], thrownAway: 0 };
+// EC-8a: the entries are the 4 CV lines (as the page numbers them), so the welding line is entry 4.
+const REPLY = { answers: [{ requirement: 1, verdict: "met", entry: 4, quote: "Welded steel frames" }], thrownAway: 0 };
 const OK_CALL = { attempts: 1, statuses: [200], real429: 0, ms: 3000, inputTokens: 3000, outputTokens: 1500 };
 const LIMITS = { "x-ratelimit-remaining-tokens": "6000", "x-ratelimit-limit-tokens": "8000" };
 const CV_BODY = { kind: "cv request" };
@@ -200,12 +201,27 @@ describe("EC-5b the runner: failures and refusals (EM)", () => {
     expect(r.exitCode).toBe(0);
   });
 
-  it("EM4b: a pair with open requirements but no confirmed entry with a CV line gets no call either, and its requirements are not counted as unanswered", async () => {
-    const w = world({ cvFor: (id) => (id === "pair-04" ? { ...CV_READING, skills: [], unlisted: [] } : CV_READING) });
+  it("EM4b: a pair with open requirements but no CV line to send gets no call either, and its requirements are not counted as unanswered (EC-8a: the entries are the CV's lines, so this is a CV with no line at all)", async () => {
+    // pair-04 has an empty CV and a key that says none for both rows (a key cannot cite a line of a CV that has none); the baseline stamp is made again for
+    // the changed files, so the run is not refused for a stale baseline.
+    const KEY_NONE = 'R1 [must] "Strong SQL skills required."\nverdict: none\ncv line(s):\nunsure:\nwhy:\n\nR2 [must] "Welding experience is required."\nverdict: none\ncv line(s):\nunsure:\nwhy:';
+    const fp = baselineFingerprintOf({
+      cvRequest: CV_BODY, adRequest: AD_BODY, vocabulary: VOCAB,
+      pairs: PAIRS.map((id) => ({ id, cvText: id === "pair-04" ? "" : CV_TEXT, adText: AD_TEXT, keyText: id === "pair-04" ? KEY_NONE : KEY_TEXT })),
+    });
+    const w = world();
+    w.files.set(`${FIX}/pair-04/cv.txt`, "");
+    w.files.set(`${FIX}/pair-04/key.txt`, KEY_NONE);
+    for (const id of PAIRS) {
+      for (const kind of ["cv", "ad"] as const) {
+        const meta = { pair: id, kind, fingerprint: fp, keyCommit: "k1", tokens: { input: 1, output: 1 } };
+        w.files.set(`${BASE}/${RUN}/${id}/${kind}-reading.json`, savedReadingText(meta, kind === "cv" ? CV_READING : AD_READING()));
+      }
+    }
     const r = await checkMain(deps(w, [], () => chainFor(w)));
     expect(w.calls).toHaveLength(9);
     const md = w.files.get(`${OUT}/2026-11-26T09-00-00-000Z/check.md`)!;
-    expect(md).toContain("pair-04: no call was made (no confirmed entry with a CV line).");
+    expect(md).toContain("pair-04: no call was made (no CV line to send).");
     expect(md).toContain("3. Answered: 9 of 9 pass");
     expect(r.exitCode).toBe(0);
   });
@@ -318,7 +334,7 @@ describe("EC-5b the modes (EM5, EM6, EM7)", () => {
     const t = said(w);
     expect(t).toContain(`EXPECT_CHECK_REQUEST_HASH=${GUARD_ENV.EXPECT_CHECK_REQUEST_HASH} EXPECT_CHECK_INSTRUCTIONS_LEN=2665`);
     expect(t).toContain("baseline run " + RUN + ": matches today's fingerprint");
-    expect(t).toMatch(/pair-01 \| prompt [0-9a-f]{10} \| requirements 1 \| entries available 2, sent 2, dropped 0 \| estimated tokens 7317 OVER 7000/);
+    expect(t).toMatch(/pair-01 \| prompt [0-9a-f]{10} \| requirements 1 \| entries available 4, sent 4, dropped 0 \| estimated tokens 7317 OVER 7000/);
   });
 
   it("EM6b: --fingerprint with no baseline folder refuses cleanly: no chain loaded, nothing printed but the refusal", async () => {

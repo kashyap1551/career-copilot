@@ -550,6 +550,13 @@ From EC-3b:
 From EC-4a:
 - `lib/cv/checkWording.ts`: `CHECK_BUTTON`, `CHECK_RUNNING`, `CHECK_DONE`, `CHECK_NOT_CHECKED`, `CHECK_NO_ENTRIES`, `CHECK_STALE`, `CHECK_CONTACT` (a copy of `CONTACT_REFUSAL`), `CHECK_UNREACHABLE` and `CHECK_SERVER_ERROR` (copies of the CvBox sentences), `CHECK_BAD_ANSWER`.
 
+From EC-8a (the check reads the CV's own lines; all DRAFT):
+- `lib/privacy/messages.ts`: `CHECK_INFO_LINE` and `CLAIM_C17` (changed: they now say the check sends the lines of the person's CV, each with its line number, the same text that was sent when the CV was read; the cap is 120 CV lines).
+- `lib/cv/checkWording.ts`: `CHECK_NO_ENTRIES` (changed: "There is no CV line to check the rest against.").
+- `app/api/check/route.ts`: `WRONG_FIELDS` (changed: 1 to 120 CV entries, was 60). `SEND_JSON` still says "skill name" in its example: decide at approval.
+- `lib/engine/evalEveryCvCheckReport.ts` (eval report only, not shown to a person): "no CV line to send", "the cap dropped N CV line(s)".
+- `INSTRUCTIONS_CHECK` is NOT changed (it never calls an entry a skill: it says "a name and the one CV line it was found on"); the check pin 61d7628d46 and the length 2,665 stay.
+
 From EC-4b (no new sentence; notes for the approval):
 - (i) `CHECK_CONTACT` says "Take it out", but a CV line cannot be edited on the confirm screen: decide the wording at approval (for example: untick the skill that has the line, or take the contact detail out of the CV and read it again). D1 pins the copy, so the route's `CONTACT_REFUSAL` and `CHECK_CONTACT` change together.
 - (ii) `CHECK_NOT_CHECKED` is shown before the click too and reads as past tense: decide at approval.
@@ -557,7 +564,7 @@ From EC-4b (no new sentence; notes for the approval):
 
 Known limits of the check eval (EC-5):
 - The eval runs the route in this process, so it measures the model's time plus our code, not Vercel's network or time limit; one real click on the deployed site is timed later.
-- The caps of 30 requirements and 60 entries drop the rest; the report shows, for each pair, how many entries the cap dropped and how many open requirements stay not judged.
+- The caps of 30 requirements and 120 entries (EC-8a: the entries are CV lines) drop the rest; the report shows, for each pair, how many entries the cap dropped and how many open requirements stay not judged.
 - A profile with ONLY unlisted skills is shown as "No level (no skills on your profile)" whatever the check answers (`app/fitReport.ts` counts the profile's own skills, not the ones the engine view adds). Found while building the eval; not changed here.
 
 Note: EC-6 (storing answers) must change C4 and C17 (the "not saved" sentence) in the same commit.

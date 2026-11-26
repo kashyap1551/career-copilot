@@ -19,7 +19,7 @@ describe("EC-4a wording: pinned (CP6)", () => {
     expect(CHECK_DONE(1, 1)).toBe("Check finished: 1 of 1 requirement judged by the AI.");
     expect(CHECK_NOT_CHECKED(5)).toBe("5 requirements were not checked: one check takes at most 30.");
     expect(CHECK_NOT_CHECKED(1)).toBe("1 requirement was not checked: one check takes at most 30.");
-    expect(CHECK_NO_ENTRIES).toBe("To check the rest against your CV, confirm at least one skill that has a CV line.");
+    expect(CHECK_NO_ENTRIES).toBe("There is no CV line to check the rest against.");
     expect(CHECK_STALE).toBe("Your skills or the ad changed after the check, so its answers are not shown. Press the button again.");
     expect(CHECK_CONTACT).toBe("Some CV lines still contain an email address, a phone number or a web link, so nothing was sent. Take it out and try again.");
     expect(CHECK_UNREACHABLE).toBe("Could not reach the server. Check your connection and try again.");

@@ -13,11 +13,12 @@ import { LINES_W, P_W, personW, SENT_W } from "./support/checkWorld";
 // Pure code, no AI, no network, no screen. Every expectation below is worked out by hand from the world W in tests/support/checkWorld.ts:
 // ad index 0 SQL, 1 Excel (listed), 2 wound care, 3 patient intake (must, unlisted), 4 kombucha (nice, unlisted); the person has SQL on CV line 2 and a
 // kept unlisted "Ward nursing" on CV line 4. Excel is listed but not on the profile, so the list judges it (missing): it is NOT sent.
+// EC-8a: the entries are no longer the ticked skills; they are the CV's own lines, one for each of the 4 lines of W ("CV line 1" to "CV line 4").
 
 const plan = (j: Job = job(), p = personW(), proposals: CvSkill[] | null = null) => buildCheckPlan(j, p, skills, proposals);
 
 describe("EC-4a plan: what is sent (CPL)", () => {
-  it("CPL1: W sends 3 requirements (musts in the ad's order, then the nice) and 2 entries (by CV line), 0 left over; the inputs are not changed", () => {
+  it("CPL1: W sends 3 requirements (musts in the ad's order, then the nice) and 4 entries (the 4 CV lines), 0 left over; the inputs are not changed", () => {
     const j = deepFreeze(job());
     const p = deepFreeze(personW());
     const r = buildCheckPlan(j, p, skills, null);
@@ -38,7 +39,7 @@ describe("EC-4a plan: what is sent (CPL)", () => {
     expect(r.notChecked).toBe(5);
   });
 
-  it("CPL3: a hand-added listed skill (no CV line) and an in-progress skill are not entries: still the 2 entries of W", () => {
+  it("CPL3: a hand-added listed skill (no CV line) and an in-progress skill change nothing: still the 4 entries of W", () => {
     const r = plan(job(), personW({ added: ["Excel"], inProgress: [{ name: "Tableau", date: "2027-03-01" }] }));
     expect(r.entries).toEqual(SENT_W.entries);
   });
@@ -69,10 +70,10 @@ describe("EC-4a plan: what is sent (CPL)", () => {
     expect(plan(job(), personW({ added: ["Excel"] })).key).toBe(base);
   });
 
-  it("CPL6: the page's caps are the route's caps (30 requirements, 60 entries)", () => {
+  it("CPL6: the page's caps are the route's caps (30 requirements, 120 entries)", () => {
     expect(PLAN_MAX_REQUIREMENTS).toBe(CHECK_MAX_REQUIREMENTS);
     expect(PLAN_MAX_ENTRIES).toBe(CHECK_MAX_ENTRIES);
-    expect([PLAN_MAX_REQUIREMENTS, PLAN_MAX_ENTRIES]).toEqual([30, 60]);
+    expect([PLAN_MAX_REQUIREMENTS, PLAN_MAX_ENTRIES]).toEqual([30, 120]);
   });
 
   it("CPL7: extrasFor gives the answers only while the key is the one at click time (equal: yes; different or nothing checked: undefined)", () => {
@@ -85,32 +86,32 @@ describe("EC-4a plan: what is sent (CPL)", () => {
     expect(extrasFor(checked, moved)).toBeUndefined(); // a changed confirmed CV line: the answers are not shown
   });
 
-  it("CPL8: the inferred flag: a kept entry carries its own; a listed entry takes it from the proposals' label (unknown proposals: false)", () => {
+  it("CPL8: no entry is flagged inferred: an entry is a CV line, not a skill (the proposals' labels are not used)", () => {
     const inferredP: CvSkill[] = P_W.map((p) => (p.skillId === "sql" ? { ...p, label: "inferred" as const } : p));
-    expect(plan(job(), personW({}, LINES_W, inferredP), inferredP).entries.map((e) => e.inferred)).toEqual([true, false]);
-    expect(plan(job(), personW({}, LINES_W, inferredP), null).entries.map((e) => e.inferred)).toEqual([false, false]);
+    expect(plan(job(), personW({}, LINES_W, inferredP), inferredP).entries.map((e) => e.inferred)).toEqual([false, false, false, false]);
   });
 
-  it("CPL10: entries come out by CV line, then by name, numbered 1 to 4 (Mid line 1, SQL line 2, Alpha line 3, Zeta line 3)", () => {
+  it("CPL10: entries come out by CV line, numbered 1 to 4, and extra kept skills on a line change nothing (three kept skills on lines 1 and 3: still the 4 lines)", () => {
     const kept = (name: string, id: string, line: number, text: string) => ({ name, skillId: id, evidence: { line, text }, inferred: false });
     const person = { ...personW(), unlistedKept: [kept("Zeta", "new:zeta", 3, "zeta line"), kept("Alpha", "new:alpha", 3, "alpha line"), kept("Mid", "new:mid", 1, "mid line")] };
     const r = buildCheckPlan(job(), person, skills, null);
-    expect(r.entries.map((e) => [e.n, e.name, e.line])).toEqual([[1, "Mid", 1], [2, "SQL", 2], [3, "Alpha", 3], [4, "Zeta", 3]]);
+    expect(r.entries.map((e) => [e.n, e.name, e.line])).toEqual([[1, "CV line 1", 1], [2, "CV line 2", 2], [3, "CV line 3", 3], [4, "CV line 4", 4]]);
     expect(r.requirements).toEqual(SENT_W.requirements); // the open requirements stay M3, M4, N1
   });
 
-  it("CPL11: 62 entries found (SQL on line 2, 61 kept on lines 3 to 63): 60 are sent, the first is SQL (n 1), the last is 'Kept 61' (line 61, n 60); none on line 62 or 63", () => {
-    const kept = Array.from({ length: 61 }, (_, k) => ({ name: `Kept ${k + 3}`, skillId: `new:kept-${k + 3}`, evidence: { line: k + 3, text: `line ${k + 3}` }, inferred: false }));
-    const r = buildCheckPlan(job(), { ...personW(), unlistedKept: kept }, skills, null);
-    expect(r.entries).toHaveLength(60);
-    expect([r.entries[0].n, r.entries[0].name, r.entries[0].line]).toEqual([1, "SQL", 2]);
-    expect([r.entries[59].n, r.entries[59].name, r.entries[59].line]).toEqual([60, "Kept 61", 61]);
-    expect(r.entries.some((e) => e.line >= 62)).toBe(false);
+  it("CPL11: 122 lines: 120 are sent (the first is CV line 1, the last CV line 120, n 120); the 2 after them are counted as not sent", () => {
+    const lines = Array.from({ length: 122 }, (_, i) => `line ${i + 1}`);
+    const r = buildCheckPlan(job(), personW({}, lines), skills, null);
+    expect(r.entries).toHaveLength(120);
+    expect([r.entries[0].n, r.entries[0].name, r.entries[0].line]).toEqual([1, "CV line 1", 1]);
+    expect([r.entries[119].n, r.entries[119].name, r.entries[119].line]).toEqual([120, "CV line 120", 120]);
+    expect([r.entriesAvailable, r.entriesNotSent]).toEqual([122, 2]);
   });
 
-  it("CPL9: nothing open: no requirements; no confirmed entries: no entries", () => {
+  it("CPL9: nothing open: no requirements; no CV lines at all: no entries", () => {
     const allListed = job(job().requirements.slice(0, 2)); // SQL and Excel only
     expect(plan(allListed).requirements).toEqual([]);
-    expect(plan(job(), personW({ keptIds: [] })).entries).toEqual([]);
+    const noLines = { ...personW(), profile: { ...personW().profile, cvLines: [] } };
+    expect(plan(job(), noLines).entries).toEqual([]);
   });
 });

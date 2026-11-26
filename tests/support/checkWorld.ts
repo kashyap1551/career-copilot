@@ -34,17 +34,20 @@ export const SENT_W: { requirements: SentRequirement[]; entries: SentEntry[] } =
     { n: 2, index: 3, quote: "You can run patient intake.", importance: "must" },
     { n: 3, index: 4, quote: "Kombucha is a plus.", importance: "nice" },
   ],
+  // EC-8a: the entries are the CV's own lines, one for each of the 4 lines of W, named by their line numbers.
   entries: [
-    { n: 1, name: "SQL", skillId: "sql", line: 2, text: LINES_W[1], inferred: false },
-    { n: 2, name: "Ward nursing", skillId: "new:ward-nursing", line: 4, text: LINES_W[3], inferred: false },
+    { n: 1, name: "CV line 1", skillId: "line:1", line: 1, text: LINES_W[0], inferred: false },
+    { n: 2, name: "CV line 2", skillId: "line:2", line: 2, text: LINES_W[1], inferred: false },
+    { n: 3, name: "CV line 3", skillId: "line:3", line: 3, text: LINES_W[2], inferred: false },
+    { n: 4, name: "CV line 4", skillId: "line:4", line: 4, text: LINES_W[3], inferred: false },
   ],
 };
 
 // The route's answer for W (what /api/check sends: accepted answers only, positions as sent).
 export const REPLY_W = {
   answers: [
-    { requirement: 1, verdict: "met", entry: 2, quote: "Dressed and monitored wounds" },
-    { requirement: 2, verdict: "partly", entry: 2, quote: "Dressed and monitored" },
+    { requirement: 1, verdict: "met", entry: 4, quote: "Dressed and monitored wounds" },
+    { requirement: 2, verdict: "partly", entry: 4, quote: "Dressed and monitored" },
     { requirement: 3, verdict: "none", entry: null, quote: null },
   ],
   thrownAway: 0,

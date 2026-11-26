@@ -107,10 +107,10 @@ export function checkMarkdown(r: CheckReportInput): string {
     "",
   );
   const notes = r.results.flatMap((p) => [
-    p.noCall ? `${p.pair}: no call was made (${p.noCall === "no-requirements" ? "no open requirement" : "no confirmed entry with a CV line"}).` : "",
+    p.noCall ? `${p.pair}: no call was made (${p.noCall === "no-requirements" ? "no open requirement" : "no CV line to send"}).` : "",
     p.failure ? `${p.pair}: no answers (${p.failure}).` : "",
     p.notChecked > 0 ? `${p.pair}: ${p.notChecked} open requirement(s) did not fit in one check and stay not judged.` : "",
-    p.entriesDropped > 0 ? `${p.pair}: the cap dropped ${p.entriesDropped} confirmed entr${p.entriesDropped === 1 ? "y" : "ies"}.` : "",
+    p.entriesDropped > 0 ? `${p.pair}: the cap dropped ${p.entriesDropped} CV line${p.entriesDropped === 1 ? "" : "s"}.` : "",
     `${p.pair}: label before the check "${p.labelBefore}", after "${p.label}".`,
   ]);
   out.push(...notes.filter((x) => x !== ""), "");

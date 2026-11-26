@@ -52,7 +52,7 @@ describe("EC-3b /api/check: what it refuses, and in which order", () => {
       ["requirements empty", { requirements: [], entries: [e1] }],
       ["31 requirements", { requirements: Array.from({ length: 31 }, () => MARKER), entries: [e1] }],
       ["entries empty", { requirements: [MARKER], entries: [] }],
-      ["61 entries", { requirements: [MARKER], entries: Array.from({ length: 61 }, () => ({ name: MARKER, text: MARKER })) }],
+      ["121 entries", { requirements: [MARKER], entries: Array.from({ length: 121 }, () => ({ name: MARKER, text: MARKER })) }],
       ["an entry without text", { requirements: [MARKER], entries: [{ name: MARKER }] }],
       ["a requirement that is not a string", { requirements: [MARKER, 7], entries: [e1] }],
       ["a requirement of 1,001 characters", { requirements: [MARKER + "a".repeat(1001 - MARKER.length)], entries: [e1] }],
@@ -65,9 +65,9 @@ describe("EC-3b /api/check: what it refuses, and in which order", () => {
       expect(text, label).not.toContain(MARKER);
     }
     expect(state.bodies).toHaveLength(0);
-    // the limits themselves are allowed: 30 requirements, 60 entries, 1,000 characters
+    // the limits themselves are allowed: 30 requirements, 120 entries, 1,000 characters
     stubFetch({ answers: [] });
-    const ok = await POST_CHECK(post({ requirements: Array.from({ length: 30 }, () => "r".repeat(1000)), entries: Array.from({ length: 60 }, () => ({ name: "n".repeat(120), text: "t".repeat(1000) })) }));
+    const ok = await POST_CHECK(post({ requirements: Array.from({ length: 30 }, () => "r".repeat(1000)), entries: Array.from({ length: 120 }, () => ({ name: "n".repeat(120), text: "t".repeat(1000) })) }));
     expect(ok.status).toBe(200);
   });
 

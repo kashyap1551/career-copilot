@@ -57,7 +57,7 @@ describe("EC-4b runCheck: the click (RC)", () => {
     expect(f.mock.calls[0][1].method).toBe("POST");
     expect(sentBody(f)).toEqual({
       requirements: ["You can care for wounds.", "You can run patient intake.", "Kombucha is a plus."],
-      entries: [{ name: "SQL", text: LINES_W[1] }, { name: "Ward nursing", text: LINES_W[3] }],
+      entries: LINES_W.map((text, i) => ({ name: `CV line ${i + 1}`, text })), // EC-8a: the 4 lines of W
     });
   });
 

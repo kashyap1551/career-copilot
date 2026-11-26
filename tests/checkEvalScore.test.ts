@@ -182,19 +182,19 @@ describe("EC-5a the report (ER)", () => {
   it("ER2: the per-pair table has the unsure-must column and the level columns", () => {
     const md = checkMarkdown({ info, results: [scored({ ...Y, key: [{ v: "met", lines: "2" }, { v: "none", unsure: true }] }, REPLY_Y, CALL(3000, 2200))], stopped: null, failed: [] });
     expect(md).toContain("| Pair | Requirements sent | Entries available | Entries sent | Dropped by the cap | Estimated tokens | Tokens in + out | Attempts | Elapsed ms | Key level | Check level | Ceiling | Against key | Unsure musts |");
-    expect(md).toMatch(/\| pair-y \| 2 \| 4 \| 4 \| 0 \| 5000 \| 5200 \| 1 \| 4000 \| Good \| Strong \| no \| stronger \| 1 \|/);
+    expect(md).toMatch(/\| pair-y \| 2 \| 6 \| 6 \| 0 \| 5000 \| 5200 \| 1 \| 4000 \| Good \| Strong \| no \| stronger \| 1 \|/);
   });
 
-  it("ER3: a plan with 64 entries shows 64 available, 60 sent and 4 dropped", () => {
-    const lines = Array.from({ length: 64 }, (_, i) => `Entry line number ${i + 1}`);
+  it("ER3: a plan with 124 CV lines shows 124 available, 120 sent and 4 dropped", () => {
+    const lines = Array.from({ length: 124 }, (_, i) => `Entry line number ${i + 1}`);
     const spec: Spec = {
       pair: "pair-big", cvLines: lines,
       proposals: lines.map((l, i) => prop(`Skill ${i + 1}`, `new:skill-${i + 1}`, false, i + 1, l)),
       reqs: [req("You do big things.", "must", "new:big")], key: [{ v: "none" }], unlisted: [],
     };
     const r = scored(spec, { answers: [{ requirement: 1, verdict: "none", entry: null, quote: null }], thrownAway: 0 }, CALL(5000, 1000));
-    expect([r.entriesAvailable, r.entriesSent, r.entriesDropped]).toEqual([64, 60, 4]);
-    expect(checkMarkdown({ info, results: [r], stopped: null, failed: [] })).toMatch(/\| pair-big \| 1 \| 64 \| 60 \| 4 \|/);
+    expect([r.entriesAvailable, r.entriesSent, r.entriesDropped]).toEqual([124, 120, 4]);
+    expect(checkMarkdown({ info, results: [r], stopped: null, failed: [] })).toMatch(/\| pair-big \| 1 \| 124 \| 120 \| 4 \|/);
   });
 
   it("ER4: the summary against the bar names all seven numbers with pass or fail, as counts", () => {
@@ -218,7 +218,7 @@ describe("EC-5a compareBaseline with extras (EX)", () => {
     const ad = { job: { ...job(), requirements: [job().requirements[2], job().requirements[3]] }, removed: [], moved: [], unlisted: [], notCounted: [] };
     const built = buildProfile(LINES_W, cv.skills, { ...{ keptIds: ["sql", "new:ward-nursing"], added: [], inProgress: [], languages: [], cities: "", workModes: [], years: "", availableFrom: "" } }, skills);
     const plan = buildCheckPlan(ad.job, built, skills, cv.skills);
-    const bridged = toViewAnswers({ requirements: plan.requirements, entries: plan.entries }, { answers: [{ requirement: 1, verdict: "met", entry: 2, quote: "Dressed and monitored wounds" }, { requirement: 2, verdict: "none", entry: null, quote: null }], thrownAway: 0 });
+    const bridged = toViewAnswers({ requirements: plan.requirements, entries: plan.entries }, { answers: [{ requirement: 1, verdict: "met", entry: 4, quote: "Dressed and monitored wounds" }, { requirement: 2, verdict: "none", entry: null, quote: null }], thrownAway: 0 });
     if (!bridged.ok) throw new Error("reply");
     const input = { pair: "w", crossLanguage: false, key, cvLines: LINES_W, cv, ad, skills, withKept: true };
     const without = compareBaseline(input);

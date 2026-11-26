@@ -73,7 +73,7 @@ export function post(body: unknown, opts: { code?: string | null; raw?: string }
 }
 
 export const SEND_JSON = 'Send JSON like { "requirements": ["first requirement"], "entries": [{ "name": "skill name", "text": "the CV line" }] }.';
-export const WRONG_FIELDS = "Send 1 to 30 requirements as texts, and 1 to 60 CV entries, each with a name and the CV line text.";
+export const WRONG_FIELDS = "Send 1 to 30 requirements as texts, and 1 to 120 CV entries, each with a name and the CV line text.";
 export const CONTACT_REFUSAL = "Some CV lines still contain an email address, a phone number or a web link, so nothing was sent. Take it out and try again.";
 export const DENIED = "The access code is missing or wrong.";
 

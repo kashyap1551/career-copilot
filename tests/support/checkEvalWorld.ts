@@ -69,11 +69,12 @@ export const X: Spec = {
   key: [{ v: "met", lines: "3" }, { v: "partly", lines: "3" }, { v: "none" }, { v: "met", lines: "5" }],
   unlisted: [U("new:equipment-order", "Equipment order"), U("new:shift-lead", "Shift lead"), U("new:food-safety", "Food safety")],
 };
-// Entries sent, by CV line: E1 Mold care (3), E2 Excel (5). Requirements sent: R1 M1, R2 M2, R3 M3.
+// EC-8a: the entries sent are the CV's own lines: E1 to E5 are CV line 1 to CV line 5, so the line of an entry is its number. Requirements sent: R1 M1,
+// R2 M2, R3 M3.
 export const REPLY_X = {
   answers: [
-    { requirement: 1, verdict: "met", entry: 1, quote: "pastry molds in order" },
-    { requirement: 2, verdict: "partly", entry: 1, quote: "Kept pastry molds" },
+    { requirement: 1, verdict: "met", entry: 3, quote: "pastry molds in order" },
+    { requirement: 2, verdict: "partly", entry: 3, quote: "Kept pastry molds" },
     { requirement: 3, verdict: "none", entry: null, quote: null },
   ],
   thrownAway: 0,
@@ -89,12 +90,12 @@ export const Y: Spec = {
   key: [{ v: "met", lines: "2" }, { v: "none" }],
   unlisted: [U("new:counter-skill", "Counter skill"), U("new:forklift", "Forklift")],
 };
-// Entries: E1 Counter work (2), E2 SQL (3), E3 Night closing (4), E4 Guest talk (6). (A listed skill is on the profile, as on every real one: a profile with
+// Entries (EC-8a): E1 to E6 are CV line 1 to CV line 6. (A listed skill is on the profile, as on every real one: a profile with
 // only unlisted skills is shown as "No level (no skills on your profile)" whatever the check says.)
 export const REPLY_Y = {
   answers: [
-    { requirement: 1, verdict: "met", entry: 3, quote: "Closed the shop at night" },
-    { requirement: 2, verdict: "met", entry: 4, quote: "fluent Spanish" },
+    { requirement: 1, verdict: "met", entry: 4, quote: "Closed the shop at night" },
+    { requirement: 2, verdict: "met", entry: 6, quote: "fluent Spanish" },
   ],
   thrownAway: 0,
 };

@@ -18,6 +18,14 @@ const routeAnswerSchema = z.object({
   thrownAway: z.number().int().min(0), // never sent to the AI, so .int() is fine here (the ban is for the AI's schema)
 });
 
+// EC-8a: an entry is named "CV line <n>", n the page's own line number. The line of an answer comes from that NAME (the number the AI saw next to the
+// text), not from the entry's position or any other field; a name that is not of that form keeps the entry's own line.
+const LINE_NAME = /^CV line ([1-9]\d{0,5})$/;
+export function lineOfEntryName(name: string, fallback: number): number {
+  const m = LINE_NAME.exec(name);
+  return m ? Number(m[1]) : fallback;
+}
+
 export type CheckSent = { requirements: SentRequirement[]; entries: SentEntry[] };
 
 export function toViewAnswers(sent: CheckSent, body: unknown): { ok: true; answers: ViewAnswer[]; thrownAway: number } | { ok: false } {
@@ -31,7 +39,7 @@ export function toViewAnswers(sent: CheckSent, body: unknown): { ok: true; answe
     answers.push({
       index: requirement.index,
       verdict: a.verdict,
-      entry: a.entry === null ? null : { name: a.entry.name, skillId: a.entry.skillId, evidence: { line: a.entry.line, text: a.entry.text }, inferred: a.entry.inferred },
+      entry: a.entry === null ? null : { name: a.entry.name, skillId: a.entry.skillId, evidence: { line: lineOfEntryName(a.entry.name, a.entry.line), text: a.entry.text }, inferred: a.entry.inferred },
       quote: a.quote,
     });
   }

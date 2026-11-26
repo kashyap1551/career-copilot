@@ -14,7 +14,7 @@ import type { SentEntry, SentRequirement } from "../engine/evidenceProof";
 // a | becomes a /. All other characters stay as they are.
 
 export const CHECK_MAX_REQUIREMENTS = 30;
-export const CHECK_MAX_ENTRIES = 60;
+export const CHECK_MAX_ENTRIES = 120;
 export const CHECK_MAX_REQUIREMENT_CHARS = 300;
 export const CHECK_MAX_LINE_CHARS = 240;
 

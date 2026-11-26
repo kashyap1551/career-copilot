@@ -1,19 +1,21 @@
 import { describe, expect, it } from "vitest";
 import { toViewAnswers } from "@/lib/cv/checkBridge";
-import { KEPT_WARD, REPLY_W, SENT_W } from "./support/checkWorld";
+import { LINES_W, REPLY_W, SENT_W } from "./support/checkWorld";
+
+const LINE_4 = { name: "CV line 4", skillId: "line:4", evidence: { line: 4, text: LINES_W[3] }, inferred: false };
 
 // EC-4a (EC-4 proposal, Part B f and Part C CB1 to CB5): the route's answer (positions as sent) becomes the engine view's answers (places in the ad),
-// proved again on the page. Hand-worked on the world W: requirement n 1, 2, 3 are ad indexes 2, 3, 4; entry 2 is "Ward nursing", CV line 4,
-// "Dressed and monitored wounds on a surgical ward".
+// proved again on the page. Hand-worked on the world W: requirement n 1, 2, 3 are ad indexes 2, 3, 4. EC-8a: the entries are the 4 CV lines of W, so entry 4
+// is "CV line 4", "Dressed and monitored wounds on a surgical ward" (it was entry 2, "Ward nursing", when the entries were the ticked skills).
 
 describe("EC-4a bridge: route answer -> view answers (CB)", () => {
-  it("CB1: the W reply: indexes 2, 3, 4; met, partly, none; the entry of the first two is Ward nursing on line 4; nothing thrown", () => {
+  it("CB1: the W reply: indexes 2, 3, 4; met, partly, none; the entry of the first two is CV line 4; nothing thrown", () => {
     const r = toViewAnswers(SENT_W, REPLY_W);
     expect(r).toEqual({
       ok: true,
       answers: [
-        { index: 2, verdict: "met", entry: KEPT_WARD, quote: "Dressed and monitored wounds" },
-        { index: 3, verdict: "partly", entry: KEPT_WARD, quote: "Dressed and monitored" },
+        { index: 2, verdict: "met", entry: LINE_4, quote: "Dressed and monitored wounds" },
+        { index: 3, verdict: "partly", entry: LINE_4, quote: "Dressed and monitored" },
         { index: 4, verdict: "none", entry: null, quote: null },
       ],
       thrownAway: 0,
@@ -26,7 +28,7 @@ describe("EC-4a bridge: route answer -> view answers (CB)", () => {
   });
 
   it("CB3: a quote that is not on its line (a damaged reply) is dropped and counted: the route said 0, the page says 1; the route's own count is added", () => {
-    // entry 2 is line 4; "Welded steel frames" is on line 3
+    // entry 2 is line 2; "Welded steel frames" is on line 3
     const body = { answers: [{ requirement: 1, verdict: "met", entry: 2, quote: "Welded steel frames" }], thrownAway: 0 };
     expect(toViewAnswers(SENT_W, body)).toEqual({ ok: true, answers: [], thrownAway: 1 });
     expect(toViewAnswers(SENT_W, { ...body, thrownAway: 2 })).toEqual({ ok: true, answers: [], thrownAway: 3 });
