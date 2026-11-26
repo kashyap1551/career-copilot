@@ -21,7 +21,7 @@ export const summarizeCall = (r: CallRecord): CallSummary => ({
   attempts: r.attempts.length,
   statuses: r.attempts.map((a) => a.status),
   real429: r.real429,
-  ms: r.elapsedMs,
+  ms: Math.round(r.elapsedMs),
   inputTokens: r.inputTokens,
   outputTokens: r.outputTokens,
 });
@@ -43,10 +43,8 @@ async function tokensOf(res: Response): Promise<{ input: number; output: number 
   }
 }
 
-export async function withCountingFetch<T>(
-  run: (counter: Counter) => Promise<T>,
-  opts: { target?: { fetch: typeof fetch }; clock?: () => number } = {},
-): Promise<T> {
+// Installs the counting wrapper; `restore()` puts the original back. Call it once for a run (and restore in a finally).
+export function installCountingFetch(opts: { target?: { fetch: typeof fetch }; clock?: () => number } = {}): Counter & { restore: () => void } {
   const target = opts.target ?? globalThis;
   const clock = opts.clock ?? (() => performance.now());
   const original = target.fetch;
@@ -69,7 +67,7 @@ export async function withCountingFetch<T>(
     return res;
   }) as typeof fetch;
 
-  const counter: Counter = {
+  return {
     begin() {
       attempts = [];
       limits = undefined;
@@ -87,10 +85,20 @@ export async function withCountingFetch<T>(
         real429: real.filter((a) => a.status === 429).length,
       };
     },
+    restore() {
+      target.fetch = original;
+    },
   };
+}
+
+export async function withCountingFetch<T>(
+  run: (counter: Counter) => Promise<T>,
+  opts: { target?: { fetch: typeof fetch }; clock?: () => number } = {},
+): Promise<T> {
+  const counter = installCountingFetch(opts);
   try {
     return await run(counter);
   } finally {
-    target.fetch = original;
+    counter.restore();
   }
 }

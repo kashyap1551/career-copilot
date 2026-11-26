@@ -1,4 +1,5 @@
 import { mismatchGuard, type GuardEnv } from "./evalCvGuard";
+import { evalFingerprint } from "./evalFingerprint";
 import type { KeyCheck } from "./evalEveryCvKey";
 
 // The conditions for a REAL run of the check eval (docs/PLAN-EVERY-CV.md, the check eval, `npm run eval-check`). Pure code. Each function answers null
@@ -52,4 +53,40 @@ export function firstCheckRefusal(facts: {
 // Once the request the check would send is known: is it the one the owner expects? null = the same.
 export function checkHashRefusal(env: GuardEnv, actualHash10: string, actualLength: number): string | null {
   return mismatchGuard({ EXPECT_REQUEST_HASH: env.EXPECT_CHECK_REQUEST_HASH, EXPECT_INSTRUCTIONS_LEN: env.EXPECT_CHECK_INSTRUCTIONS_LEN }, actualHash10, actualLength);
+}
+
+// ---- the fingerprints ---------------------------------------------------------------------------------------------------------------------------------
+// The fingerprint of the BASELINE run, recomputed today with no network. It is the recipe of scripts/everyCvBaselineMain.ts (a test pins that the two
+// recipes are the same text): the two readers' requests, the vocabulary, and for each pair the raw CV, ad and key files.
+export function baselineFingerprintOf(x: { cvRequest: unknown; adRequest: unknown; vocabulary: string; pairs: { id: string; cvText: string; adText: string; keyText: string }[] }): string {
+  return evalFingerprint({
+    request: { cv: x.cvRequest, ad: x.adRequest },
+    ads: x.pairs.map((p) => ({ id: p.id, text: `${p.cvText}\n---\n${p.adText}`, key: p.keyText })),
+    vocabulary: x.vocabulary,
+  });
+}
+
+// The fingerprint of a CHECK run: everything that can change what the AI is asked or how it is scored, and nothing else (the git HEAD is NOT in it: a
+// docs commit would change it). Two counted runs are "the same" only when this is equal.
+export function checkFingerprintOf(x: {
+  probeBody: unknown; // the check request captured on the pinned example (hash, prompt, schema, model, settings)
+  model: string;
+  settings: unknown;
+  readingVersion: string;
+  vocabulary: string;
+  confirm: string;
+  caps: { requirements: number; entries: number };
+  baselineFingerprint: string;
+  keyCommit: string;
+  baselineRun: string;
+  prompts: { id: string; text: string }[]; // the exact prompt text of each pair: what the AI will see
+}): string {
+  return evalFingerprint({
+    request: {
+      check: x.probeBody, model: x.model, settings: x.settings, readingVersion: x.readingVersion, confirm: x.confirm, caps: x.caps,
+      baseline: { fingerprint: x.baselineFingerprint, keyCommit: x.keyCommit, run: x.baselineRun },
+    },
+    ads: x.prompts.map((p) => ({ id: p.id, text: p.text, key: "" })),
+    vocabulary: x.vocabulary,
+  });
 }

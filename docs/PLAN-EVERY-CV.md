@@ -381,6 +381,7 @@ Small, each tests-first, each its own commit, careful lane (anything the AI read
 - **EC-4a. The pure parts and the report block (nothing can send):** `lib/cv/checkPlan.ts` (`buildCheckPlan`, `extrasFor`, `Checked`), `lib/cv/checkBridge.ts` (`toViewAnswers`), `lib/cv/checkWording.ts` (DRAFT), the optional fifth parameter of `reportFor`, and the AI block in `app/ReportView.tsx`. Tests CPL, CB, PR, CP6, CP9 and the copy-drift tests D1 to D3.
 - **EC-4b. Page wiring:** the button (`app/CheckBox.tsx`), the click logic (`app/runCheck.ts`, the one new `postJson(`), the info line, the tick gate, the message when the call fails, `onWipe` in `SavedDeleteAll`, the `"check"` word of `AccessSource`, and the privacy-test updates I2, I3 and M6. Tests RC, CP1 to CP5, CP7, CP8, CP10 and CP11 first; breaks B14, B15, B18, B21. The first time the page can send, the privacy page, `messages.ts` and the inventory are already in place (EC-3).
 - **EC-5. Eval script (`npm run eval-check`) and runs:** dry run with the fingerprint (no AI); one calibration run (not counted); the counted run. **Each real run needs the owner's go, in its own prompt, and goes on its own day (section 5)**; a guard that stops a run stops it. The owner reads every AI "met".
+  **Built (EC-5a, EC-5b):** the pure parts are `lib/engine/evalEveryCvCheck{Guard,Score,Report,Fetch,Probe,Canned}.ts` and two optional fields of `compareBaseline`; the script is `scripts/everyCvCheck.ts` with its logic in `scripts/everyCvCheckMain.ts` and the chain that makes the call in `scripts/everyCvCheckChain.ts` (the page's own `runCheck` into the real route, called in this process). Modes: `--dry`, `--fingerprint`, real, `--calibration`. No real run has been made.
 - **EC-6. Optional, owner decides:** store the answers with each saved ad (an optional field with the profile key it was made for), so the saved list, the roadmap and the analytics agree with the open report.
 - **EC-7. Over-the-cap option 3** (two-part reading), only if the near-cap pair says it is needed.
 
@@ -505,6 +506,9 @@ All dated 2026-11-25.
 | AM14 | Answers are used only while the key of what was sent equals the key at click time; the plan of what to send is computed without the answers. | 4.5, 4.6 |
 | AM15 | Known gaps accepted until EC-6: rows of listed skills from a saved profile lack the inferred note (`inferred` is stored only for unlisted skills); the saved-ads list uses `reportFor` without extras and can show a different label than the open report. | 4.5, 4.6 |
 | AM16 | Q3 decided: the tick stays in the CV box only, no second tick next to the button; CHECK_TICK_NEEDED is shown next to the button; the manual check covers a saved profile in a new tab with no tick. | 6, 10 |
+| AM17 | Wrong-evidence rule: an AI-judged row where the key says met but the CV line the AI cites is not one of the key's lines counts against the bar as a false met (kind 1b), and the report marks it "wrong-evidence candidate" and lists it first. In the calibration run the owner and the reviewer read each candidate. A key line is ADDED only when the CV text really supports the other line; the reason is logged and the change is committed before the counted runs; never to fit the code. | 9, 10 |
+| AM18 | Ceiling labels: when a must stays unjudged after the check (thrown away, not answered, not read), the report's R7 label is "At best <level>"; the eval records that as a "ceiling": never equal, never stronger, never weaker, with its own count. Long shot and "No level" labels have no ceiling and compare normally. | 4.4, 9 |
+| AM19 | Day plan of the real runs (four separate days, each needs the owner's explicit go in its own prompt): Day A baseline (about 90,000 tokens), Day B calibration check run (about 65,000, not counted), Day C counted run 1, Day D counted run 2 with the SAME fingerprint. The calibration may change a key line (AM17) or a prompt; a re-pin needs the owner's explicit go. | 5, 10 |
 
 Chain note: `lib/ai/errors.ts`: EC-3a added the subject check (`ReadSubject`, the log tag, a 500 message); `step-8.3` edits the same file for its own subject; keep both when merging.
 
@@ -536,6 +540,11 @@ From EC-4b (no new sentence; notes for the approval):
 - (i) `CHECK_CONTACT` says "Take it out", but a CV line cannot be edited on the confirm screen: decide the wording at approval (for example: untick the skill that has the line, or take the contact detail out of the CV and read it again). D1 pins the copy, so the route's `CONTACT_REFUSAL` and `CHECK_CONTACT` change together.
 - (ii) `CHECK_NOT_CHECKED` is shown before the click too and reads as past tense: decide at approval.
 - (iii) Known limit: a check always takes the first 30 open requirements (musts first); a second click sends the same 30; the rest stay "not judged".
+
+Known limits of the check eval (EC-5):
+- The eval runs the route in this process, so it measures the model's time plus our code, not Vercel's network or time limit; one real click on the deployed site is timed later.
+- The caps of 30 requirements and 60 entries drop the rest; the report shows, for each pair, how many entries the cap dropped and how many open requirements stay not judged.
+- A profile with ONLY unlisted skills is shown as "No level (no skills on your profile)" whatever the check answers (`app/fitReport.ts` counts the profile's own skills, not the ones the engine view adds). Found while building the eval; not changed here.
 
 Note: EC-6 (storing answers) must change C4 and C17 (the "not saved" sentence) in the same commit.
 
