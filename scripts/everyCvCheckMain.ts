@@ -9,6 +9,7 @@ import { baselineFingerprintOf, checkFingerprintOf, checkHashRefusal, firstCheck
 import { checkJson, checkMarkdown, type CheckInfo } from "../lib/engine/evalEveryCvCheckReport";
 import { bar, BIG_CALL_TOKENS, estimateTokens, numbersOf, pacingWaitMs, planFor, scorePair, type ConfirmMode, type PairResult } from "../lib/engine/evalEveryCvCheckScore";
 import { requestHash } from "../lib/engine/evalFingerprint";
+import { paceBeforeCall, TokenWindow } from "../lib/engine/evalPacing";
 import { checkEveryCvKey } from "../lib/engine/evalEveryCvKey";
 import { loadSavedReading } from "../lib/engine/evalEveryCvSave";
 import { loadPairKeys } from "../lib/engine/evalEveryCvStatus";
@@ -214,15 +215,26 @@ export async function checkMain(deps: CheckDeps): Promise<{ exitCode: number; ru
     let stopped: { pair: string } | null = null;
     let lastLimits: Record<string, string> | undefined;
     let first = true;
+    // EC-8e: our own rolling window (no 60 seconds hold more than 6,000 tokens; each call counts at the larger of its estimate and its real tokens), on top of
+    // the provider-header wait below. `clock` is this loop's own time in ms: the waits and the calls' own durations add up; no real clock is read.
+    const window = new TokenWindow();
+    let clock = 0;
     for (const p of prepared) {
       const base = { pair: p.id, crossLanguage: p.crossLanguage, key: p.key, cvLines: p.cvLines, cv: p.cv, ad: p.ad, skills: deps.skills, confirm, estimate: p.estimate };
       if (p.plan.requirements.length === 0 || p.plan.entries.length === 0) {
         results.push(scorePair({ ...base, call: null, answered: null, failure: null }));
         continue;
       }
-      if (!first) await deps.sleep(pacingWaitMs(lastLimits, p.estimate));
+      if (!first) {
+        const wait = paceBeforeCall(window, clock, pacingWaitMs(lastLimits, p.estimate), p.estimate);
+        await deps.sleep(wait);
+        clock += wait;
+      }
       first = false;
+      const startedAt = clock;
       const done = await ch.callCheck(p.plan);
+      window.add(startedAt, p.estimate, done.call.inputTokens + done.call.outputTokens);
+      clock += done.call.ms;
       if (done.limits) lastLimits = done.limits;
       const hit429 = done.call.real429 > 0;
       const failure = done.outcome.kind === "done" ? null : done.outcome.kind === "failed" ? done.outcome.message : done.outcome.kind === "tick" ? "the tick was missing" : "the access code was refused";

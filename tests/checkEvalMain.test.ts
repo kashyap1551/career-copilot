@@ -292,7 +292,11 @@ describe("EC-5b the runner: failures and refusals (EM)", () => {
     expect(w.sleeps).toHaveLength(9);
     // estimate for a 10,000-character prompt: ceil((2665 + 10000 + 600) / 4) + 2500 = 3317 + 2500 = 5817; wait after the low-allowance answer: ceil((5817 - 1000) / (8000 / 60) * 1000) + 500 = 36,628 (4817 / 133.33 = 36.1275 s)
     expect(w.sleeps[0]).toBeGreaterThanOrEqual(36000);
-    expect(w.sleeps.slice(1).every((s) => s === 3000 || s < 3001)).toBe(true);
+    // EC-8e: the rolling window (no 60 seconds hold more than 6,000 tokens) comes on top. Each call is 3,000 ms long and counts at max(5,817 estimated, 4,500 used) = 5,817,
+    // and 5,817 + 5,817 > 6,000, so a call starts 60,000 ms after the one before. Call 2: the allowance wait is 36,628 ms (above), the clock is 3,000 + 36,628 = 39,628,
+    // the window frees at 60,000: 20,372 more, 57,000 in all. Every later call: 3,000 ms gap (6,000 tokens are left, enough), the clock is 63,000 + 3,000, the
+    // window frees at 120,000: 54,000 more, 57,000 in all. (Before EC-8e this line said: every later wait is the 3,000 ms gap.)
+    expect(w.sleeps).toEqual(Array(9).fill(57000));
   });
 });
 
