@@ -54,6 +54,17 @@ function requirementRow(pair: string, r: RowDetail): (string | number)[] {
   ];
 }
 
+// EC-8d (2b): for a pair whose check level is not its key's level: which must-haves the product counts as missing and which the key does. The product counts
+// read requirements, the key counts sentences: a sentence read as two requirements can be two missing must-haves ("R4 (2 parts)").
+function missingMustsLine(p: PairResult): string {
+  const product = [
+    ...p.rows.filter((x) => x.tag === "must" && x.final === "missing").map((x) => (x.missingParts > 1 ? `${x.id} (${x.missingParts} parts)` : x.id)),
+    ...p.extraRows.filter((x) => x.tag === "must" && x.final === "missing").map((x) => x.id),
+  ];
+  const key = p.rows.filter((x) => x.tag === "must" && x.keyVerdict !== "met").map((x) => x.id);
+  return `${p.pair}: product missing musts: ${product.join(", ") || "none"}; key missing musts: ${key.join(", ") || "none"}.`;
+}
+
 export function checkMarkdown(r: CheckReportInput): string {
   const n = numbersOf(r.results);
   const b = bar(n);
@@ -113,6 +124,7 @@ export function checkMarkdown(r: CheckReportInput): string {
     p.notChecked > 0 ? `${p.pair}: ${p.notChecked} open requirement(s) did not fit in one check and stay not judged.` : "",
     p.entriesDropped > 0 ? `${p.pair}: the cap dropped ${p.entriesDropped} CV line${p.entriesDropped === 1 ? "" : "s"}.` : "",
     `${p.pair}: label before the check "${p.labelBefore}", after "${p.label}".`,
+    p.levelVsKey === "equal" ? "" : missingMustsLine(p),
   ]);
   out.push(...notes.filter((x) => x !== ""), "");
 
@@ -131,6 +143,9 @@ export function checkMarkdown(r: CheckReportInput): string {
   const unsure = r.results.flatMap((p) => p.unsureRows.map((x) => requirementRow(p.pair, x)));
   out.push(`## Unsure key rows (not counted, never hidden): ${unsure.length}`, "");
   if (unsure.length > 0) out.push(table(["Pair", "Req", "Tag", "Key verdict", "Key lines", "Source", "Final", "AI verdict", "AI entry", "AI line", "AI quote", "Class", "Note"], unsure), "");
+  const extras = r.results.flatMap((p) => p.extraRows.map((x) => [p.pair, x.id, x.tag, x.source, x.aiVerdict ?? "-", x.aiQuote === null ? "-" : `"${x.aiQuote}"`, x.final]));
+  out.push(`## Extra rows (judged by the product, no row in the key; not counted, never hidden): ${extras.length}`, "");
+  if (extras.length > 0) out.push(table(["Pair", "Req", "Tag", "Source", "AI verdict", "AI quote", "Final"], extras), "");
   out.push(...conditionRowsLines(r.results));
   return out.join("\n");
 }

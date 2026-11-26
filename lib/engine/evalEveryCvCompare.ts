@@ -45,6 +45,7 @@ export type CompareRow = {
   keyLines: number[];
   readQuotes: string[]; // the read requirements paired with this sentence
   today: Today;
+  missingParts: number; // how many of the read requirements paired with this sentence the product counts as missing (EC-8d)
   class: RequirementClass;
   droppedWhere: string | null; // for a dropped sentence: where it went
 };
@@ -178,7 +179,8 @@ export function compareBaseline(input: {
 
   const conditions = conditionQuotes(ad);
   const allRows: CompareRow[] = reqBlocks.map((b, k) => {
-    const today = combine(groups[k].map(statusOf));
+    const statuses = groups[k].map(statusOf);
+    const today = combine(statuses);
     return {
       id: b.id,
       tag: b.tag,
@@ -188,6 +190,7 @@ export function compareBaseline(input: {
       keyLines: b.lines ?? [],
       readQuotes: groups[k].map((g) => g.quote),
       today,
+      missingParts: statuses.filter((s) => s.kind === "missing").length,
       class: classify(today, b.verdict),
       droppedWhere: today.kind === "not-read" ? whereDropped(b.quote, ad) : null,
     };

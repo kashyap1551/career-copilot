@@ -80,6 +80,18 @@ export type RowDetail = {
   falseMetA: boolean; // 1a
   wrongEvidence: boolean; // 1b
   found: boolean;
+  missingParts: number; // how many read requirements of this key sentence the product counts as missing (a sentence read as two requirements can count twice)
+};
+
+// EC-8d (2a): a requirement the product judged (AI, list or same-name) that has no row in the key. `id` is "Q<n>", n the place in the ad reading, from 1.
+export type ExtraRow = {
+  id: string;
+  tag: string;
+  quote: string;
+  source: "AI" | "list" | "same-name";
+  aiVerdict: "met" | "partly" | "none" | null;
+  aiQuote: string | null;
+  final: "met" | "missing";
 };
 
 export type LevelVsKeyOrCeiling = "stronger" | "equal" | "weaker" | "ceiling" | "not comparable";
@@ -101,6 +113,7 @@ export type PairResult = {
   rows: RowDetail[]; // every key requirement row, unsure ones too (marked)
   unsureRows: RowDetail[];
   conditionRows: CompareRow[]; // EC-8c (AM20): listed apart, in no number
+  extraRows: ExtraRow[]; // EC-8d: judged, no key row; listed apart, in no number
   unsureMusts: number;
   keyLevel: FitLevel | "no-level" | null; // without the condition rows
   keyLevelWithConditions: FitLevel | "no-level" | null;
@@ -151,8 +164,22 @@ export function scorePair(input: PairCheckInput): PairResult {
       falseMetA: !row.unsure && row.class === "false-met",
       wrongEvidence,
       found: !row.unsure && row.verdict === "met" && row.today.kind === "met" && !wrongEvidence,
+      missingParts: row.missingParts,
     };
   });
+
+  // The requirements no key sentence pairs with (compareBaseline's `extras`), the judged ones: each is matched to its place in the ad reading.
+  const used = new Set<number>();
+  const extraRows: ExtraRow[] = [];
+  for (const e of after.extras) {
+    if (e.status === "unjudged") continue;
+    const m = reqs.find((q) => !used.has(q.index) && q.r.quote === e.quote && q.r.importance === e.importance);
+    if (!m) continue;
+    used.add(m.index);
+    const a = answerAt.get(m.index) ?? null;
+    const source: ExtraRow["source"] = a !== null ? "AI" : sameName.has(m.r) ? "same-name" : "list";
+    extraRows.push({ id: `Q${m.index + 1}`, tag: m.r.importance, quote: m.r.quote, source, aiVerdict: a?.verdict ?? null, aiQuote: a?.quote ?? null, final: e.status });
+  }
 
   const checkLevel = after.today.level;
   const levelVsKey: LevelVsKeyOrCeiling = after.today.label.startsWith("At best ") ? "ceiling" : after.levelVsKey;
@@ -174,6 +201,7 @@ export function scorePair(input: PairCheckInput): PairResult {
     rows,
     unsureRows: rows.filter((r) => r.unsure),
     conditionRows: after.conditionRows,
+    extraRows,
     unsureMusts: after.unsureRows.filter((r) => r.tag === "must").length,
     keyLevel: after.keyLevel,
     keyLevelWithConditions: after.keyLevelWithConditions,
