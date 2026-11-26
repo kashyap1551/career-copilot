@@ -6,7 +6,7 @@ import { baselineJson, baselineMarkdown } from "@/lib/engine/evalEveryCvReport";
 import { toViewAnswers } from "@/lib/cv/checkBridge";
 import { checkMarkdown } from "@/lib/engine/evalEveryCvCheckReport";
 import { numbersOf, planFor, scorePair } from "@/lib/engine/evalEveryCvCheckScore";
-import { CALL, pairInput, prop, X, type Spec } from "./support/checkEvalWorld";
+import { CALL, pairInput, X, type Spec } from "./support/checkEvalWorld";
 import type { CvBuildResult, CvSkill } from "@/lib/engine/fromCv";
 import type { Job, Requirement } from "@/lib/engine/types";
 
