@@ -2,7 +2,7 @@
 
 About 4 to 5 focused hours a day. Every day ends with a deploy. Start the next step only when the current step's check passes, and tick each step when it's done.
 
-**Every-CV work (2026-11-26, branch step-every-cv, outside the day plan below):** built and pushed up to EC-5b (3dfc1be): the check on the page and the check eval. NOT done: the baseline, the calibration and the two counted runs (no real AI call yet; four separate days, each needs the owner's go). Read the top of docs/PLAN-EVERY-CV.md (WHERE WE STOPPED).
+**Every-CV work (2026-11-26, branch step-every-cv, outside the day plan below):** built and pushed up to EC-8e: the check on the page reads the CV's own lines (EC-8a), the level counts what the check judged (EC-8b), condition rows apart and a CV-read estimate that counts lines (EC-8c), extra rows and missing musts in the check report (EC-8d), a rolling token window in the check eval (EC-8e). Real runs so far, none counted: the baseline (18 of 20 reads; pair-08 has no CV reading) and three calibration check runs (nine pairs: 0 false met, 32 of 38 key-met rows found, level equal to the key in 5 of 9). NOT done: the counted runs (each needs the owner's go on its own day) and the owner's decision on split requirements. Read the top of docs/PLAN-EVERY-CV.md (WHERE WE STOPPED).
 
 ## Fit levels (first version; tune them as real ads come in)
 
