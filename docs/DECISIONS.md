@@ -140,3 +140,23 @@ One line per decision: date, decision, reason.
 - 2026-11-26: LATER: pair-08 (96 lines) still has no CV reading: the provider answered 400 for the whole CV read; one diagnostic call or splitting long CVs needs the owner's go.
 - 2026-11-26: The calibration run 2026-11-26T18-31-40-557Z stopped with a 429 at pair-07 after six good calls (3 tries in 6,160 ms, 0 tokens; only the first try was a real request). Cause: the old pacing looked only at the last response's header. EC-8e adds a rolling window of at most 6,000 tokens in 60 seconds, counting the larger of the estimate and the real tokens.
 - 2026-11-26: Groq's free limits as confirmed on the Groq Limits page by the owner on 2026-11-26: 8,000 tokens a minute, 30 requests a minute, 200,000 tokens a day (the day limit was not the cause: about 100,000 used that day).
+- 2026-11-26: D-S1 OPEN: split requirements (the ad reader makes several requirements out of one sentence; the product counts each piece, the key counts the sentence once). Options: (A) a code rule, no pin move, no AI cost, tests first: group pieces with the same words into one sentence, count it once in the level, an "or" or "oder" sentence is met when any piece is met, any other sentence when all are, send it once to the AI, one row per sentence (English and German only); (B) change the ad prompt so the reader keeps an "or" sentence as one requirement with alternatives (moves the ad pin, needs the owner's approval of the text and a re-run of the ten ad reads, about 25,000 tokens); (C) count the key by pieces: rejected, it copies the mistake into the key. The reviewer recommends A first, B only if A leaves a gap. No counted run before it is decided. Reason: it is the main cause of the weaker levels (pair-06 R1, pair-02 R4, pair-07 R4, pair-09 R2 and R3).
+- 2026-11-26: The reviewer accepted EC-8d to EC-8f (head 70815d6, gates green, no pin moved, no AI call) and the one unnamed test edit (checkEvalMain EM11: the old waits cannot hold with the 6,000-token window; the new expectation was worked out by hand).
+- 2026-11-26: The level bar (equal to the key in at least 8 of 10 pairs) stays as it is and is not moved to fit the numbers. Reason: it cannot be met while split pieces are counted separately; a bar change is only ever the owner's dated decision.
+- 2026-11-26: LATER: the wording of the message when a delete fails. Reason: carried over from the owner's closing list; wording to be decided when picked up.
+- 2026-11-26: LATER: a better redaction (names and addresses). Reason: the redaction removes email addresses, phone numbers and web links only; names and addresses stay.
+- 2026-11-26: LATER: maxRetries (step 9.2). Reason: the SDK's own tries are untouched today; to be decided at step 9.2.
+- 2026-11-26: LATER: a privacy link from /demo (9.1c). Reason: carried over from the owner's closing list.
+- 2026-11-26: LATER: 9.1b. Reason: carried over from the owner's closing list; details to be written when it is picked up.
+- 2026-11-26: LATER: a German privacy page. Reason: the privacy page is English only (the German demo is already on the later list).
+- 2026-11-26: LATER: READING_VERSION in the eval stamp. Reason: carried over from the owner's closing list.
+- 2026-11-26: LATER: Groq 8.1b only after the D2 answer. Reason: carried over from the owner's closing list.
+- 2026-11-26: LATER: a possible Vercel move to Frankfurt. Reason: carried over from the owner's closing list; the region our server runs in is not confirmed yet.
+- 2026-11-26: LATER: the dated readings commit only after a dry-run git merge-tree. Reason: so a merge cannot surprise us.
+- 2026-11-26: LATER: the roadmap "Already Strong" and "At best" decision at the chain merge. Reason: how the roadmap treats "Already Strong" and "At best" is decided when the chain is merged.
+- 2026-11-26: LATER: the chain recheck items. Reason: the items to re-check when the branches of the chain are merged.
+- 2026-11-26: LATER: C4's "skills you added by hand" overstatement. Reason: the C4 claim says more than the code does for skills added by hand.
+- 2026-11-26: LATER: merging step-9.3 into step-every-cv. Reason: hand-merge lib/privacy/messages.ts and lib/ai/errors.ts, which both branches edit.
+- 2026-11-26: LATER: the chain merges 7.3, 8.1, 8.2 and 8.3. Reason: carried over from the owner's closing list.
+- 2026-11-26: LATER: EC-6 (store the check's answers). Reason: it must change the C4 and C17 "not saved" claims in the same commit.
+- 2026-11-26: LATER: EC-7 (a two-part CV reading, if needed). Reason: for CVs too long for one read, such as the 96-line CV of pair-08.
