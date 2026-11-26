@@ -90,8 +90,8 @@ export const Y: Spec = {
   key: [{ v: "met", lines: "2" }, { v: "none" }],
   unlisted: [U("new:counter-skill", "Counter skill"), U("new:forklift", "Forklift")],
 };
-// Entries (EC-8a): E1 to E6 are CV line 1 to CV line 6. (A listed skill is on the profile, as on every real one: a profile with
-// only unlisted skills is shown as "No level (no skills on your profile)" whatever the check says.)
+// Entries (EC-8a): E1 to E6 are CV line 1 to CV line 6. (A listed skill is on the profile, as on every real one. Before EC-8b a profile with
+// only unlisted skills was shown as "No level (no skills on your profile)" whatever the check said; this world keeps its listed skill.)
 export const REPLY_Y = {
   answers: [
     { requirement: 1, verdict: "met", entry: 4, quote: "Closed the shop at night" },

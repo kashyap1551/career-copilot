@@ -565,7 +565,7 @@ From EC-4b (no new sentence; notes for the approval):
 Known limits of the check eval (EC-5):
 - The eval runs the route in this process, so it measures the model's time plus our code, not Vercel's network or time limit; one real click on the deployed site is timed later.
 - The caps of 30 requirements and 120 entries (EC-8a: the entries are CV lines) drop the rest; the report shows, for each pair, how many entries the cap dropped and how many open requirements stay not judged.
-- A profile with ONLY unlisted skills is shown as "No level (no skills on your profile)" whatever the check answers (`app/fitReport.ts` counts the profile's own skills, not the ones the engine view adds). Found while building the eval; not changed here.
+- (D-R2, fixed in EC-8b) A profile with ONLY unlisted skills used to be shown as "No level (no skills on your profile)" whatever the check answered (`app/fitReport.ts` counted only the profile's own listed skills). Now a must-have judged by the same-name match or by an accepted answer counts as having skills; a profile with no skills and nothing judged by those two is unchanged.
 
 Note: EC-6 (storing answers) must change C4 and C17 (the "not saved" sentence) in the same commit.
 

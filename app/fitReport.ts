@@ -196,7 +196,9 @@ export function profileReport(
     requirements: job.requirements.length,
     judgedMusts: result.counts.mustsTotal,
     unjudgedMusts,
-    skillCount: profile.skills.length,
+    // EC-8b (finding D-R2): a profile whose only skills are unlisted has none of its own in `profile.skills`; a must-have judged by the same-name match or
+    // by an accepted answer of the check is a judgment on what the person has, so it counts as having skills. With neither, the rule is what it was.
+    skillCount: profile.skills.length + (view.sameName?.length ?? 0) + (view.aiJudged?.length ?? 0),
   });
 
   const missing = result.musts.filter((m) => !m.met).map((m) => labelOf(originalReq(m.requirement).skillIds));
