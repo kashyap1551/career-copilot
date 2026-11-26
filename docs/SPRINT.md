@@ -2,6 +2,8 @@
 
 About 4 to 5 focused hours a day. Every day ends with a deploy. Start the next step only when the current step's check passes, and tick each step when it's done.
 
+**Every-CV work (2026-11-26, branch step-every-cv, outside the day plan below):** built and pushed up to EC-5b (3dfc1be): the check on the page and the check eval. NOT done: the baseline, the calibration and the two counted runs (no real AI call yet; four separate days, each needs the owner's go). Read the top of docs/PLAN-EVERY-CV.md (WHERE WE STOPPED).
+
 ## Fit levels (first version; tune them as real ads come in)
 
 - **Strong:** every must-have we can judge is met, and there is no conflict (not even one that could be closed).

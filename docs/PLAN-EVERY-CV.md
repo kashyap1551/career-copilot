@@ -1,3 +1,17 @@
+## WHERE WE STOPPED (2026-11-26)
+
+- **Built and pushed (branch step-every-cv):** EC-0 tooling and the ten answer keys (5099bad), EC-1 to EC-4b (the check on the page), EC-5a f80a69a (check eval, pure parts), EC-5b 3dfc1be (check eval script, modes, docs).
+- **NOT done:** the baseline run, the calibration run and the two counted runs. No real AI call has been made for the every-CV work. Every number so far comes from invented data and fake models.
+- **Day plan (four separate days, each needs the owner's explicit go in its own prompt):** A baseline (about 90,000 tokens) | B calibration check run (about 65,000, not counted) | C counted run 1 | D counted run 2, same fingerprint.
+- **First step of any real run: the --fingerprint mode** (no network). `npm run every-cv:baseline -- --fingerprint` and `npm run eval-check -- --fingerprint` print the values the guard variables must hold.
+- **Baseline:** `npm run every-cv:baseline` needs EXPECT_REQUEST_HASH, EXPECT_INSTRUCTIONS_LEN, EXPECT_AD_REQUEST_HASH, EXPECT_AD_INSTRUCTIONS_LEN and EVERY_CV_GO=yes (values from --fingerprint; the go is the owner's).
+- **Check eval:** `npm run eval-check` (add `-- --calibration` for the not-counted run) needs EXPECT_CHECK_REQUEST_HASH, EXPECT_CHECK_INSTRUCTIONS_LEN and EVERY_CV_GO=yes, ten complete keys committed, and a baseline run that matches today's fingerprint. Never an access code in any file.
+- **The owner still owes:** the 9.3 manual check on a different day than the baseline; the stage 2.7 homework; the approval of the DRAFT wording list (end of this file); an explicit go before each real run.
+- **D-R1:** no code change after EC-5; for the invented pairs X, Y, Z the bar fails on numbers 1, 2, 3, 4, 6 and 7.
+- **D-R2:** the finding in `app/fitReport.ts` (a profile with only unlisted skills shows "No level (no skills on your profile)" even after the check answers) is NOT changed now; after the baseline, look at which of the ten pairs show it, then the reviewer and the owner decide.
+- **D-R3:** the new test files are named `checkEval*.test.ts`, not `everyCv*`, because guard D3 in `everyCvBaseline.test.ts` keeps every `everyCv*.test.ts` away from `lib/ai`.
+- **D-R4:** every real run needs the owner's explicit go in its own prompt; four separate days; a stopped real call is never retried by hand.
+
 # PLAN: Career Co-pilot works on every CV
 
 Status: PLAN ONLY. No code, no test change, no AI call, no network was used to write it. Written on branch `step-every-cv`, cut from the tip of `step-9.3` (b3c6a21). Every wording in it that a user will read is a DRAFT until the owner approves it.
