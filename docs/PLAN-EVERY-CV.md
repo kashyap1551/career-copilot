@@ -500,7 +500,7 @@ New: `lib/schemas/check.ts`, `lib/ai/checkEvidence.ts`, `lib/ai/checkRequestHash
 
 ## Amendments log
 
-All dated 2026-11-25.
+All dated 2026-11-25, except AM20 (2026-11-26).
 
 | AM | What | Sections touched |
 |---|---|---|
@@ -523,6 +523,7 @@ All dated 2026-11-25.
 | AM17 | Wrong-evidence rule: an AI-judged row where the key says met but the CV line the AI cites is not one of the key's lines counts against the bar as a false met (kind 1b), and the report marks it "wrong-evidence candidate" and lists it first. In the calibration run the owner and the reviewer read each candidate. A key line is ADDED only when the CV text really supports the other line; the reason is logged and the change is committed before the counted runs; never to fit the code. | 9, 10 |
 | AM18 | Ceiling labels: when a must stays unjudged after the check (thrown away, not answered, not read), the report's R7 label is "At best <level>"; the eval records that as a "ceiling": never equal, never stronger, never weaker, with its own count. Long shot and "No level" labels have no ceiling and compare normally. | 4.4, 9 |
 | AM19 | Day plan of the real runs (four separate days, each needs the owner's explicit go in its own prompt): Day A baseline (about 90,000 tokens), Day B calibration check run (about 65,000, not counted), Day C counted run 1, Day D counted run 2 with the SAME fingerprint. The calibration may change a key line (AM17) or a prompt; a re-pin needs the owner's explicit go. | 5, 10 |
+| AM20 | 2026-11-26 (decided by the owner before any further run): CONDITION ROWS. A key row whose sentence the ad reading put into the ad's constraints (minYears, languages or otherConditions, found by the saved extraction's quotes and the job's otherConditions) and not into a requirement is a condition row. Reason: the person types years and language levels on the confirm screen; the CV text never decides them, so a check of CV lines can never answer them, and counting them as Dropped, as false met or missing, as unfound key rows, or in the key level measured the ad reader, not the check. In the baseline report and the check eval report they have their own table (never hidden), and they are left out of the counts, of numbers 1, 2 and 4, of the recall ceiling and of the key level (`everyCvKeyLevel` with an exclusion set). A sentence the reader set aside as a trait, or lost, stays a Dropped row. Before: the six Dropped rows pair-01 R1, pair-02 R5, pair-03 R1, pair-05 R1, pair-06 R5 and pair-10 R1 of the baseline run 2026-11-26T15-07-57-782Z; key levels of pair-01 and pair-03 move from Stretch to Good. | 9, 10 |
 
 Chain note: `lib/ai/errors.ts`: EC-3a added the subject check (`ReadSubject`, the log tag, a 500 message); `step-8.3` edits the same file for its own subject; keep both when merging.
 

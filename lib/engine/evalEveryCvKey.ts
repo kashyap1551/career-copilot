@@ -147,9 +147,10 @@ export function checkEveryCvKey(keyText: string, adText: string, cvLineCount: nu
 // The level a complete key gives. It uses the product's OWN fit rules (lib/engine/fit.ts), fed with the count of missing must-haves
 // and no conflicts (the key judges skills only). Only [must] blocks count; partly and none both count as missing; nice-to-haves and
 // traits never count. A key with no must block gives "no-level". A key that is not complete, or has a problem, gives null.
-export function everyCvKeyLevel(check: KeyCheck): FitLevel | "no-level" | null {
+// EC-8c (AM20): `excluding` is a set of R ids left out (the condition rows: the person types those, the CV text never decides them).
+export function everyCvKeyLevel(check: KeyCheck, excluding?: ReadonlySet<string>): FitLevel | "no-level" | null {
   if (check.state !== "complete" || check.problems.length > 0) return null;
-  const musts = check.blocks.filter((b) => b.kind === "R" && b.tag === "must");
+  const musts = check.blocks.filter((b) => b.kind === "R" && b.tag === "must" && !excluding?.has(b.id));
   if (musts.length === 0) return "no-level";
   const missingMusts = musts.filter((b) => b.verdict !== "met").length;
   return fitLevel({ missingMusts, conflicts: [] }).level;

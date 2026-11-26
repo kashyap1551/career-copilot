@@ -1,5 +1,5 @@
 import { levelName } from "./explain";
-import { CLASSES, summarizeBaseline, type PairBaseline, type RequirementClass } from "./evalEveryCvCompare";
+import { CLASSES, summarizeBaseline, type CompareRow, type PairBaseline, type RequirementClass } from "./evalEveryCvCompare";
 import type { CallRecord, Failure } from "./evalEveryCvRun";
 import type { FitLevel } from "./types";
 
@@ -112,6 +112,26 @@ export function baselineJson(r: ReportInput) {
 }
 
 // The three tables of one set: per pair, per requirement, and the cross-language totals. `level` is the heading level of the three ("###").
+// EC-8c (AM20): the condition rows, in their own table, for the baseline report and the check eval report alike. Never hidden, in no number.
+export const CONDITION_ROWS_HEADING = "## Condition rows (typed by the person, never decided from the CV text; not counted)";
+export function conditionRowsLines(
+  pairs: { pair: string; conditionRows: CompareRow[]; keyLevel: FitLevel | "no-level" | null; keyLevelWithConditions: FitLevel | "no-level" | null }[],
+): string[] {
+  const rows = pairs.flatMap((p) => p.conditionRows.map((x) => ({ pair: p.pair, x })));
+  const out = [CONDITION_ROWS_HEADING, ""];
+  if (rows.length === 0) return [...out, "No condition rows.", ""];
+  out.push(
+    table(
+      ["Pair", "Req", "Tag", "Key verdict", "Key lines", "Sentence", "Note"],
+      rows.map(({ pair, x }) => [pair, x.id, x.tag, x.verdict, x.keyLines.join(", ") || "-", x.quote, x.unsure ? "you marked it unsure" : ""]),
+    ),
+    "",
+  );
+  for (const p of pairs.filter((q) => q.conditionRows.length > 0)) out.push(`${p.pair}: key level without these rows ${levelText(p.keyLevel)}, with them ${levelText(p.keyLevelWithConditions)}.`);
+  out.push("");
+  return out;
+}
+
 function setTables(pairs: PairBaseline[]): string[] {
   const s = summarizeBaseline(pairs);
   const a = s.all;
@@ -198,6 +218,8 @@ export function baselineMarkdown(r: ReportInput): string {
     );
   }
 
+  out.push(...conditionRowsLines(r.pairs));
+
   out.push("## Recall ceiling", "");
   out.push(
     table(
@@ -224,6 +246,7 @@ export function baselineMarkdown(r: ReportInput): string {
     "- **Could not judge**: the requirement is not in our skill list, so the page sets it aside and says so. This is the size of the problem the AI check is meant to solve.",
     "- **Dropped**: the sentence did not come out of the ad reading at all (the reader set it aside as a trait or a condition, or lost it). The Note column says where it went.",
     "- **Answered** counts the rows where the page gives met or missing. Rows you marked unsure are listed but are in no total.",
+    "- **Condition rows** (AM20): a key sentence the ad reading put into the ad's conditions (years, language, other conditions) and not into a requirement. The person types those; the CV text never decides them. They have their own table, and they are in no count, no ceiling and no key level.",
     "- **Key level** comes from your verdicts with the product's own fit rules (partly counts as missing, nice-to-haves never count). **Against key** says whether the page's level reads stronger, equal or weaker than that.",
     "- **Recall ceiling**: for every requirement your key marks met, is there a confirmed skill entry on one of the CV lines you cited? If not, no check, however good, could find it. \"Recoverable\" means an unticked inferred skill sits on the line (option (i)); \"needs option (ii)\" means no skill was read from that line at all (a CV prompt change). It is the same in both sets.",
     "- In this run only the skills named in the CV are ticked (as the page does it); the inferred ones are not.",

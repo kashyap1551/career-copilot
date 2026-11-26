@@ -2,7 +2,7 @@ import { buildCheckPlan, type CheckPlan, type Checked } from "../cv/checkPlan";
 import { engineView } from "../cv/engineView";
 import { buildProfile, initialConfirm, type BuiltProfile, type ConfirmState } from "../cv/profile";
 import { waitForTokens } from "./evalCvRun";
-import { compareBaseline, type AdReading, type RequirementClass } from "./evalEveryCvCompare";
+import { compareBaseline, type AdReading, type CompareRow, type RequirementClass } from "./evalEveryCvCompare";
 import type { CallSummary } from "./evalEveryCvCheckFetch";
 import type { KeyCheck } from "./evalEveryCvKey";
 import type { CvBuildResult, CvSkill } from "./fromCv";
@@ -100,8 +100,10 @@ export type PairResult = {
   entriesDropped: number;
   rows: RowDetail[]; // every key requirement row, unsure ones too (marked)
   unsureRows: RowDetail[];
+  conditionRows: CompareRow[]; // EC-8c (AM20): listed apart, in no number
   unsureMusts: number;
-  keyLevel: FitLevel | "no-level" | null;
+  keyLevel: FitLevel | "no-level" | null; // without the condition rows
+  keyLevelWithConditions: FitLevel | "no-level" | null;
   checkLevel: FitLevel | null;
   label: string;
   labelBefore: string; // the label before any answer (the same-name match only)
@@ -171,8 +173,10 @@ export function scorePair(input: PairCheckInput): PairResult {
     entriesDropped: plan.entriesAvailable - plan.entries.length,
     rows,
     unsureRows: rows.filter((r) => r.unsure),
+    conditionRows: after.conditionRows,
     unsureMusts: after.unsureRows.filter((r) => r.tag === "must").length,
     keyLevel: after.keyLevel,
+    keyLevelWithConditions: after.keyLevelWithConditions,
     checkLevel,
     label: after.today.label,
     labelBefore: before.today.label,

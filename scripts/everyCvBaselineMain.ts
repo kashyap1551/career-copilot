@@ -5,7 +5,7 @@ import { compareBaseline, summarizeBaseline, type AdReading, type PairBaseline }
 import { firstRefusal, hashRefusal } from "../lib/engine/evalEveryCvGuard";
 import { checkEveryCvKey } from "../lib/engine/evalEveryCvKey";
 import { baselineJson, baselineMarkdown, summaryTable, type ReportInput } from "../lib/engine/evalEveryCvReport";
-import { readAllPairs, type AdOutcome, type CvOutcome, type PairInput } from "../lib/engine/evalEveryCvRun";
+import { flaggedCalls, OVER_TOKENS, readAllPairs, type AdOutcome, type CvOutcome, type PairInput } from "../lib/engine/evalEveryCvRun";
 import { savedReadingText } from "../lib/engine/evalEveryCvSave";
 import { evalFingerprint, requestHash } from "../lib/engine/evalFingerprint";
 import { loadPairKeys } from "../lib/engine/evalEveryCvStatus";
@@ -53,6 +53,14 @@ export type BaselineDeps = {
 const CROSS_LANGUAGE = new Set(["pair-06", "pair-10"]);
 const PAIR_DIR = /^pair-\d\d$/;
 const MIN_GAP_MS = 3000; // the same gap the other evals keep between two calls (20 calls a minute at most; the limit is 30)
+
+// EC-8c: the reads estimated over 7,000 tokens, said before any call (a flag, not a stop: the pacing already waits for what such a call needs).
+function flaggedLine(pairs: PairInput[], cvInstructionsLength: number, adInstructionsLength: number): string {
+  const flagged = flaggedCalls(pairs, cvInstructionsLength, adInstructionsLength);
+  return flagged.length === 0
+    ? `Reads estimated over ${OVER_TOKENS.toLocaleString("en-US")} tokens: none.`
+    : `Reads estimated over ${OVER_TOKENS.toLocaleString("en-US")} tokens: ${flagged.map((f) => `${f.pair} ${f.kind === "cv" ? "CV" : "ad"} read (${f.estimate.toLocaleString("en-US")})`).join(", ")}.`;
+}
 
 const pageLines = (cv: string) => numberLines(removeContactDetails(cv)); // exactly what the page sends (app/CvBox.tsx)
 
@@ -107,6 +115,7 @@ export async function baselineMain(deps: BaselineDeps): Promise<{ exitCode: numb
         `vocab ${real.vocabulary.slice(0, 10)}`,
         "For a real run set: EXPECT_REQUEST_HASH, EXPECT_INSTRUCTIONS_LEN (the CV reader) and EXPECT_AD_REQUEST_HASH, EXPECT_AD_INSTRUCTIONS_LEN (the ad reader) to the values above, and EVERY_CV_GO=yes.",
         `EXPECT_REQUEST_HASH=${cvHash10} EXPECT_INSTRUCTIONS_LEN=${real.cvRequest.instructionsLength} EXPECT_AD_REQUEST_HASH=${adHash10} EXPECT_AD_INSTRUCTIONS_LEN=${real.adRequest.instructionsLength}`,
+        flaggedLine(tenDirs.map((id) => ({ id, cvLines: pageLines(read(id, "cv.txt")), adText: read(id, "ad.txt").trim() })), real.cvRequest.instructionsLength, real.adRequest.instructionsLength),
         "",
       ].join("\n"),
     );
@@ -128,6 +137,7 @@ export async function baselineMain(deps: BaselineDeps): Promise<{ exitCode: numb
     ads: runList.map((id) => ({ id, text: `${read(id, "cv.txt")}\n---\n${read(id, "ad.txt")}`, key: read(id, "key.txt") })),
     vocabulary: real.vocabulary,
   });
+  deps.out(`${flaggedLine(inputs, real.cvRequest.instructionsLength, real.adRequest.instructionsLength)}\n`);
   const keyCommit = deps.git.keyCommit();
   const runId = deps.now().toISOString().replace(/[:.]/g, "-");
   const folder = `${deps.outRoot}/${runId}`;

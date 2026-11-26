@@ -1,4 +1,5 @@
 import { levelName } from "./explain";
+import { conditionRowsLines } from "./evalEveryCvReport";
 import { bar, numbersOf, type PairResult, type RowDetail } from "./evalEveryCvCheckScore";
 import type { ConfirmMode } from "./evalEveryCvCheckScore";
 import type { FitLevel } from "./types";
@@ -130,6 +131,7 @@ export function checkMarkdown(r: CheckReportInput): string {
   const unsure = r.results.flatMap((p) => p.unsureRows.map((x) => requirementRow(p.pair, x)));
   out.push(`## Unsure key rows (not counted, never hidden): ${unsure.length}`, "");
   if (unsure.length > 0) out.push(table(["Pair", "Req", "Tag", "Key verdict", "Key lines", "Source", "Final", "AI verdict", "AI entry", "AI line", "AI quote", "Class", "Note"], unsure), "");
+  out.push(...conditionRowsLines(r.results));
   return out.join("\n");
 }
 

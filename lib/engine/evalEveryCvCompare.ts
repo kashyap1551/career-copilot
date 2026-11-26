@@ -23,7 +23,9 @@ import type { FitLevel, Requirement, Skill } from "./types";
 // may collect several. How several are combined: if any is missing the sentence is "missing"; otherwise if any could not be judged it is
 // "could not judge"; otherwise it is "met".
 
-export type AdReading = Pick<BuildResult, "job" | "removed" | "moved" | "unlisted" | "notCounted">;
+// `extraction` is the ad reader's own extraction as saved with a reading (minYears, languages and otherConditions each with the sentence they came
+// from); a reading saved before it was kept has none.
+export type AdReading = Pick<BuildResult, "job" | "removed" | "moved" | "unlisted" | "notCounted"> & { extraction?: unknown };
 
 export type Today =
   | { kind: "met"; line: number }
@@ -53,14 +55,18 @@ export type Counted = Record<RequirementClass, number>;
 export type PairBaseline = {
   pair: string;
   crossLanguage: boolean;
-  rows: CompareRow[];
+  rows: CompareRow[]; // without the condition rows
   unsureRows: CompareRow[];
-  counted: Counted; // unsure rows are NOT in it
+  // EC-8c (AM20): key rows whose sentence the ad reading put into constraints (minYears, languages, otherConditions) and not into a requirement. The person
+  // types those; the CV text never decides them. Listed apart, never hidden, and in none of the counts, the ceiling or the key level.
+  conditionRows: CompareRow[];
+  counted: Counted; // unsure rows and condition rows are NOT in it
   answered: number; // rows with an answer today (met or missing), unsure rows left out
   countedTotal: number; // rows counted, unsure rows left out
   extras: { quote: string; importance: "must" | "nice"; status: "met" | "missing" | "unjudged" }[];
   today: { label: string; level: FitLevel | null };
-  keyLevel: FitLevel | "no-level" | null;
+  keyLevel: FitLevel | "no-level" | null; // without the condition rows
+  keyLevelWithConditions: FitLevel | "no-level" | null; // what it was before AM20: with them
   levelVsKey: LevelVsKey;
   ceiling: CeilingResult;
 };
@@ -85,6 +91,21 @@ function whereDropped(quote: string, ad: AdReading): string {
   }
   if (ad.removed.some((x) => sameQuote(quote, x.text))) return "removed by a check";
   return "not found in the reading";
+}
+
+// The sentences the ad reading put into constraints: the saved extraction's minYears, languages and otherConditions, and the job's own otherConditions.
+function conditionQuotes(ad: AdReading): string[] {
+  const out = ad.job.constraints.otherConditions.map((c) => c.quote);
+  const x = ad.extraction as { minYears?: { quote?: unknown } | null; languages?: { quote?: unknown }[]; otherConditions?: { quote?: unknown }[] } | undefined | null;
+  if (x && typeof x === "object") {
+    const add = (q: unknown) => {
+      if (typeof q === "string" && q !== "") out.push(q);
+    };
+    add(x.minYears?.quote);
+    for (const l of Array.isArray(x.languages) ? x.languages : []) add(l?.quote);
+    for (const c of Array.isArray(x.otherConditions) ? x.otherConditions : []) add(c?.quote);
+  }
+  return out;
 }
 
 function combine(statuses: Today[]): Today {
@@ -155,7 +176,8 @@ export function compareBaseline(input: {
     else groups[(best as { k: number }).k].push(r);
   }
 
-  const rows: CompareRow[] = reqBlocks.map((b, k) => {
+  const conditions = conditionQuotes(ad);
+  const allRows: CompareRow[] = reqBlocks.map((b, k) => {
     const today = combine(groups[k].map(statusOf));
     return {
       id: b.id,
@@ -171,6 +193,11 @@ export function compareBaseline(input: {
     };
   });
 
+  // AM20: a sentence no requirement was read from, which the reading put into the constraints, is a condition row.
+  const isCondition = (r: CompareRow) => r.today.kind === "not-read" && conditions.some((q) => sameQuote(r.quote, q));
+  const conditionRows = allRows.filter(isCondition);
+  const rows = allRows.filter((r) => !isCondition(r));
+
   const counting = rows.filter((r) => !r.unsure);
   const counted = emptyCounted();
   for (const r of counting) counted[r.class]++;
@@ -181,7 +208,8 @@ export function compareBaseline(input: {
     counting.filter((r) => r.verdict === "met").map((r) => ({ id: r.id, lines: r.keyLines })),
   );
 
-  const keyLevel = everyCvKeyLevel(key);
+  const keyLevel = everyCvKeyLevel(key, new Set(conditionRows.map((r) => r.id)));
+  const keyLevelWithConditions = everyCvKeyLevel(key);
   const todayLevel = report.level;
   let levelVsKey: LevelVsKey = "not comparable";
   if (todayLevel !== null && keyLevel !== null && keyLevel !== "no-level") {
@@ -194,12 +222,14 @@ export function compareBaseline(input: {
     crossLanguage: input.crossLanguage,
     rows,
     unsureRows: rows.filter((r) => r.unsure),
+    conditionRows,
     counted,
     answered,
     countedTotal: counting.length,
     extras: unpaired.map((r) => ({ quote: r.quote, importance: r.importance, status: statusOf(r).kind as "met" | "missing" | "unjudged" })),
     today: { label: report.fitLabel, level: todayLevel },
     keyLevel,
+    keyLevelWithConditions,
     levelVsKey,
     ceiling,
   };

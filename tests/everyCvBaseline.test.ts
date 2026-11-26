@@ -344,6 +344,22 @@ describe("EC-0b part 5: pacing for the near-cap CV, and a 429 stops the run", ()
     expect(w.sleeps[1]).toBe(10_790);
   });
 
+  it("B17b (EC-8c 3.2): a 96-line CV is flagged before any call, in --fingerprint (no call) and at the start of a real run; with only short CVs the line says none", async () => {
+    // pair-02: 96 lines of 100 characters (the page's count: no contact detail, no blank line): CV estimate min(7,800, ceil((1,496 + 1,000 + 9,600) / 4) + 9,600) = 7,800.
+    const long = (id: string) => (id === "pair-02" ? Array.from({ length: 96 }, () => "a".repeat(100)).join("\n") : CV_TEXT);
+    const wf = world({ cvText: long });
+    const f = await baselineMain(deps(wf, ["--fingerprint"]));
+    expect(f.exitCode).toBe(0);
+    expect(wf.calls).toEqual([]);
+    expect(wf.out.join("")).toContain("Reads estimated over 7,000 tokens: pair-02 CV read (7,800).");
+    const wr = world({ cvText: long });
+    await baselineMain(deps(wr, ["--pairs=pair-01,pair-02"], { env: REAL() }));
+    expect(wr.out.join("")).toContain("Reads estimated over 7,000 tokens: pair-02 CV read (7,800).");
+    const wn = world();
+    await baselineMain(deps(wn, ["--fingerprint"]));
+    expect(wn.out.join("")).toContain("Reads estimated over 7,000 tokens: none.");
+  });
+
   it("B18: a 429 stops at once: no retry, no later pair is read, what exists is saved, the stop names the pair and the kind of read, exit 1", async () => {
     const w = world();
     const err429 = Object.assign(new Error("The AI service is busy right now. Please try again in a minute."), { status: 429 });
