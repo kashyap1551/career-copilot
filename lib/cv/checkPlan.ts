@@ -22,6 +22,7 @@ export const PLAN_MAX_ENTRIES = 60;
 export type CheckPlan = {
   requirements: SentRequirement[];
   entries: SentEntry[];
+  entriesAvailable: number; // confirmed entries with a CV line BEFORE the cap of 60 (the eval shows how many the cap dropped)
   notChecked: number; // open requirements that did not fit in one check
   key: string;
 };
@@ -64,7 +65,7 @@ export function buildCheckPlan(job: Job, built: BuiltProfile, skills: Skill[], p
     requirements.map((r) => [r.index, r.importance, r.quote]),
     entries.map((e) => [e.name, e.skillId, e.line, e.text, e.inferred]),
   ]);
-  return { requirements, entries, notChecked: open.length - requirements.length, key };
+  return { requirements, entries, entriesAvailable: found.length, notChecked: open.length - requirements.length, key };
 }
 
 // The answers a report may use: only while the plan is still the one the check was made on.

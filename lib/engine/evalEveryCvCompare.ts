@@ -1,6 +1,6 @@
 import { reportFor } from "../../app/savedAdRows";
-import { buildProfile, initialConfirm } from "../cv/profile";
-import { engineView, originalOf } from "../cv/engineView";
+import { buildProfile, initialConfirm, type ConfirmState } from "../cv/profile";
+import { engineView, originalOf, type ViewExtras } from "../cv/engineView";
 import { recallCeiling, type CeilingResult } from "./evalEveryCvCeiling";
 import { everyCvKeyLevel, type KeyBlock, type KeyCheck } from "./evalEveryCvKey";
 import type { BuildResult } from "./fromAd";
@@ -116,15 +116,18 @@ export function compareBaseline(input: {
   // `unlistedKept`, so a requirement that is not in our skill list stays "could not judge", exactly as in the first baseline. true measures the
   // product as it is now, with the same-name match.
   withKept?: boolean;
+  // EC-5: the answers of a check (lib/cv/checkBridge.ts) and the confirm choice the profile is built with. Without them: what it was (named skills ticked, no answers).
+  extras?: ViewExtras & { thrownAway?: number };
+  confirm?: ConfirmState;
 }): PairBaseline {
   const { key, cv, ad, skills } = input;
   if (key.state !== "complete" || key.problems.length > 0) throw new Error("The key must be complete and without problems before it is compared.");
 
   // Today's pipeline, with the page's own functions.
-  const builtWithKept = buildProfile(input.cvLines, cv.skills, initialConfirm(cv.skills), skills); // named skills ticked, inferred ones not
+  const builtWithKept = buildProfile(input.cvLines, cv.skills, input.confirm ?? initialConfirm(cv.skills), skills); // named skills ticked, inferred ones not (unless the caller chose)
   const built = input.withKept === true ? builtWithKept : { ...builtWithKept, unlistedKept: undefined };
-  const report = reportFor(ad, built, skills, cv.unlisted); // the report the page shows (label, level word)
-  const view = engineView(ad.job, built);
+  const report = reportFor(ad, built, skills, cv.unlisted, input.extras); // the report the page shows (label, level word)
+  const view = engineView(ad.job, built, input.extras);
   const result = match(view.engineProfile, view.engineJob);
 
   // A requirement the same-name match rewrote for the engine is found under its rewritten form.
